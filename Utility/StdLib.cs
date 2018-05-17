@@ -51,28 +51,24 @@ public static class StdLib
         _memcpyDelegate.Invoke(destination, source, lenght);
     }
 
-    ///// <summary>
-    ///// This is unsafe function
-    ///// </summary>
-    //public static unsafe void MemCpy(IntPtr destination, uint[] source)
-    //{
-    //    fixed (void* pSource = &source[0])
-    //    {
-    //        _memcpyDelegate.Invoke(destination, new IntPtr(pSource), source.Length * sizeof(uint));
-    //    }
-    //}
+    public static T ToStruct<T>(this IntPtr ptr) where T: struct
+    {
+        return (T)Marshal.PtrToStructure(ptr, typeof(T));
+    }
 
-    ///// <summary>
-    ///// This is unsafe function
-    ///// </summary>
-    //public static unsafe void MemCpy(byte[] destination, byte[] source)
-    //{
-    //    fixed (void* pDest = &destination[0])
-    //    {
-    //        fixed (void* pSource = &source[0])
-    //        {
-    //            _memcpyDelegate.Invoke(new IntPtr(pDest), new IntPtr(pSource), destination.Length);
-    //        }
-    //    }
-    //}
+    public static IntPtr ToPointer<T>(this T structure) where T: struct
+    {
+        IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(T)));
+        Marshal.StructureToPtr(structure, ptr, false);
+
+        return ptr;
+    }
+
+    public static unsafe void MemCpy(IntPtr destination, uint[] source)
+    {
+        fixed (void* pSource = &source[0])
+        {
+            _memcpyDelegate.Invoke(destination, new IntPtr(pSource), source.Length * sizeof(uint));
+        }
+    }
 }

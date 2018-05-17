@@ -20,19 +20,19 @@ namespace Digger.Net
             return (0);
         }
 
-        public static void redefkeyb(digger_draw_api ddap, bool allf)
+        public static void redefkeyb(SdlGraphics ddap, bool allf)
         {
             int i, j, k, l, z, y = 0, x, savey;
             bool f;
 
             maininit();
 
-            outtext(ddap, "PRESS NEW KEY FOR", 0, y, 3);
+            drawApi.TextOut(ddap, "PRESS NEW KEY FOR", 0, y, 3);
             y += CHR_H;
 
-            if (diggers == 2)
+            if (g_Diggers == 2)
             {
-                outtext(ddap, "PLAYER 1:", 0, y, 3);
+                drawApi.TextOut(ddap, "PLAYER 1:", 0, y, 3);
                 y += CHR_H;
             }
 
@@ -41,9 +41,9 @@ namespace Digger.Net
             savey = y;
             for (i = 0; i < 5; i++)
             {
-                outtext(ddap, keynames[i], 0, y, 2); /* Red first */
+                drawApi.TextOut(ddap, keynames[i], 0, y, 2); /* Red first */
                 if (prockey(i) == -1) return;
-                outtext(ddap, keynames[i], 0, y, 1); /* Green once got */
+                drawApi.TextOut(ddap, keynames[i], 0, y, 1); /* Green once got */
                 y += CHR_H;
                 for (j = 0; j < i; j++)
                 { /* Note: only check keys just pressed (I hate it when
@@ -67,15 +67,15 @@ namespace Digger.Net
                 }
             }
 
-            if (diggers == 2)
+            if (g_Diggers == 2)
             {
-                outtext(ddap, "PLAYER 2:", 0, y, 3);
+                drawApi.TextOut(ddap, "PLAYER 2:", 0, y, 3);
                 y += CHR_H;
                 for (i = 5; i < 10; i++)
                 {
-                    outtext(ddap, keynames[i], 0, y, 2); /* Red first */
+                    drawApi.TextOut(ddap, keynames[i], 0, y, 2); /* Red first */
                     if (prockey(i) == -1) return;
-                    outtext(ddap, keynames[i], 0, y, 1); /* Green once got */
+                    drawApi.TextOut(ddap, keynames[i], 0, y, 1); /* Green once got */
                     y += CHR_H;
                     for (j = 0; j < i; j++)
                     { /* Note: only check keys just pressed (I hate it when
@@ -104,7 +104,7 @@ namespace Digger.Net
 
             if (allf)
             {
-                outtext(ddap, "OTHER:", 0, y, 3);
+                drawApi.TextOut(ddap, "OTHER:", 0, y, 3);
                 y += CHR_H;
             }
 
@@ -133,9 +133,9 @@ namespace Digger.Net
                         y = savey;
                         x = (MAX_TEXT_LEN / 2) * CHR_W;
                     }
-                    outtext(ddap, keynames[i], x, y, 2); /* Red first */
+                    drawApi.TextOut(ddap, keynames[i], x, y, 2); /* Red first */
                     if (prockey(i) == -1) return;
-                    outtext(ddap, keynames[i], x, y, 1); /* Green once got */
+                    drawApi.TextOut(ddap, keynames[i], x, y, 1); /* Green once got */
                     z = i;
                     i--;
                 }

@@ -56,12 +56,12 @@ namespace Digger.Net
 
             public void put()
             {
-                movedrawspr(FIRSTDIGGER + d_id, x, y);
+                sprites.movedrawspr(FIRSTDIGGER + d_id, x, y);
             }
 
             public void animate()
             {
-                drawdigger(d_id, dir, x, y, can_fire);
+                drawApi.drawdigger(d_id, dir, x, y, can_fire);
             }
 
             public void discharge()

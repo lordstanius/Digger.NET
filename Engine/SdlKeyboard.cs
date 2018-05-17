@@ -34,41 +34,41 @@ namespace Digger.Net
         public const int KBLEN = 30;
 
         public static int[][] keycodes = {
-            new int[]{(int)SDL.Scancode.SCANCODE_RIGHT,-2,-2,-2,-2},    /* 1 Right */
-			new int[]{(int)SDL.Scancode.SCANCODE_UP,-2,-2,-2,-2},       /* 1 Up */
-			new int[]{(int)SDL.Scancode.SCANCODE_LEFT,-2,-2,-2,-2},     /* 1 Left */
-			new int[]{(int)SDL.Scancode.SCANCODE_DOWN,-2,-2,-2,-2},     /* 1 Down */
-			new int[]{(int)SDL.Scancode.SCANCODE_F1,-2,-2,-2,-2},       /* 1 Fire */
-			new int[]{(int)SDL.Scancode.SCANCODE_S,-2,-2,-2,-2},        /* 2 Right */
-			new int[]{(int)SDL.Scancode.SCANCODE_W,-2,-2,-2,-2},        /* 2 Up */
-			new int[]{(int)SDL.Scancode.SCANCODE_A,-2,-2,-2,-2},        /* 2 Left */
-			new int[]{(int)SDL.Scancode.SCANCODE_Z,-2,-2,-2,-2},        /* 2 Down */
-			new int[]{(int)SDL.Scancode.SCANCODE_TAB,-2,-2,-2,-2},      /* 2 Fire */
-			new int[]{(int)SDL.Scancode.SCANCODE_T,-2,-2,-2,-2},        /* Cheat */
-			new int[]{(int)SDL.Scancode.SCANCODE_KP_PLUS,-2,-2,-2,-2},  /* Accelerate */
-			new int[]{(int)SDL.Scancode.SCANCODE_KP_MINUS,-2,-2,-2,-2}, /* Brake */
-			new int[]{(int)SDL.Scancode.SCANCODE_F7,-2,-2,-2,-2},       /* Music */
-			new int[]{(int)SDL.Scancode.SCANCODE_F9,-2,-2,-2,-2},       /* Sound */
-			new int[]{(int)SDL.Scancode.SCANCODE_F10,-2,-2,-2,-2},      /* Exit */
-			new int[]{(int)SDL.Scancode.SCANCODE_SPACE,-2,-2,-2,-2},    /* Pause */
-			new int[]{(int)SDL.Scancode.SCANCODE_N,-2,-2,-2,-2},        /* Change mode */
-			new int[]{(int)SDL.Scancode.SCANCODE_F8,-2,-2,-2,-2}};      /* Save DRF */
+            new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_RIGHT,-2,-2,-2,-2},    /* 1 Right */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_UP,-2,-2,-2,-2},       /* 1 Up */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_LEFT,-2,-2,-2,-2},     /* 1 Left */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_DOWN,-2,-2,-2,-2},     /* 1 Down */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_F1,-2,-2,-2,-2},       /* 1 Fire */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_S,-2,-2,-2,-2},        /* 2 Right */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_W,-2,-2,-2,-2},        /* 2 Up */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_A,-2,-2,-2,-2},        /* 2 Left */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_Z,-2,-2,-2,-2},        /* 2 Down */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_TAB,-2,-2,-2,-2},      /* 2 Fire */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_T,-2,-2,-2,-2},        /* Cheat */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_KP_PLUS,-2,-2,-2,-2},  /* Accelerate */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_KP_MINUS,-2,-2,-2,-2}, /* Brake */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_F7,-2,-2,-2,-2},       /* Music */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_F9,-2,-2,-2,-2},       /* Sound */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_F10,-2,-2,-2,-2},      /* Exit */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_SPACE,-2,-2,-2,-2},    /* Pause */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_N,-2,-2,-2,-2},        /* Change mode */
+			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_F8,-2,-2,-2,-2}};      /* Save DRF */
 
         public struct kbent
         {
-            public SDL.Keycode sym;
-            public SDL.Scancode scancode;
+            public SDL.SDL_Keycode sym;
+            public SDL.SDL_Scancode scancode;
         };
 
         static kbent[] kbuffer = new kbent[KBLEN];
         public static short klen = 0;
 
-        public static SDL.EventFilter pHandler = Handler;
+        public static SDL.SDL_EventFilter pHandler = Handler;
 
         public static int Handler(IntPtr udata, IntPtr pEvent)
         {
-            SDL.Event sdlEvent = (SDL.Event)Marshal.PtrToStructure(pEvent, typeof(SDL.Event));
-            if (sdlEvent.type == SDL.EventType.KEYDOWN)
+            SDL.SDL_Event sdlEvent = pEvent.ToStruct<SDL.SDL_Event>();
+            if (sdlEvent.type == SDL.SDL_EventType.SDL_KEYDOWN)
             {
                 if (klen == KBLEN)
                 {
@@ -81,37 +81,35 @@ namespace Digger.Net
                 klen++;
 
                 /* ALT + Enter handling (fullscreen/windowed operation) */
-                if ((sdlEvent.key.keysym.scancode == SDL.Scancode.SCANCODE_RETURN || sdlEvent.key.keysym.scancode == SDL.Scancode.SCANCODE_KP_ENTER) && ((sdlEvent.key.keysym.mod & SDL.Keymod.KMOD_ALT) != 0))
+                if ((sdlEvent.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_RETURN || 
+                    sdlEvent.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) && 
+                    ((sdlEvent.key.keysym.mod & SDL.SDL_Keymod.KMOD_ALT) != 0))
                 {
-                    switchmode();
+                    sdlGfx.SwitchMode();
                 }
-
-                if (sdlEvent.type == SDL.EventType.QUIT)
-                    Environment.Exit(0);
             }
+
+            if (sdlEvent.type == SDL.SDL_EventType.SDL_QUIT)
+                Environment.Exit(0);
 
             return 1;
         }
 
         public static bool GetAsyncKeyState(int key)
         {
-            SDL.PumpEvents();
-            IntPtr pKeys = SDL.GetKeyboardState(out int numkeys);
+            SDL.SDL_PumpEvents();
+            IntPtr pKeys = SDL.SDL_GetKeyboardState(out int numkeys);
             string keys = Marshal.PtrToStringAnsi(pKeys, numkeys);
-            return keys[key] == SDL.PRESSED;
+            return keys[key] == SDL.SDL_PRESSED;
         }
 
         public static void initkeyb()
         {
-            SDL.EventState(SDL.EventType.MOUSEMOTION, SDL.IGNORE);
-            SDL.EventState(SDL.EventType.MOUSEBUTTONDOWN, SDL.IGNORE);
-            SDL.EventState(SDL.EventType.MOUSEBUTTONUP, SDL.IGNORE);
+            SDL.SDL_EventState(SDL.SDL_EventType.SDL_MOUSEMOTION, SDL.SDL_IGNORE);
+            SDL.SDL_EventState(SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN, SDL.SDL_IGNORE);
+            SDL.SDL_EventState(SDL.SDL_EventType.SDL_MOUSEBUTTONUP, SDL.SDL_IGNORE);
 
-            SDL.SetEventFilter(pHandler, IntPtr.Zero);
-        }
-
-        public static void restorekeyb()
-        {
+            SDL.SDL_SetEventFilter(pHandler, IntPtr.Zero);
         }
 
         public static int getkey(bool scancode)
@@ -139,7 +137,7 @@ namespace Digger.Net
 
         public static bool kbhit()
         {
-            SDL.PumpEvents();
+            SDL.SDL_PumpEvents();
 
             return klen > 0;
         }

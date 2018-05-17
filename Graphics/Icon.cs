@@ -1,6 +1,6 @@
 namespace Digger.Net
 {
-    public static partial class DiggerC
+    public static class Icon
     {
         public static readonly uint[] data = {
             0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,

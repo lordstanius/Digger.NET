@@ -94,7 +94,7 @@ namespace Digger.Net
                 switch (k)
                 {
                     case DKEY_CHT: /* Cheat! */
-                        if (!gauntlet)
+                        if (!g_isGauntletMode)
                         {
                             playing = false;
                             drfvalid = false;

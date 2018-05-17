@@ -3,7 +3,7 @@ Copyright (c) Andrew Jenner 1998-2004 */
 
 namespace Digger.Net
 {
-    public static partial class DiggerC
+    public static class Alpha
     {
         public static string copyright = "Portions Copyright(c) 1983 Windmill Software Inc.";
 

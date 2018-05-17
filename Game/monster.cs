@@ -32,9 +32,9 @@ namespace Digger.Net
             for (int i = 0; i < MONSTERS; i++)
                 mondat[i].flag = false;
             nextmonster = 0;
-            mongaptime = 45 - (levof10() << 1);
-            totalmonsters = levof10() + 5;
-            switch (levof10())
+            mongaptime = 45 - (level.levof10() << 1);
+            totalmonsters = level.levof10() + 5;
+            switch (level.levof10())
             {
                 case 1:
                     maxmononscr = 3;
@@ -62,10 +62,10 @@ namespace Digger.Net
             short i;
             for (i = 0; i < MONSTERS; i++)
                 if (mondat[i].flag)
-                    erasespr(i + FIRSTMONSTER);
+                    sprites.erasespr(i + FIRSTMONSTER);
         }
 
-        public static void domonsters(digger_draw_api ddap)
+        public static void domonsters(SdlGraphics ddap)
         {
             short i;
             if (nextmontime > 0)
@@ -85,7 +85,7 @@ namespace Digger.Net
             for (i = 0; i < MONSTERS; i++)
                 if (mondat[i].flag)
                 {
-                    if (mondat[i].hnt > 10 - levof10())
+                    if (mondat[i].hnt > 10 - level.levof10())
                     {
                         if (mondat[i].mop.isnobbin())
                         {
@@ -97,7 +97,7 @@ namespace Digger.Net
                         if (mondat[i].t == 0)
                         {
                             monai(ddap, i);
-                            if (randno(15 - levof10()) == 0) /* Need to split for determinism */
+                            if (randno(15 - level.levof10()) == 0) /* Need to split for determinism */
                                 if (!mondat[i].mop.isnobbin() && mondat[i].mop.isalive())
                                     monai(ddap, i);
                         }
@@ -121,9 +121,9 @@ namespace Digger.Net
                     mondat[i].xr = 0;
                     mondat[i].yr = 0;
                     mondat[i].dir = DIR_LEFT;
-                    mondat[i].chase = chase + curplayer;
+                    mondat[i].chase = chase + g_CurrentPlayer;
                     mondat[i].mop = new monster_obj(i, MON_NOBBIN, DIR_LEFT, 292, 18);
-                    chase = (chase + 1) % diggers;
+                    chase = (chase + 1) % g_Diggers;
                     nextmonster++;
                     nextmontime = mongaptime;
                     mondat[i].stime = 5;
@@ -139,7 +139,7 @@ namespace Digger.Net
             mongotgold = true;
         }
 
-        private static void monai(digger_draw_api ddap, int mon)
+        private static void monai(SdlGraphics ddap, int mon)
         {
             int[] clcoll = new int[SPRITES];
             int[] clfirst = new int[TYPES];
@@ -157,7 +157,7 @@ namespace Digger.Net
 
                 /* Turn hobbin back into nobbin if it's had its time */
 
-                if (mondat[mon].hnt > 30 + (levof10() << 1))
+                if (mondat[mon].hnt > 30 + (level.levof10() << 1))
                     if (!mondat[mon].mop.isnobbin())
                     {
                         mondat[mon].hnt = 0;
@@ -168,7 +168,7 @@ namespace Digger.Net
 
                 int dig = mondat[mon].chase;
                 if (!digalive(dig))
-                    dig = (diggers - 1) - dig;
+                    dig = (g_Diggers - 1) - dig;
 
                 if (Math.Abs(diggery(dig) - mopos.y) > Math.Abs(diggerx(dig) - mopos.x))
                 {
@@ -223,8 +223,8 @@ namespace Digger.Net
 
                 /* Introduce a random element on levels <6 : occasionally swap p1 and p3 */
 
-                if (randno(levof10() + 5) == 1) /* Need to split for determinism */
-                    if (levof10() < 6)
+                if (randno(level.levof10() + 5) == 1) /* Need to split for determinism */
+                    if (level.levof10() < 6)
                     {
                         t = mdirp1;
                         mdirp1 = mdirp3;
@@ -278,7 +278,7 @@ namespace Digger.Net
             /* Hobbins dig */
 
             if (!mondat[mon].mop.isnobbin())
-                eatfield(mopos.x, mopos.y, mondat[mon].dir);
+                drawApi.eatfield(mopos.x, mopos.y, mondat[mon].dir);
 
             /* (Draw new tunnels) and move monster */
             mopos_changed = true;
@@ -286,22 +286,22 @@ namespace Digger.Net
             {
                 case DIR_RIGHT:
                     if (!mondat[mon].mop.isnobbin())
-                        drawrightblob(mopos.x, mopos.y);
+                        drawApi.drawrightblob(mopos.x, mopos.y);
                     mopos.x += 4;
                     break;
                 case DIR_UP:
                     if (!mondat[mon].mop.isnobbin())
-                        drawtopblob(mopos.x, mopos.y);
+                        drawApi.drawtopblob(mopos.x, mopos.y);
                     mopos.y -= 3;
                     break;
                 case DIR_LEFT:
                     if (!mondat[mon].mop.isnobbin())
-                        drawleftblob(mopos.x, mopos.y);
+                        drawApi.drawleftblob(mopos.x, mopos.y);
                     mopos.x -= 4;
                     break;
                 case DIR_DOWN:
                     if (!mondat[mon].mop.isnobbin())
-                        drawbottomblob(mopos.x, mopos.y);
+                        drawApi.drawbottomblob(mopos.x, mopos.y);
                     mopos.y += 3;
                     break;
                 default:
@@ -350,9 +350,9 @@ namespace Digger.Net
             push = true;
             mondat[mon].mop.animate();
             for (i = 0; i < TYPES; i++)
-                clfirst[i] = first[i];
+                clfirst[i] = sprites.first[i];
             for (i = 0; i < SPRITES; i++)
-                clcoll[i] = coll[i];
+                clcoll[i] = sprites.coll[i];
             incpenalty();
 
             /* Collision with another monster */
@@ -449,8 +449,8 @@ namespace Digger.Net
                     i = clfirst[4];
                     while (i != -1)
                     {
-                        if (digalive(i - FIRSTDIGGER + curplayer))
-                            sceatm(ddap, i - FIRSTDIGGER + curplayer);
+                        if (digalive(i - FIRSTDIGGER + g_CurrentPlayer))
+                            sceatm(ddap, i - FIRSTDIGGER + g_CurrentPlayer);
                         i = clcoll[i];
                     }
                     soundeatm(); /* Collision in bonus mode */
@@ -460,8 +460,8 @@ namespace Digger.Net
                     i = clfirst[4];
                     while (i != -1)
                     {
-                        if (digalive(i - FIRSTDIGGER + curplayer))
-                            killdigger(i - FIRSTDIGGER + curplayer, 3, 0); /* Kill Digger */
+                        if (digalive(i - FIRSTDIGGER + g_CurrentPlayer))
+                            killdigger(i - FIRSTDIGGER + g_CurrentPlayer, 3, 0); /* Kill Digger */
                         i = clcoll[i];
                     }
                 }
@@ -475,7 +475,7 @@ namespace Digger.Net
             mondat[mon].yr = (mopos.y - 18) % 18;
         }
 
-        private static void mondie(digger_draw_api ddap, int mon)
+        private static void mondie(SdlGraphics ddap, int mon)
         {
             obj_position monpos;
 
@@ -502,10 +502,10 @@ namespace Digger.Net
                     else
                     {
                         killmon(mon);
-                        if (diggers == 2)
+                        if (g_Diggers == 2)
                             scorekill2(ddap);
                         else
-                            scorekill(ddap, curplayer);
+                            scorekill(ddap, g_CurrentPlayer);
                     }
                     break;
             }
@@ -621,7 +621,7 @@ namespace Digger.Net
 
         public static int getfield(int x, int y)
         {
-            return field[y * 15 + x];
+            return drawApi.field[y * 15 + x];
         }
     }
 }

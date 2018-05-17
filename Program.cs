@@ -7,6 +7,7 @@ namespace Digger.Net
         [STAThread]
         public static void Main(string[] args)
         {
+            DiggerC.GlobalInit();
             DiggerC.inir();
             DiggerC.parsecmd(args);
             DiggerC.maininit();

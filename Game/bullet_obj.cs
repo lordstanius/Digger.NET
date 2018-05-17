@@ -27,6 +27,8 @@
  *
  */
 
+using System;
+
 namespace Digger.Net
 {
     public static partial class DiggerC
@@ -50,26 +52,26 @@ namespace Digger.Net
 
             public void put()
             {
-                movedrawspr(FIRSTFIREBALL + f_id, x, y);
+                sprites.movedrawspr(FIRSTFIREBALL + f_id, x, y);
             }
 
             public void animate()
             {
                 System.Diagnostics.Debug.Assert(expsn < 4);
-                drawfire(f_id, x, y, expsn);
+                drawApi.drawfire(f_id, x, y, expsn);
                 if (expsn > 0)
                 {
                     if (expsn == 1)
                     {
                         soundexplode(f_id);
                     }
-                    expsn += 1;
+                    ++expsn;
                 }
             }
 
             public void remove()
             {
-                erasespr(FIRSTFIREBALL + f_id);
+                sprites.erasespr(FIRSTFIREBALL + f_id);
                 if (expsn > 1)
                 {
                     soundfireoff(f_id);
@@ -81,6 +83,13 @@ namespace Digger.Net
             {
                 /*assert(self.expsn == 0);*/
                 expsn = 1;
+            }
+
+            public void update(int dir, int fx, int fy)
+            {
+                this.dir = dir;
+                this.x = fx;
+                this.y = fy;
             }
         }
     }

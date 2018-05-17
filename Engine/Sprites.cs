@@ -5,54 +5,33 @@ using SDL2;
 
 namespace Digger.Net
 {
-    public static partial class DiggerC
+    public class Sprites
     {
-        public static bool retrflag = true;
+        public bool[] sprrdrwf = new bool[DiggerC.SPRITES + 1];
+        public bool[] sprrecf = new bool[DiggerC.SPRITES + 1];
+        public bool[] sprenf = new bool[DiggerC.SPRITES];
+        public Surface[] sprmov = new Surface[DiggerC.SPRITES];
+        public int[] sprch = new int[DiggerC.SPRITES + 1];
+        public int[] sprx = new int[DiggerC.SPRITES + 1];
+        public int[] spry = new int[DiggerC.SPRITES + 1];
+        public int[] sprwid = new int[DiggerC.SPRITES + 1];
+        public int[] sprhei = new int[DiggerC.SPRITES + 1];
+        public int[] sprbwid = new int[DiggerC.SPRITES];
+        public int[] sprbhei = new int[DiggerC.SPRITES];
+        public int[] sprnch = new int[DiggerC.SPRITES];
+        public int[] sprnwid = new int[DiggerC.SPRITES];
+        public int[] sprnhei = new int[DiggerC.SPRITES];
+        public int[] sprnbwid = new int[DiggerC.SPRITES];
+        public int[] sprnbhei = new int[DiggerC.SPRITES];
 
-        public static bool[] sprrdrwf = new bool[SPRITES + 1];
-        public static bool[] sprrecf = new bool[SPRITES + 1];
-        public static bool[] sprenf = new bool[SPRITES];
-        public static Surface[] sprmov = new Surface[SPRITES];
-        public static int[] sprch = new int[SPRITES + 1];
-        public static int[] sprx = new int[SPRITES + 1];
-        public static int[] spry = new int[SPRITES + 1];
-        public static int[] sprwid = new int[SPRITES + 1];
-        public static int[] sprhei = new int[SPRITES + 1];
-        public static int[] sprbwid = new int[SPRITES];
-        public static int[] sprbhei = new int[SPRITES];
-        public static int[] sprnch = new int[SPRITES];
-        public static int[] sprnwid = new int[SPRITES];
-        public static int[] sprnhei = new int[SPRITES];
-        public static int[] sprnbwid = new int[SPRITES];
-        public static int[] sprnbhei = new int[SPRITES];
+        private SdlGraphics ddap;
 
-        private static digger_draw_api dda_static = new digger_draw_api
+        public Sprites(SdlGraphics ddap)
         {
-            init = vgainit,
-            clear = vgaclear,
-            pal = vgapal,
-            inten = vgainten,
-            puti = vgaputi,
-            geti = vgageti,
-            putim = vgaputim,
-            getpix = vgagetpix,
-            title = vgatitle,
-#if !DIGGER_DEBUG
-            write = vgawrite,
-#else
-            write = gwrite_debug,
-#endif
-            flush = doscreenupdate
-        };
-
-        public static digger_draw_api ddap = dda_static;
-
-        public static void setretr(bool f)
-        {
-            retrflag = f;
+            this.ddap = ddap;
         }
 
-        public static void createspr(int n, int ch, Surface mov, int wid, int hei, int bwid, int bhei)
+        public void createspr(int n, int ch, Surface mov, int wid, int hei, int bwid, int bhei)
         {
             sprnch[n] = sprch[n] = ch;
             sprmov[n] = mov;
@@ -63,7 +42,7 @@ namespace Digger.Net
             sprenf[n] = false;
         }
 
-        public static void movedrawspr(int n, int x, int y)
+        public void movedrawspr(int n, int x, int y)
         {
             sprx[n] = (short)(x & -4);
             spry[n] = y;
@@ -75,24 +54,24 @@ namespace Digger.Net
             clearrdrwf();
             setrdrwflgs(n);
             putis();
-            ddap.geti(sprx[n], spry[n], ref sprmov[n], sprwid[n], sprhei[n]);
+            ddap.GetImage(sprx[n], spry[n], ref sprmov[n], sprwid[n], sprhei[n]);
             sprenf[n] = true;
             sprrdrwf[n] = true;
             putims();
         }
 
-        public static void erasespr(int n)
+        public void erasespr(int n)
         {
             if (!sprenf[n])
                 return;
-            ddap.puti(sprx[n], spry[n], sprmov[n], sprwid[n], sprhei[n]);
+            ddap.PutImage(sprx[n], spry[n], sprmov[n], sprwid[n], sprhei[n]);
             sprenf[n] = false;
             clearrdrwf();
             setrdrwflgs(n);
             putims();
         }
 
-        public static void drawspr(int n, int x, int y)
+        public void drawspr(int n, int x, int y)
         {
             x &= -4;
             clearrdrwf();
@@ -121,13 +100,13 @@ namespace Digger.Net
             sprhei[n] = sprnhei[n];
             sprbwid[n] = sprnbwid[n];
             sprbhei[n] = sprnbhei[n];
-            ddap.geti(sprx[n], spry[n], ref sprmov[n], sprwid[n], sprhei[n]);
+            ddap.GetImage(sprx[n], spry[n], ref sprmov[n], sprwid[n], sprhei[n]);
 
             putims();
             bcollides(n);
         }
 
-        public static void initspr(int n, int ch, int wid, int hei, short bwid, short bhei)
+        public void initspr(int n, int ch, int wid, int hei, short bwid, short bhei)
         {
             sprnch[n] = ch;
             sprnwid[n] = wid;
@@ -136,56 +115,56 @@ namespace Digger.Net
             sprnbhei[n] = bhei;
         }
 
-        public static void initmiscspr(int x, int y, int wid, int hei)
+        public void initmiscspr(int x, int y, int wid, int hei)
         {
-            sprx[SPRITES] = x;
-            spry[SPRITES] = y;
-            sprwid[SPRITES] = wid;
-            sprhei[SPRITES] = hei;
+            sprx[DiggerC.SPRITES] = x;
+            spry[DiggerC.SPRITES] = y;
+            sprwid[DiggerC.SPRITES] = wid;
+            sprhei[DiggerC.SPRITES] = hei;
             clearrdrwf();
-            setrdrwflgs(SPRITES);
+            setrdrwflgs(DiggerC.SPRITES);
             putis();
         }
 
-        public static void getis()
+        public void getis()
         {
-            for (int i = 0; i < SPRITES; i++)
+            for (int i = 0; i < DiggerC.SPRITES; i++)
                 if (sprrdrwf[i])
-                    ddap.geti(sprx[i], spry[i], ref sprmov[i], sprwid[i], sprhei[i]);
+                    ddap.GetImage(sprx[i], spry[i], ref sprmov[i], sprwid[i], sprhei[i]);
             putims();
         }
 
-        public static void drawmiscspr(int x, int y, int ch, short wid, short hei)
+        public void drawmiscspr(int x, int y, int ch, short wid, short hei)
         {
-            sprx[SPRITES] = x & -4;
-            spry[SPRITES] = y;
-            sprch[SPRITES] = ch;
-            sprwid[SPRITES] = wid;
-            sprhei[SPRITES] = hei;
-            ddap.putim(sprx[SPRITES], spry[SPRITES], sprch[SPRITES], sprwid[SPRITES], sprhei[SPRITES]);
+            sprx[DiggerC.SPRITES] = x & -4;
+            spry[DiggerC.SPRITES] = y;
+            sprch[DiggerC.SPRITES] = ch;
+            sprwid[DiggerC.SPRITES] = wid;
+            sprhei[DiggerC.SPRITES] = hei;
+            ddap.PutImage(sprx[DiggerC.SPRITES], spry[DiggerC.SPRITES], sprch[DiggerC.SPRITES], sprwid[DiggerC.SPRITES], sprhei[DiggerC.SPRITES]);
         }
 
-        public static void clearrdrwf()
+        public void clearrdrwf()
         {
             short i;
             clearrecf();
-            for (i = 0; i < SPRITES + 1; i++)
+            for (i = 0; i < DiggerC.SPRITES + 1; i++)
                 sprrdrwf[i] = false;
         }
 
-        public static void clearrecf()
+        public void clearrecf()
         {
             short i;
-            for (i = 0; i < SPRITES + 1; i++)
+            for (i = 0; i < DiggerC.SPRITES + 1; i++)
                 sprrecf[i] = false;
         }
 
-        public static void setrdrwflgs(int n)
+        public void setrdrwflgs(int n)
         {
             if (!sprrecf[n])
             {
                 sprrecf[n] = true;
-                for (int i = 0; i < SPRITES; i++)
+                for (int i = 0; i < DiggerC.SPRITES; i++)
                     if (sprenf[i] && i != n)
                     {
                         if (collide(i, n))
@@ -197,7 +176,7 @@ namespace Digger.Net
             }
         }
 
-        public static bool collide(int bx, int si)
+        public bool collide(int bx, int si)
         {
             if (sprx[bx] >= sprx[si])
             {
@@ -218,7 +197,7 @@ namespace Digger.Net
             return false;
         }
 
-        public static bool bcollide(int bx, int si)
+        public bool bcollide(int bx, int si)
         {
             if (sprx[bx] >= sprx[si])
             {
@@ -239,33 +218,33 @@ namespace Digger.Net
             return false;
         }
 
-        public static void putims()
+        public void putims()
         {
-            for (int i = 0; i < SPRITES; i++)
+            for (int i = 0; i < DiggerC.SPRITES; i++)
                 if (sprrdrwf[i])
-                    ddap.putim(sprx[i], spry[i], sprch[i], sprwid[i], sprhei[i]);
+                    ddap.PutImage(sprx[i], spry[i], sprch[i], sprwid[i], sprhei[i]);
         }
 
-        public static void putis()
+        public void putis()
         {
-            for (int i = 0; i < SPRITES; i++)
+            for (int i = 0; i < DiggerC.SPRITES; i++)
                 if (sprrdrwf[i])
-                    ddap.puti(sprx[i], spry[i], sprmov[i], sprwid[i], sprhei[i]);
+                    ddap.PutImage(sprx[i], spry[i], sprmov[i], sprwid[i], sprhei[i]);
         }
 
-        public static int[] first = new int[TYPES];
-        public static int[] coll = new int[SPRITES];
-        public static int[] firstt = { FIRSTBONUS, FIRSTBAG, FIRSTMONSTER, FIRSTFIREBALL, FIRSTDIGGER };
-        public static int[] lastt = { LASTBONUS, LASTBAG, LASTMONSTER, LASTFIREBALL, LASTDIGGER };
+        public int[] first = new int[DiggerC.TYPES];
+        public int[] coll = new int[DiggerC.SPRITES];
+        public int[] firstt = { DiggerC.FIRSTBONUS, DiggerC.FIRSTBAG, DiggerC.FIRSTMONSTER, DiggerC.FIRSTFIREBALL, DiggerC.FIRSTDIGGER };
+        public int[] lastt = { DiggerC.LASTBONUS, DiggerC.LASTBAG, DiggerC.LASTMONSTER, DiggerC.LASTFIREBALL, DiggerC.LASTDIGGER };
 
-        public static void bcollides(int spr)
+        public void bcollides(int spr)
         {
             int spc, next, i;
-            for (next = 0; next < TYPES; next++)
+            for (next = 0; next < DiggerC.TYPES; next++)
                 first[next] = -1;
-            for (next = 0; next < SPRITES; next++)
+            for (next = 0; next < DiggerC.SPRITES; next++)
                 coll[next] = -1;
-            for (i = 0; i < TYPES; i++)
+            for (i = 0; i < DiggerC.TYPES; i++)
             {
                 next = -1;
                 for (spc = firstt[i]; spc < lastt[i]; spc++)
@@ -280,11 +259,11 @@ namespace Digger.Net
             }
         }
 
-        static void gwrite_debug(int x, int y, char ch, short c)
+        void gwrite_debug(int x, int y, char ch, short c)
         {
-            System.Diagnostics.Debug.Assert(x + CHR_W <= MAX_W);
-            System.Diagnostics.Debug.Assert(y + CHR_H <= MAX_H);
-            vgawrite(x, y, ch, c);
+            System.Diagnostics.Debug.Assert(x + DiggerC.CHR_W <= DiggerC.MAX_W);
+            System.Diagnostics.Debug.Assert(y + DiggerC.CHR_H <= DiggerC.MAX_H);
+            ddap.WriteChar(x, y, ch, c);
         }
     }
 }

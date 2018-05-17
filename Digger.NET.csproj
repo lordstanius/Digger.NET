@@ -11,6 +11,8 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -21,18 +23,19 @@
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>digger.ico</ApplicationIcon>
@@ -45,9 +48,12 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Engine\ISoundDevice.cs" />
+    <Compile Include="Engine\SdlGraphicsCga.cs" />
+    <Compile Include="Game\Level.cs" />
     <Compile Include="Game\Monster.cs" />
     <Compile Include="Graphics\Alpha.cs" />
-    <Compile Include="Engine\drawing.cs" />
+    <Compile Include="Engine\DrawApi.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -56,41 +62,39 @@
     <Compile Include="Game\bullet_obj.cs" />
     <Compile Include="Graphics\CgaGrafx.cs" />
     <Compile Include="Game\digger.cs" />
-    <Compile Include="Engine\digger_math.cs" />
+    <Compile Include="Engine\Filter.cs" />
     <Compile Include="Game\digger_obj.cs" />
-    <Compile Include="Engine\DrawApi.cs" />
+    <Compile Include="Engine\SdlGraphics.cs" />
     <Compile Include="Graphics\Icon.cs" />
     <Compile Include="Properties\Resource.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resource.resx</DependentUpon>
     </Compile>
+    <Compile Include="SDL2_bindings\SDL2.cs" />
+    <Compile Include="SDL2_bindings\Surface.cs" />
     <Compile Include="Utility\Ini.cs" />
     <Compile Include="Engine\Input.cs" />
     <Compile Include="Engine\Keyboard.cs" />
     <Compile Include="Game\Main.cs" />
     <Content Include="digger.ico" />
     <Compile Include="Game\monster_obj.cs" />
-    <Compile Include="Engine\newsnd.cs" />
     <Compile Include="Engine\Record.cs" />
     <Compile Include="Game\Scores.cs" />
-    <Compile Include="Engine\sdl_kbd.cs" />
-    <Compile Include="Engine\sdl_snd.cs" />
-    <Compile Include="Engine\sdl_timer.cs" />
-    <Compile Include="Engine\sdl_vid.cs" />
+    <Compile Include="Engine\SdlKeyboard.cs" />
+    <Compile Include="Engine\SdlSound.cs" />
+    <Compile Include="Engine\SdlTimer.cs" />
+    <Compile Include="Engine\SdlGraphicsVga.cs" />
     <Compile Include="Game\sound.cs" />
-    <Compile Include="Game\Sprite.cs" />
+    <Compile Include="Engine\Sprites.cs" />
     <Compile Include="Utility\Log.cs" />
     <Compile Include="Utility\StdLib.cs" />
     <Compile Include="Graphics\VgaGrafx.cs" />
+    <Content Include="SDL2.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="Resources\vtitle.png" />
     <None Include="Resources\ctitle.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="D:\Projects\SDL2#\SDL2-CS.csproj">
-      <Project>{85480198-8711-4355-830e-72fd794ad3f6}</Project>
-      <Name>SDL2-CS</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

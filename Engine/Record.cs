@@ -43,21 +43,21 @@ namespace Digger.Net
             }
             catch (Exception ex)
             {
-                Log.Write(ex);
+                DebugLog.Write(ex);
                 escape = true;
                 return;
             }
 
-            uint origgtime = gtime;
-            bool origg = gauntlet;
-            int origstartlev = startlev, orignplayers = nplayers, origdiggers = diggers;
+            uint origgtime = g_gameTime;
+            bool origg = g_isGauntletMode;
+            int origstartlev = g_StartingLevel, orignplayers = g_playerCount, origdiggers = g_Diggers;
 # if INTDRF
             info = File.OpenWrite("DRFINFO.TXT");
 #endif
-            gauntlet = false;
-            startlev = 1;
-            nplayers = 1;
-            diggers = 1;
+            g_isGauntletMode = false;
+            g_StartingLevel = 1;
+            g_playerCount = 1;
+            g_Diggers = 1;
             /* The file is in two distinct parts. In the first, line breaks are used as
                separators. In the second, they are ignored. This is the first. */
 
@@ -87,21 +87,21 @@ namespace Digger.Net
             int x;
             if (buf == "1")
             {
-                nplayers = 1;
+                g_playerCount = 1;
                 x = 1;
             }
             else
             {
                 if (buf == "2")
                 {
-                    nplayers = 2;
+                    g_playerCount = 2;
                     x = 1;
                 }
                 else
                 {
                     if (buf[0] == 'M')
                     {
-                        diggers = buf[1] - '0';
+                        g_Diggers = buf[1] - '0';
                         x = 2;
                     }
                     else
@@ -110,9 +110,9 @@ namespace Digger.Net
                     }
                     if (buf[x] == 'G')
                     {
-                        gauntlet = true;
+                        g_isGauntletMode = true;
                         x++;
-                        gtime = uint.Parse(buf.Substring(x));
+                        g_gameTime = uint.Parse(buf.Substring(x));
                         while (buf[x] >= '0' && buf[x] <= '9')
                             x++;
                     }
@@ -121,7 +121,7 @@ namespace Digger.Net
             if (buf[x] == 'U') /* Unlimited lives are ignored on playback. */
                 x++;
             if (buf[x] == 'I')
-                startlev = int.Parse(buf.Substring(x + 1));
+                g_StartingLevel = int.Parse(buf.Substring(x + 1));
             /* Get bonus score */
             if ((buf = smart_fgets(playf)) == null)
             {
@@ -136,7 +136,7 @@ namespace Digger.Net
                     {
                         goto out_0;
                     }
-                    leveldat[n, y] = buf;
+                    level.leveldat[n, y] = buf;
                 }
 
             /* This is the second. The line breaks here really are only so that the file
@@ -158,12 +158,12 @@ namespace Digger.Net
             game();
             gotgame = true;
             playing = false;
-            gauntlet = origg;
-            gtime = origgtime;
+            g_isGauntletMode = origg;
+            g_gameTime = origgtime;
             kludge = false;
-            startlev = origstartlev;
-            diggers = origdiggers;
-            nplayers = orignplayers;
+            g_StartingLevel = origstartlev;
+            g_Diggers = origdiggers;
+            g_playerCount = orignplayers;
             return;
             out_0:
             if (playf != null)
@@ -301,28 +301,28 @@ namespace Digger.Net
                 mprintf("AJ DOS 19981125\n");
             else
                 mprintf(DIGGER_VERSION + "\n");
-            if (diggers > 1)
+            if (g_Diggers > 1)
             {
-                mprintf("M{0}", diggers);
-                if (gauntlet)
-                    mprintf("G{0}", gtime);
+                mprintf("M{0}", g_Diggers);
+                if (g_isGauntletMode)
+                    mprintf("G{0}", g_gameTime);
             }
             else
-              if (gauntlet)
-                mprintf("G{0}", gtime);
+              if (g_isGauntletMode)
+                mprintf("G{0}", g_gameTime);
             else
-                mprintf("{0}", nplayers);
+                mprintf("{0}", g_playerCount);
             /*  if (unlimlives)
                 mprintf("U"); */
-            if (startlev > 1)
-                mprintf("I{0}", startlev);
+            if (g_StartingLevel > 1)
+                mprintf("I{0}", g_StartingLevel);
             mprintf("\n{0}\n", bonusscore);
             for (int l = 0; l < 8; l++)
             {
                 for (int y = 0; y < MHEIGHT; y++)
                 {
                     for (int x = 0; x < MWIDTH; x++)
-                        mprintf("{0}", leveldat[l, y][x]);
+                        mprintf("{0}", level.leveldat[l, y][x]);
                     mprintf("\n");
                 }
             }
@@ -350,13 +350,13 @@ namespace Digger.Net
                     }
                     catch (Exception ex)
                     {
-                        Log.Write(ex);
+                        DebugLog.Write(ex);
                         gotname = false;
                     }
                 }
                 if (!gotname)
                 {
-                    if (nplayers == 2)
+                    if (g_playerCount == 2)
                         recf = File.OpenWrite(DEFAULTSN); /* Should get a name, really */
                     else
                     {

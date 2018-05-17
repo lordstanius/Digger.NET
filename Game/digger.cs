@@ -27,14 +27,14 @@ namespace Digger.Net
 
         public static void initdigger()
         {
-            for (int dig = curplayer; dig < diggers + curplayer; dig++)
+            for (int dig = g_CurrentPlayer; dig < g_Diggers + g_CurrentPlayer; dig++)
             {
                 if (digdat[dig].lives == 0)
                     continue;
-                
+
                 digdat[dig].v = 9;
                 digdat[dig].mdir = 4;
-                digdat[dig].h = (diggers == 1) ? 7 : (8 - dig * 2);
+                digdat[dig].h = (g_Diggers == 1) ? 7 : (8 - dig * 2);
                 int x = digdat[dig].h * 20 + 12;
                 int dir = (dig == 0) ? DIR_RIGHT : DIR_LEFT;
                 digdat[dig].rx = 0;
@@ -45,8 +45,8 @@ namespace Digger.Net
                 digdat[dig].ivt = 0;
                 digdat[dig].deathstage = 1;
                 int y = digdat[dig].v * 18 + 18;
-                digdat[dig].dob = new digger_obj(dig - curplayer, dir, x, y);
-                digdat[dig].bob = new bullet_obj(dig - curplayer, dir, x, y);
+                digdat[dig].dob = new digger_obj(dig - g_CurrentPlayer, dir, x, y);
+                digdat[dig].bob = new bullet_obj(dig - g_CurrentPlayer, dir, x, y);
                 digdat[dig].dob.put();
                 digdat[dig].notfiring = true;
                 digdat[dig].emocttime = 0;
@@ -64,23 +64,19 @@ namespace Digger.Net
 
         public static void newframe()
         {
-            if (synchvid)
+            if (g_isVideoSync)
             {
                 for (; curtime < ftime; curtime += 17094)
                 { /* 17094 = ticks in a refresh */
-                    fillbuffer();
-                    gretrace();
                     checkkeyb();
                 }
                 curtime -= ftime;
-                fillbuffer();
             }
             else
             {
                 uint t;
                 do
                 {
-                    fillbuffer();             /* Idle time */
                     t = gethrt();
                     checkkeyb();
                 }
@@ -100,21 +96,21 @@ namespace Digger.Net
                     digdat[n].invin = false;
                 else
                   if (digdat[n].ivt % 10 < 5)
-                    erasespr(FIRSTDIGGER + n - curplayer);
+                    sprites.erasespr(FIRSTDIGGER + n - g_CurrentPlayer);
             }
         }
 
-        public static void dodigger(digger_draw_api ddap)
+        public static void dodigger(SdlGraphics ddap)
         {
             newframe();
-            if (gauntlet)
+            if (g_isGauntletMode)
             {
-                drawlives(ddap);
+                drawApi.drawlives(ddap);
                 if (cgtime < ftime)
-                    timeout = true;
+                    g_isTimeOut = true;
                 cgtime -= ftime;
             }
-            for (int n = curplayer; n < diggers + curplayer; n++)
+            for (int n = g_CurrentPlayer; n < g_Diggers + g_CurrentPlayer; n++)
             {
                 if (digdat[n].bob.expsn != 0)
                     drawexplosion(n);
@@ -150,19 +146,19 @@ namespace Digger.Net
                         startbonustimeleft--;
                         if ((bonustimeleft & 1) != 0)
                         {
-                            ddap.inten(0);
+                            ddap.SetIntensity(0);
                             soundbonus();
                         }
                         else
                         {
-                            ddap.inten(1);
+                            ddap.SetIntensity(1);
                             soundbonus();
                         }
                         if (startbonustimeleft == 0)
                         {
                             music(0);
                             soundbonusoff();
-                            ddap.inten(1);
+                            ddap.SetIntensity(1);
                         }
                     }
                 }
@@ -181,10 +177,12 @@ namespace Digger.Net
             }
         }
 
-        private static void updatefire(digger_draw_api ddap, int n)
+        private static void updatefire(SdlGraphics ddap, int n)
         {
+            int pix, fx = 0, fy = 0;
             int[] clfirst = new int[TYPES];
             int[] clcoll = new int[SPRITES];
+            int i;
             bool clflag;
             if (digdat[n].notfiring)
             {
@@ -198,14 +196,13 @@ namespace Digger.Net
                 }
                 else
                 {
-                    if (getfirepflag(n - curplayer))
+                    if (getfirepflag(n - g_CurrentPlayer))
                     {
                         if (digdat[n].dob.alive)
                         {
                             digdat[n].dob.discharge();
-                            digdat[n].rechargetime = levof10() * 3 + 60;
+                            digdat[n].rechargetime = level.levof10() * 3 + 60;
                             digdat[n].notfiring = false;
-                            int fx = 0, fy = 0;
                             switch (digdat[n].dob.dir)
                             {
                                 case DIR_RIGHT:
@@ -228,7 +225,7 @@ namespace Digger.Net
                                     Environment.Exit(1);
                                     break;
                             }
-                            digdat[n].bob = new bullet_obj(n - curplayer, digdat[n].dob.dir, fx, fy);
+                            digdat[n].bob.update(digdat[n].dob.dir, fx, fy);
                             digdat[n].bob.put();
                             soundfire(n);
                         }
@@ -237,58 +234,58 @@ namespace Digger.Net
             }
             else
             {
-                int pix = 0;
+                pix = 0;
                 switch (digdat[n].bob.dir)
                 {
                     case DIR_RIGHT:
                         digdat[n].bob.x += 8;
-                        pix = ddap.getpix(digdat[n].bob.x, digdat[n].bob.y + 4) |
-                            ddap.getpix(digdat[n].bob.x + 4, digdat[n].bob.y + 4);
+                        pix = ddap.GetPixel(digdat[n].bob.x, digdat[n].bob.y + 4) |
+                            ddap.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + 4);
                         break;
                     case DIR_UP:
                         digdat[n].bob.y -= 7;
                         pix = 0;
-                        for (int i = 0; i < 7; i++)
-                            pix |= (ushort)ddap.getpix(digdat[n].bob.x + 4, digdat[n].bob.y + i);
+                        for (i = 0; i < 7; i++)
+                            pix |= ddap.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + i);
                         pix &= 0xc0;
                         break;
                     case DIR_LEFT:
                         digdat[n].bob.x -= 8;
-                        pix = ddap.getpix(digdat[n].bob.x, digdat[n].bob.y + 4) |
-                            ddap.getpix(digdat[n].bob.x + 4, digdat[n].bob.y + 4);
+                        pix = ddap.GetPixel(digdat[n].bob.x, digdat[n].bob.y + 4) |
+                            ddap.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + 4);
                         break;
                     case DIR_DOWN:
                         digdat[n].bob.y += 7;
                         pix = 0;
-                        for (int i = 0; i < 7; i++)
-                            pix |= (ushort)ddap.getpix(digdat[n].bob.x, digdat[n].bob.y + i);
+                        for (i = 0; i < 7; i++)
+                            pix |= ddap.GetPixel(digdat[n].bob.x, digdat[n].bob.y + i);
                         pix &= 0x3;
                         break;
                 }
                 digdat[n].bob.animate();
-                for (int i = 0; i < TYPES; i++)
-                    clfirst[i] = first[i];
-                for (int i = 0; i < SPRITES; i++)
-                    clcoll[i] = coll[i];
+                for (i = 0; i < TYPES; i++)
+                    clfirst[i] = sprites.first[i];
+                for (i = 0; i < SPRITES; i++)
+                    clcoll[i] = sprites.coll[i];
                 incpenalty();
-                int j = clfirst[2];
-                while (j != -1)
+                i = clfirst[2];
+                while (i != -1)
                 {
-                    killmon(j - FIRSTMONSTER);
+                    killmon(i - FIRSTMONSTER);
                     scorekill(ddap, n);
                     digdat[n].bob.explode();
-                    j = clcoll[j];
+                    i = clcoll[i];
                 }
-                j = clfirst[4];
-                while (j != -1)
+                i = clfirst[4];
+                while (i != -1)
                 {
-                    if (j - FIRSTDIGGER + curplayer != n && !digdat[j - FIRSTDIGGER + curplayer].invin
-                        && digdat[j - FIRSTDIGGER + curplayer].dob.alive)
+                    if (i - FIRSTDIGGER + g_CurrentPlayer != n && !digdat[i - FIRSTDIGGER + g_CurrentPlayer].invin
+                        && digdat[i - FIRSTDIGGER + g_CurrentPlayer].dob.alive)
                     {
-                        killdigger(j - FIRSTDIGGER + curplayer, 3, 0);
+                        killdigger(i - FIRSTDIGGER + g_CurrentPlayer, 3, 0);
                         digdat[n].bob.explode();
                     }
-                    j = clcoll[j];
+                    i = clcoll[i];
                 }
                 if (clfirst[0] != -1 || clfirst[1] != -1 || clfirst[2] != -1 || clfirst[3] != -1 ||
                     clfirst[4] != -1)
@@ -298,14 +295,14 @@ namespace Digger.Net
                 if (clfirst[0] != -1 || clfirst[1] != -1 || clfirst[3] != -1)
                 {
                     digdat[n].bob.explode();
-                    int ii = clfirst[3];
-                    while (ii != -1)
+                    i = clfirst[3];
+                    while (i != -1)
                     {
-                        if (digdat[ii - FIRSTFIREBALL + curplayer].bob.expsn == 0)
+                        if (digdat[i - FIRSTFIREBALL + g_CurrentPlayer].bob.expsn == 0)
                         {
-                            digdat[ii - FIRSTFIREBALL + curplayer].bob.explode();
+                            digdat[i - FIRSTFIREBALL + g_CurrentPlayer].bob.explode();
                         }
-                        ii = clcoll[ii];
+                        i = clcoll[i];
                     }
                 }
                 switch (digdat[n].bob.dir)
@@ -377,8 +374,8 @@ namespace Digger.Net
         public static void erasediggers()
         {
             int i;
-            for (i = 0; i < diggers; i++)
-                erasespr(FIRSTDIGGER + i);
+            for (i = 0; i < g_Diggers; i++)
+                sprites.erasespr(FIRSTDIGGER + i);
 
             digvisible = false;
         }
@@ -405,14 +402,14 @@ namespace Digger.Net
             }
         }
 
-        private static void updatedigger(digger_draw_api ddap, int n)
+        private static void updatedigger(SdlGraphics ddap, int n)
         {
             int dir, ddir, diggerox, diggeroy, nmon;
             bool push = true, bagf;
             int[] clfirst = new int[TYPES];
             int[] clcoll = new int[SPRITES];
-            readdirect(n - curplayer);
-            dir = getdirect(n - curplayer);
+            readdirect(n - g_CurrentPlayer);
+            dir = getdirect(n - g_CurrentPlayer);
             if (dir == DIR_RIGHT || dir == DIR_UP || dir == DIR_LEFT || dir == DIR_DOWN)
                 ddir = dir;
             else
@@ -433,23 +430,23 @@ namespace Digger.Net
             diggerox = digdat[n].dob.x;
             diggeroy = digdat[n].dob.y;
             if (digdat[n].mdir != DIR_NONE)
-                eatfield(diggerox, diggeroy, digdat[n].mdir);
+                drawApi.eatfield(diggerox, diggeroy, digdat[n].mdir);
             switch (digdat[n].mdir)
             {
                 case DIR_RIGHT:
-                    drawrightblob(digdat[n].dob.x, digdat[n].dob.y);
+                    drawApi.drawrightblob(digdat[n].dob.x, digdat[n].dob.y);
                     digdat[n].dob.x += 4;
                     break;
                 case DIR_UP:
-                    drawtopblob(digdat[n].dob.x, digdat[n].dob.y);
+                    drawApi.drawtopblob(digdat[n].dob.x, digdat[n].dob.y);
                     digdat[n].dob.y -= 3;
                     break;
                 case DIR_LEFT:
-                    drawleftblob(digdat[n].dob.x, digdat[n].dob.y);
+                    drawApi.drawleftblob(digdat[n].dob.x, digdat[n].dob.y);
                     digdat[n].dob.x -= 4;
                     break;
                 case DIR_DOWN:
-                    drawbottomblob(digdat[n].dob.x, digdat[n].dob.y);
+                    drawApi.drawbottomblob(digdat[n].dob.x, digdat[n].dob.y);
                     digdat[n].dob.y += 3;
                     break;
             }
@@ -473,9 +470,9 @@ namespace Digger.Net
             }
             drawdig(n);
             for (int i = 0; i < TYPES; i++)
-                clfirst[i] = first[i];
+                clfirst[i] = sprites.first[i];
             for (int i = 0; i < SPRITES; i++)
-                clcoll[i] = coll[i];
+                clcoll[i] = sprites.coll[i];
             incpenalty();
 
             int j = clfirst[1];
@@ -527,7 +524,7 @@ namespace Digger.Net
             digdat[n].ry = (digdat[n].dob.y - 18) % 18;
         }
 
-        public static void sceatm(digger_draw_api ddap, int n)
+        public static void sceatm(SdlGraphics ddap, int n)
         {
             scoreeatm(ddap, n, digdat[n].msc);
             digdat[n].msc <<= 1;
@@ -535,7 +532,7 @@ namespace Digger.Net
 
         public static int[] deatharc = { 3, 5, 6, 6, 5, 3, 0 };
 
-        private static void diggerdie(digger_draw_api ddap, int n)
+        private static void diggerdie(SdlGraphics ddap, int n)
         {
             int[] clfirst = new int[TYPES];
             int[] clcoll = new int[SPRITES];
@@ -545,7 +542,7 @@ namespace Digger.Net
                 case 1:
                     if (bagy(digdat[n].deathbag) + 6 > digdat[n].dob.y)
                         digdat[n].dob.y = bagy(digdat[n].deathbag) + 6;
-                    drawdigger(n - curplayer, 15, digdat[n].dob.x, digdat[n].dob.y, false);
+                    drawApi.drawdigger(n - g_CurrentPlayer, 15, digdat[n].dob.x, digdat[n].dob.y, false);
                     incpenalty();
                     if (getbagdir(digdat[n].deathbag) + 1 == 0)
                     {
@@ -564,12 +561,12 @@ namespace Digger.Net
                     }
                     if (digdat[n].deathani == 0)
                         music(2);
-                    drawdigger(n - curplayer, 14 - digdat[n].deathani, digdat[n].dob.x, digdat[n].dob.y,
+                    drawApi.drawdigger(n - g_CurrentPlayer, 14 - digdat[n].deathani, digdat[n].dob.x, digdat[n].dob.y,
                                false);
                     for (int i = 0; i < TYPES; i++)
-                        clfirst[i] = first[i];
+                        clfirst[i] = sprites.first[i];
                     for (int i = 0; i < SPRITES; i++)
-                        clcoll[i] = coll[i];
+                        clcoll[i] = sprites.coll[i];
                     incpenalty();
                     if (digdat[n].deathani == 0 && clfirst[2] != -1)
                         killmonsters(clfirst, clcoll);
@@ -581,7 +578,7 @@ namespace Digger.Net
                     else
                     {
                         digdat[n].deathstage = 4;
-                        if (musicflag || diggers > 1)
+                        if (musicflag || g_Diggers > 1)
                             digdat[n].deathtime = 60;
                         else
                             digdat[n].deathtime = 10;
@@ -595,7 +592,7 @@ namespace Digger.Net
                 case 5:
                     if (digdat[n].deathani >= 0 && digdat[n].deathani <= 6)
                     {
-                        drawdigger(n - curplayer, 15, digdat[n].dob.x,
+                        drawApi.drawdigger(n - g_CurrentPlayer, 15, digdat[n].dob.x,
                                    digdat[n].dob.y - deatharc[digdat[n].deathani], false);
                         if (digdat[n].deathani == 6 && !isalive())
                             musicoff();
@@ -618,7 +615,7 @@ namespace Digger.Net
                     {
                         digdat[n].dead = true;
                         alldead = true;
-                        for (int i = 0; i < diggers; i++)
+                        for (int i = 0; i < g_Diggers; i++)
                             if (!digdat[i].dead)
                             {
                                 alldead = false;
@@ -629,14 +626,14 @@ namespace Digger.Net
                         else
                           if (isalive() && digdat[n].lives > 0)
                         {
-                            if (!gauntlet)
+                            if (!g_isGauntletMode)
                                 digdat[n].lives--;
-                            drawlives(ddap);
+                            drawApi.drawlives(ddap);
                             if (digdat[n].lives > 0)
                             {
                                 digdat[n].v = 9;
                                 digdat[n].mdir = 4;
-                                digdat[n].h = (diggers == 1) ? 7 : (8 - n * 2);
+                                digdat[n].h = (g_Diggers == 1) ? 7 : (8 - n * 2);
                                 digdat[n].dob.x = digdat[n].h * 20 + 12;
                                 digdat[n].dob.dir = (n == 0) ? DIR_RIGHT : DIR_LEFT;
                                 digdat[n].rx = 0;
@@ -648,7 +645,7 @@ namespace Digger.Net
                                 digdat[n].ivt = 50;
                                 digdat[n].deathstage = 1;
                                 digdat[n].dob.y = digdat[n].v * 18 + 18;
-                                erasespr(n + FIRSTDIGGER - curplayer);
+                                sprites.erasespr(n + FIRSTDIGGER - g_CurrentPlayer);
                                 digdat[n].dob.put();
                                 digdat[n].notfiring = true;
                                 digdat[n].emocttime = 0;
@@ -672,35 +669,35 @@ namespace Digger.Net
         private static void createbonus()
         {
             bonusvisible = true;
-            drawbonus(292, 18);
+            drawApi.drawbonus(292, 18);
         }
 
-        private static void initbonusmode(digger_draw_api ddap)
+        private static void initbonusmode(SdlGraphics ddap)
         {
             int i;
             bonusmode = true;
             erasebonus(ddap);
-            ddap.inten(1);
-            bonustimeleft = 250 - levof10() * 20;
+            ddap.SetIntensity(1);
+            bonustimeleft = 250 - level.levof10() * 20;
             startbonustimeleft = 20;
-            for (i = 0; i < diggers; i++)
+            for (i = 0; i < g_Diggers; i++)
                 digdat[i].msc = 1;
         }
 
-        private static void endbonusmode(digger_draw_api ddap)
+        private static void endbonusmode(SdlGraphics ddap)
         {
             bonusmode = false;
-            ddap.inten(0);
+            ddap.SetIntensity(0);
         }
 
-        public static void erasebonus(digger_draw_api ddap)
+        public static void erasebonus(SdlGraphics ddap)
         {
             if (bonusvisible)
             {
                 bonusvisible = false;
-                erasespr(FIRSTBONUS);
+                sprites.erasespr(FIRSTBONUS);
             }
-            ddap.inten(0);
+            ddap.SetIntensity(0);
         }
 
         public static int reversedir(int dir)
@@ -717,7 +714,7 @@ namespace Digger.Net
 
         public static bool checkdiggerunderbag(int h, int v)
         {
-            for (int n = curplayer; n < diggers + curplayer; n++)
+            for (int n = g_CurrentPlayer; n < g_Diggers + g_CurrentPlayer; n++)
                 if (digdat[n].dob.alive)
                     if (digdat[n].mdir == DIR_UP || digdat[n].mdir == DIR_DOWN)
                         if ((digdat[n].dob.x - 12) / 20 == h)
@@ -740,10 +737,10 @@ namespace Digger.Net
 
         public static void makeemfield()
         {
-            emmask = (short)(1 << curplayer);
+            emmask = (short)(1 << g_CurrentPlayer);
             for (int x = 0; x < MWIDTH; x++)
                 for (int y = 0; y < MHEIGHT; y++)
-                    if (getlevch(x, y, levplan()) == 'C')
+                    if (level.getlevch(x, y, level.levplan()) == 'C')
                         emfield[y * MWIDTH + x] |= (byte)emmask;
                     else
                         emfield[y * MWIDTH + x] &= (byte)~emmask;
@@ -751,11 +748,11 @@ namespace Digger.Net
 
         public static void drawemeralds()
         {
-            emmask = (short)(1 << curplayer);
+            emmask = (short)(1 << g_CurrentPlayer);
             for (int x = 0; x < MWIDTH; x++)
                 for (int y = 0; y < MHEIGHT; y++)
                     if ((emfield[y * MWIDTH + x] & emmask) != 0)
-                        drawemerald(x * 20 + 12, y * 18 + 21);
+                        drawApi.DrawEmerald(x * 20 + 12, y * 18 + 21);
         }
 
         static short[] embox = { 8, 12, 12, 9, 16, 12, 6, 9 };
@@ -778,12 +775,12 @@ namespace Digger.Net
             {
                 if (r == embox[dir])
                 {
-                    drawemerald(x * 20 + 12, y * 18 + 21);
+                    drawApi.DrawEmerald(x * 20 + 12, y * 18 + 21);
                     incpenalty();
                 }
                 if (r == embox[dir + 1])
                 {
-                    eraseemerald(x * 20 + 12, y * 18 + 21);
+                    drawApi.EraseEmerald(x * 20 + 12, y * 18 + 21);
                     incpenalty();
                     hit = true;
                     emfield[y * MWIDTH + x] &= (byte)~emmask;
@@ -807,7 +804,7 @@ namespace Digger.Net
             if ((emfield[(y + 1) * MWIDTH + x] & emmask) != 0)
             {
                 emfield[(y + 1) * MWIDTH + x] &= (byte)~emmask;
-                eraseemerald(x * 20 + 12, (y + 1) * 18 + 21);
+                drawApi.EraseEmerald(x * 20 + 12, (y + 1) * 18 + 21);
             }
         }
 
@@ -839,7 +836,7 @@ namespace Digger.Net
         public static bool isalive()
         {
             int i;
-            for (i = curplayer; i < diggers + curplayer; i++)
+            for (i = g_CurrentPlayer; i < g_Diggers + g_CurrentPlayer; i++)
                 if (digdat[i].dob.alive)
                     return true;
             return false;
@@ -859,13 +856,13 @@ namespace Digger.Net
         public static void initlives()
         {
             int i;
-            for (i = 0; i < diggers + nplayers - 1; i++)
+            for (i = 0; i < g_Diggers + g_playerCount - 1; i++)
                 digdat[i].lives = 3;
         }
 
         public static void declife(int pl)
         {
-            if (!gauntlet)
+            if (!g_isGauntletMode)
                 digdat[pl].lives--;
         }
     }

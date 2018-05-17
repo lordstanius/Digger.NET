@@ -86,7 +86,7 @@ namespace Digger.Net
                     monspr = 0;
 
                 updspr();
-                drawspr(sprid, pos.x, pos.y);
+                sprites.drawspr(sprid, pos.x, pos.y);
             }
 
             public void _drawmondie()
@@ -94,7 +94,7 @@ namespace Digger.Net
                 int sprid = FIRSTMONSTER + m_id;
 
                 updspr();
-                drawspr(sprid, pos.x, pos.y);
+                sprites.drawspr(sprid, pos.x, pos.y);
             }
 
             public void updspr()
@@ -107,17 +107,17 @@ namespace Digger.Net
                 {
                     if (nobf)
                     {
-                        initspr(sprid, monspr + 69, 4, 15, 0, 0);
+                        sprites.initspr(sprid, monspr + 69, 4, 15, 0, 0);
                     }
                     else
                     {
                         switch (pos.dir)
                         {
                             case DIR_RIGHT:
-                                initspr(sprid, monspr + 73, 4, 15, 0, 0);
+                                sprites.initspr(sprid, monspr + 73, 4, 15, 0, 0);
                                 break;
                             case DIR_LEFT:
-                                initspr(sprid, monspr + 77, 4, 15, 0, 0);
+                                sprites.initspr(sprid, monspr + 77, 4, 15, 0, 0);
                                 break;
                         }
                     }
@@ -126,17 +126,17 @@ namespace Digger.Net
                 {
                     if (nobf)
                     {
-                        initspr(sprid, 72, 4, 15, 0, 0);
+                        sprites.initspr(sprid, 72, 4, 15, 0, 0);
                     }
                     else
                     {
                         switch (pos.dir)
                         {
                             case DIR_RIGHT:
-                                initspr(sprid, 76, 4, 15, 0, 0);
+                                sprites.initspr(sprid, 76, 4, 15, 0, 0);
                                 break;
                             case DIR_LEFT:
-                                initspr(sprid, 80, 4, 14, 0, 0);
+                                sprites.initspr(sprid, 80, 4, 14, 0, 0);
                                 break;
                         }
                     }
@@ -159,7 +159,7 @@ namespace Digger.Net
             public int put()
             {
                 updspr();
-                movedrawspr(FIRSTMONSTER + m_id, pos.x, pos.y);
+                sprites.movedrawspr(FIRSTMONSTER + m_id, pos.x, pos.y);
                 return (0);
             }
 
@@ -167,7 +167,7 @@ namespace Digger.Net
             {
                 nobf = !nobf;
                 updspr();
-                drawspr(FIRSTMONSTER + m_id, pos.x, pos.y);
+                sprites.drawspr(FIRSTMONSTER + m_id, pos.x, pos.y);
                 return (0);
             }
 
@@ -181,7 +181,7 @@ namespace Digger.Net
                 zombie = true;
                 alive = false;
                 updspr();
-                drawspr(FIRSTMONSTER + m_id, pos.x, pos.y);
+                sprites.drawspr(FIRSTMONSTER + m_id, pos.x, pos.y);
                 return (0);
             }
 
@@ -194,7 +194,7 @@ namespace Digger.Net
                 }
                 alive = false;
                 zombie = false;
-                erasespr(FIRSTMONSTER + m_id);
+                sprites.erasespr(FIRSTMONSTER + m_id);
                 return (0);
             }
 

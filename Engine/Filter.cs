@@ -29,33 +29,33 @@ using System;
 
 namespace Digger.Net
 {
-    public static partial class DiggerC
+    public struct recfilter
     {
-        public struct recfilter
-        {
-            public double a;
-            public double b;
-            public double lastval;
-            public double minval;
-            public double maxval;
-            public int peak_detect;
-        }
+        public double a;
+        public double b;
+        public double lastval;
+        public double minval;
+        public double maxval;
+        public int peak_detect;
+    }
 
-        public struct PFD
-        {
-            public double target_clk;
-            public double phi_round;
-        };
+    public struct PFD
+    {
+        public double target_clk;
+        public double phi_round;
+    };
 
-        public struct bqd_filter
-        {
-            public double a1;
-            public double b0;
-            public double b1;
-            public double z0;
-            public double z1;
-        };
+    public struct bqd_filter
+    {
+        public double a1;
+        public double b0;
+        public double b1;
+        public double z0;
+        public double z1;
+    };
 
+    public class Filter
+    {
         public static void PFD_init(ref PFD pfd_p, double phi_round)
         {
             pfd_p.target_clk = 0.0;
@@ -124,7 +124,7 @@ namespace Digger.Net
 
             if (Fs < Fc * 2.0)
             {
-                Log.Write($"recfilter_init: cutoff frequency ({Fc:N1}) should be less than half of the sampling rate ({Fs:N1})");
+                DebugLog.Write($"recfilter_init: cutoff frequency ({Fc:N1}) should be less than half of the sampling rate ({Fs:N1})");
                 Environment.Exit(0);
             }
 
@@ -164,7 +164,7 @@ namespace Digger.Net
 
             if (Fs < Fc * 2.0)
             {
-                Log.Write($"fo_init: cutoff frequency ({Fc:N1}) should be less than half of the sampling rate ({Fs:N2})");
+                DebugLog.Write($"fo_init: cutoff frequency ({Fc:N1}) should be less than half of the sampling rate ({Fs:N2})");
                 Environment.Exit(0);
             }
             w = Math.Tan(Math.PI * Fc / Fs);
@@ -182,7 +182,7 @@ namespace Digger.Net
 
             if (Fs < Fc * 2.0)
             {
-                Log.Write($"fo_init: cutoff frequency ({Fc:N1}) should be less than half of the sampling rate ({Fs:N2})");
+                DebugLog.Write($"fo_init: cutoff frequency ({Fc:N1}) should be less than half of the sampling rate ({Fs:N2})");
                 Environment.Exit(0);
             }
 
