@@ -101,11 +101,11 @@ namespace Digger.Net
                         }
                         break;
                     case DKEY_SUP: /* Increase speed */
-                        if (ftime > 10000)
-                            ftime -= 10000;
+                        if (g_FrameTime > 10000)
+                            g_FrameTime -= 10000;
                         break;
                     case DKEY_SDN: /* Decrease speed */
-                        ftime += 10000;
+                        g_FrameTime += 10000;
                         break;
                     case DKEY_MTG: /* Toggle music */
                         musicflag = !musicflag;

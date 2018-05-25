@@ -105,13 +105,13 @@ namespace Digger.Net
             nljpointer = 0;
             nljnoteduration = 20;
             soundlevdoneflag = soundpausedflag = true;
-            ftime /= 5;
+            g_FrameTime /= 5;
             while (soundlevdoneflag && !escape)
             {
                 if (!device.IsWaveDeviceAvailable)
                     soundlevdoneflag = false;
 
-                gethrt();	/* Let some CPU time go away */
+                DiggerC.timer.SyncFrame();	/* Let some CPU time go away */
                 soundint();
 
                 if (timerclock == timer)
@@ -120,7 +120,7 @@ namespace Digger.Net
                 checkkeyb();
                 timer = timerclock;
             }
-            ftime *= 5;
+            g_FrameTime *= 5;
             soundlevdoneoff();
         }
 
@@ -865,7 +865,7 @@ namespace Digger.Net
             SetupSound();
             timerrate = 0x4000;
             SetTimer0(0x4000);
-            randvs = getlrt();
+            randvs = 0;
         }
 
         public static void KillSound()
@@ -878,8 +878,7 @@ namespace Digger.Net
 
         public static void SetupSound()
         {
-            inittimer();
-            curtime = 0;
+            g_CurrentTime = 0;
             startint8();
         }
 

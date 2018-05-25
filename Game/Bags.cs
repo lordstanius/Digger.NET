@@ -384,7 +384,7 @@ namespace Digger.Net
                         }
                         else
                             drawApi.drawfurryblob(x, y);
-                        drawApi.eatfield(x, y, dir);
+                        drawApi.EatField(x, y, dir);
                         killemerald(h, v);
                         y += 6;
                         break;

@@ -3,39 +3,27 @@ using System;
 
 namespace Digger.Net
 {
-    public static partial class DiggerC
+    public class Timer
     {
-        public static PFD phase_detector;
-        public static recfilter loop_error;
+        public PFD phase_detector;
+        public recfilter loop_error;
 
-        public static void inittimer()
+        private double cum_error = 0.0;
+
+        public Timer()
         {
-            double tfreq;
-
-            tfreq = 1000000.0 / ftime;
+            double tfreq = 1000000.0 / DiggerC.g_FrameTime;
             loop_error = Filter.recfilter_init(tfreq, 0.1);
             Filter.PFD_init(ref phase_detector, 0.0);
-            DebugLog.Write($"inittimer: ftime = {ftime}");
+            DebugLog.Write($"inittimer: ftime = {DiggerC.g_FrameTime}");
         }
 
-        public static uint randv;
-
-        public static uint getlrt()
+        public void SyncFrame()
         {
-            return 0;
-        }
+            if (DiggerC.g_FrameTime <= 1)
+                return;
 
-        private static double cum_error = 0.0;
-
-        public static uint gethrt()
-        {
-            if (ftime <= 1)
-            {
-                sdlGfx.UpdateScreen();
-                return 0;
-            }
-
-            double tfreq = 1000000.0 / ftime;
+            double tfreq = 1000000.0 / DiggerC.g_FrameTime;
             double clk_rl = SDL.SDL_GetTicks() * tfreq / 1000.0;
             double eval = Filter.PFD_get_error(ref phase_detector, clk_rl);
             double filterval;
@@ -48,15 +36,8 @@ namespace Digger.Net
             uint add_delay = (uint)Math.Round(add_delay_d);
             cum_error = add_delay_d - add_delay;
             DebugLog.Write($"clk_rl = {clk_rl}, add_delay = {add_delay}, eval = {eval}, filterval = {filterval}, cum_error = {cum_error}");
-            sdlGfx.UpdateScreen();
+
             SDL.SDL_Delay(add_delay);
-
-            return 0;
-        }
-
-        public static int getkips()
-        {
-            return 1;
         }
     }
 }

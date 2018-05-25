@@ -293,7 +293,9 @@ namespace Digger.Net
             int p = 0;
             byte gap = 19;
 
-            gethrt();
+            timer.SyncFrame();
+            sdlGfx.UpdateScreen();
+
             for (i = 0; i < (n << 1); i++)
                 for (cx = 0; cx < volume; cx++)
                 {

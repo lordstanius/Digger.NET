@@ -278,7 +278,7 @@ namespace Digger.Net
             /* Hobbins dig */
 
             if (!mondat[mon].mop.isnobbin())
-                drawApi.eatfield(mopos.x, mopos.y, mondat[mon].dir);
+                drawApi.EatField(mopos.x, mopos.y, mondat[mon].dir);
 
             /* (Draw new tunnels) and move monster */
             mopos_changed = true;

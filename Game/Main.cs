@@ -2,8 +2,6 @@
    Copyright (c) Andrew Jenner 1998-2004 */
 
 using System;
-using System.IO;
-using System.Text;
 
 namespace Digger.Net
 {
@@ -76,12 +74,14 @@ namespace Digger.Net
         public static Level level;
         public static DrawApi drawApi;
         public static Sprites sprites;
+        public static Timer timer;
 
         /* global variables */
         public static string g_playerName;
         public static int g_CurrentPlayer = 0, g_playerCount = 1, g_Penalty = 0, g_Diggers = 1, g_StartingLevel = 1;
         public static bool g_hasUnlimitedLives = false, g_isGauntletMode = false, g_isTimeOut = false, g_isVideoSync = false;
         public static uint g_gameTime = 0;
+        public static uint randv;
 
         public static game_data[] gamedat = { new game_data(), new game_data() };
 
@@ -96,6 +96,7 @@ namespace Digger.Net
             level = new Level(gamedat);
             sprites = new Sprites(sdlGfx);
             drawApi = new DrawApi(sprites);
+            timer = new Timer();
         }
 
 
@@ -147,9 +148,9 @@ namespace Digger.Net
                     if (playing)
                         randv = playgetrand();
                     else
-                        randv = getlrt();
+                        randv = 0;
 
-                    recputrand(randv);
+                    RecortPutRandom(randv);
                     if (levnotdrawn)
                     {
                         levnotdrawn = false;
@@ -217,7 +218,7 @@ namespace Digger.Net
                         killfire(i);
                     erasebonus(sdlGfx);
                     cleanupbags();
-                    drawApi.savefield();
+                    drawApi.SaveField();
                     erasemonsters();
                     recputeol();
                     if (playing)
@@ -573,7 +574,10 @@ namespace Digger.Net
                     addscore(sdlGfx, i, 0);
                 drawApi.drawlives(sdlGfx);
                 if (!g_isVideoSync)
-                    curtime = gethrt();
+                {
+                    timer.SyncFrame();
+                    sdlGfx.UpdateScreen();
+                }
                 pausef = false;
             }
             else
@@ -582,9 +586,7 @@ namespace Digger.Net
 
         public static void calibrate()
         {
-            volume = (int)(getkips() / 291);
-            if (volume == 0)
-                volume = 1;
+            volume = 1;
         }
 
         private const string BASE_OPTS = "OUH?QM2CKVL:R:P:S:E:G:I:";
@@ -648,11 +650,11 @@ namespace Digger.Net
                             speedmul = 10 * speedmul + word[i++] - '0';
                         if (speedmul > 0)
                         {
-                            ftime = (uint)(speedmul * 2000);
+                            g_FrameTime = (uint)(speedmul * 2000);
                         }
                         else
                         {
-                            ftime = 1;
+                            g_FrameTime = 1;
                         }
                         gs = true;
                     }
@@ -664,7 +666,7 @@ namespace Digger.Net
                     {
                         if (argch == -1)
                             Console.WriteLine("Unknown option \"{0}{1}\"", word[0], word[1]);
-                        
+
                         Console.WriteLine("DIGGER - Copyright (c) 1983 Windmill software");
                         Console.WriteLine("Restored 1998 by AJ Software");
                         Console.WriteLine("https://github.com/sobomax/digger");
@@ -751,11 +753,11 @@ namespace Digger.Net
                         gs = true;
                         if (speedmul > 0)
                         {
-                            ftime = (uint)(speedmul * 2000);
+                            g_FrameTime = (uint)(speedmul * 2000);
                         }
                         else
                         {
-                            ftime = 1;
+                            g_FrameTime = 1;
                         }
                     }
                     else
@@ -827,9 +829,9 @@ namespace Digger.Net
                     keycodes[i][j++] = int.Parse(keyCode);
             }
             g_gameTime = (uint)Ini.GetINIInt(INI_GAME_SETTINGS, "GauntletTime", 120, ININAME);
-            if (ftime == 0)
+            if (g_FrameTime == 0)
             {
-                ftime = (uint)Ini.GetINIInt(INI_GAME_SETTINGS, "Speed", 80000, ININAME);
+                g_FrameTime = (uint)Ini.GetINIInt(INI_GAME_SETTINGS, "Speed", 80000, ININAME);
             }
             g_isGauntletMode = Ini.GetINIBool(INI_GAME_SETTINGS, "GauntletMode", false, ININAME);
             vbuf = Ini.GetINIString(INI_GAME_SETTINGS, "Players", "1", ININAME);

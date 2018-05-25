@@ -83,11 +83,11 @@ namespace Digger.Net
                         field[y * DiggerC.MWIDTH + x] = field2[y * DiggerC.MWIDTH + x];
             sdlGfx.SetPalette(0);
             sdlGfx.SetIntensity(0);
-            drawbackg(level.levplan());
-            drawfield();
+            DrawBackground(level.levplan());
+            DrawField();
         }
 
-        public void savefield()
+        public void SaveField()
         {
             int x, y;
             for (x = 0; x < DiggerC.MWIDTH; x++)
@@ -98,7 +98,7 @@ namespace Digger.Net
                         field2[y * DiggerC.MWIDTH + x] = field[y * DiggerC.MWIDTH + x];
         }
 
-        public void drawfield()
+        public void DrawField()
         {
             int x, y, xp, yp;
             for (x = 0; x < DiggerC.MWIDTH; x++)
@@ -135,7 +135,7 @@ namespace Digger.Net
                     }
         }
 
-        public void eatfield(int x, int y, int dir)
+        public void EatField(int x, int y, int dir)
         {
             int h = (x - 12) / 20, xr = ((x - 12) % 20) / 4, v = (y - 18) / 18, yr = ((y - 18) % 18) / 3;
             DiggerC.incpenalty();
@@ -185,27 +185,27 @@ namespace Digger.Net
         public void creatembspr()
         {
             for (int i = 0; i < DiggerC.BAGS; i++)
-                sprite.createspr(DiggerC.FIRSTBAG + i, 62, bagbufs[i], 4, 15, 0, 0);
+                sprite.CreateSprite(DiggerC.FIRSTBAG + i, 62, bagbufs[i], 4, 15, 0, 0);
             for (int i = 0; i < DiggerC.MONSTERS; i++)
-                sprite.createspr(DiggerC.FIRSTMONSTER + i, 71, monbufs[i], 4, 15, 0, 0);
+                sprite.CreateSprite(DiggerC.FIRSTMONSTER + i, 71, monbufs[i], 4, 15, 0, 0);
             CreateSpriteDb();
         }
 
         public void initmbspr()
         {
             for (int i = 0; i < DiggerC.BAGS; i++)
-                sprite.initspr(DiggerC.FIRSTBAG + i, 62, 4, 15, 0, 0);
+                sprite.InitializeSprite(DiggerC.FIRSTBAG + i, 62, 4, 15, 0, 0);
 
             for (int i = 0; i < DiggerC.MONSTERS; i++)
-                sprite.initspr(DiggerC.FIRSTMONSTER + i, 71, 4, 15, 0, 0);
+                sprite.InitializeSprite(DiggerC.FIRSTMONSTER + i, 71, 4, 15, 0, 0);
 
             initdbfspr();
         }
 
         public void DrawGold(int n, int t, int x, int y)
         {
-            sprite.initspr(DiggerC.FIRSTBAG + n, t + 62, 4, 15, 0, 0);
-            sprite.drawspr(DiggerC.FIRSTBAG + n, x, y);
+            sprite.InitializeSprite(DiggerC.FIRSTBAG + n, t + 62, 4, 15, 0, 0);
+            sprite.DrawSprite(DiggerC.FIRSTBAG + n, x, y);
         }
 
         public void DrawLife(int t, int x, int y)
@@ -238,11 +238,11 @@ namespace Digger.Net
             for (i = 0; i < DiggerC.FIREBALLS; i++)
                 firespr[i] = 0;
             for (i = DiggerC.FIRSTDIGGER; i < DiggerC.LASTDIGGER; i++)
-                sprite.createspr(i, 0, diggerbufs[i - DiggerC.FIRSTDIGGER], 4, 15, 0, 0);
+                sprite.CreateSprite(i, 0, diggerbufs[i - DiggerC.FIRSTDIGGER], 4, 15, 0, 0);
             for (i = DiggerC.FIRSTBONUS; i < DiggerC.LASTBONUS; i++)
-                sprite.createspr(i, 81, bonusbufs[i - DiggerC.FIRSTBONUS], 4, 15, 0, 0);
+                sprite.CreateSprite(i, 81, bonusbufs[i - DiggerC.FIRSTBONUS], 4, 15, 0, 0);
             for (i = DiggerC.FIRSTFIREBALL; i < DiggerC.LASTFIREBALL; i++)
-                sprite.createspr(i, 82, firebufs[i - DiggerC.FIRSTFIREBALL], 2, 8, 0, 0);
+                sprite.CreateSprite(i, 82, firebufs[i - DiggerC.FIRSTFIREBALL], 2, 8, 0, 0);
         }
 
         public void initdbfspr()
@@ -256,11 +256,11 @@ namespace Digger.Net
             for (i = 0; i < DiggerC.FIREBALLS; i++)
                 firespr[i] = 0;
             for (i = DiggerC.FIRSTDIGGER; i < DiggerC.LASTDIGGER; i++)
-                sprite.initspr(i, 0, 4, 15, 0, 0);
+                sprite.InitializeSprite(i, 0, 4, 15, 0, 0);
             for (i = DiggerC.FIRSTBONUS; i < DiggerC.LASTBONUS; i++)
-                sprite.initspr(i, 81, 4, 15, 0, 0);
+                sprite.InitializeSprite(i, 81, 4, 15, 0, 0);
             for (i = DiggerC.FIRSTFIREBALL; i < DiggerC.LASTFIREBALL; i++)
-                sprite.initspr(i, 82, 2, 8, 0, 0);
+                sprite.InitializeSprite(i, 82, 2, 8, 0, 0);
         }
 
         public void drawrightblob(int x, int y)
@@ -305,7 +305,7 @@ namespace Digger.Net
             sprite.getis();
         }
 
-        public void drawbackg(int l)
+        public void DrawBackground(int l)
         {
             for (int y = 14; y < 200; y += 4)
             {
@@ -322,17 +322,17 @@ namespace Digger.Net
                 firespr[n]++;
                 if (firespr[n] > 2)
                     firespr[n] = 0;
-                sprite.initspr(DiggerC.FIRSTFIREBALL + n, 82 + firespr[n] + nn, 2, 8, 0, 0);
+                sprite.InitializeSprite(DiggerC.FIRSTFIREBALL + n, 82 + firespr[n] + nn, 2, 8, 0, 0);
             }
             else
-                sprite.initspr(DiggerC.FIRSTFIREBALL + n, 84 + t + nn, 2, 8, 0, 0);
-            sprite.drawspr(DiggerC.FIRSTFIREBALL + n, x, y);
+                sprite.InitializeSprite(DiggerC.FIRSTFIREBALL + n, 84 + t + nn, 2, 8, 0, 0);
+            sprite.DrawSprite(DiggerC.FIRSTFIREBALL + n, x, y);
         }
 
         public void drawbonus(int x, int y)
         {
             int n = 0;
-            sprite.initspr(DiggerC.FIRSTBONUS + n, 81, 4, 15, 0, 0);
+            sprite.InitializeSprite(DiggerC.FIRSTBONUS + n, 81, 4, 15, 0, 0);
             sprite.movedrawspr(DiggerC.FIRSTBONUS + n, x, y);
         }
 
@@ -348,14 +348,14 @@ namespace Digger.Net
                 digspr[n] = 0;
             if (t >= 0 && t <= 6 && (t & 1) == 0)
             {
-                sprite.initspr(DiggerC.FIRSTDIGGER + n, (t + (f ? 0 : 1)) * 3 + digspr[n] + 1 + nn, 4, 15, 0, 0);
-                sprite.drawspr(DiggerC.FIRSTDIGGER + n, x, y);
+                sprite.InitializeSprite(DiggerC.FIRSTDIGGER + n, (t + (f ? 0 : 1)) * 3 + digspr[n] + 1 + nn, 4, 15, 0, 0);
+                sprite.DrawSprite(DiggerC.FIRSTDIGGER + n, x, y);
                 return;
             }
             if (t >= 10 && t <= 15)
             {
-                sprite.initspr(DiggerC.FIRSTDIGGER + n, 40 + nn - t, 4, 15, 0, 0);
-                sprite.drawspr(DiggerC.FIRSTDIGGER + n, x, y);
+                sprite.InitializeSprite(DiggerC.FIRSTDIGGER + n, 40 + nn - t, 4, 15, 0, 0);
+                sprite.DrawSprite(DiggerC.FIRSTDIGGER + n, x, y);
                 return;
             }
             sprite.first[0] = sprite.first[1] = sprite.first[2] = sprite.first[3] = sprite.first[4] = -1;

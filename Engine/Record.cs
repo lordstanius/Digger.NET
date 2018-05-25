@@ -329,7 +329,7 @@ namespace Digger.Net
             reccc = recrl = 0;
         }
 
-        public static void recputrand(uint randv)
+        public static void RecortPutRandom(uint randv)
         {
             mprintf("{0:X8}\n", randv);
             reccc = recrl = 0;

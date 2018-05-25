@@ -81,8 +81,8 @@ namespace Digger.Net
                 klen++;
 
                 /* ALT + Enter handling (fullscreen/windowed operation) */
-                if ((sdlEvent.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_RETURN || 
-                    sdlEvent.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) && 
+                if ((sdlEvent.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_RETURN ||
+                    sdlEvent.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) &&
                     ((sdlEvent.key.keysym.mod & SDL.SDL_Keymod.KMOD_ALT) != 0))
                 {
                     sdlGfx.SwitchMode();
@@ -118,7 +118,8 @@ namespace Digger.Net
 
             while (!kbhit())
             {
-                gethrt();
+                timer.SyncFrame();
+                sdlGfx.UpdateScreen();
             }
 
             if (scancode)

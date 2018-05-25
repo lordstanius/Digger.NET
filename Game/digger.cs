@@ -60,27 +60,23 @@ namespace Digger.Net
             bonusvisible = bonusmode = false;
         }
 
-        public static uint curtime, ftime;
+        public static uint g_CurrentTime, g_FrameTime;
 
         public static void newframe()
         {
             if (g_isVideoSync)
             {
-                for (; curtime < ftime; curtime += 17094)
+                for (; g_CurrentTime < g_FrameTime; g_CurrentTime += 17094)
                 { /* 17094 = ticks in a refresh */
                     checkkeyb();
                 }
-                curtime -= ftime;
+                g_CurrentTime -= g_FrameTime;
             }
             else
             {
-                uint t;
-                do
-                {
-                    t = gethrt();
-                    checkkeyb();
-                }
-                while (curtime + ftime > t && t > curtime);
+                timer.SyncFrame();
+                checkkeyb();
+                sdlGfx.UpdateScreen();
             }
         }
 
@@ -106,9 +102,9 @@ namespace Digger.Net
             if (g_isGauntletMode)
             {
                 drawApi.drawlives(ddap);
-                if (cgtime < ftime)
+                if (cgtime < g_FrameTime)
                     g_isTimeOut = true;
-                cgtime -= ftime;
+                cgtime -= g_FrameTime;
             }
             for (int n = g_CurrentPlayer; n < g_Diggers + g_CurrentPlayer; n++)
             {
@@ -430,7 +426,7 @@ namespace Digger.Net
             diggerox = digdat[n].dob.x;
             diggeroy = digdat[n].dob.y;
             if (digdat[n].mdir != DIR_NONE)
-                drawApi.eatfield(diggerox, diggeroy, digdat[n].mdir);
+                drawApi.EatField(diggerox, diggeroy, digdat[n].mdir);
             switch (digdat[n].mdir)
             {
                 case DIR_RIGHT:

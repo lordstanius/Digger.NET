@@ -31,7 +31,7 @@ namespace Digger.Net
             this.ddap = ddap;
         }
 
-        public void createspr(int n, int ch, Surface mov, int wid, int hei, int bwid, int bhei)
+        public void CreateSprite(int n, int ch, Surface mov, int wid, int hei, int bwid, int bhei)
         {
             sprnch[n] = sprch[n] = ch;
             sprmov[n] = mov;
@@ -71,7 +71,7 @@ namespace Digger.Net
             putims();
         }
 
-        public void drawspr(int n, int x, int y)
+        public void DrawSprite(int n, int x, int y)
         {
             x &= -4;
             clearrdrwf();
@@ -106,7 +106,7 @@ namespace Digger.Net
             bcollides(n);
         }
 
-        public void initspr(int n, int ch, int wid, int hei, short bwid, short bhei)
+        public void InitializeSprite(int n, int ch, int wid, int hei, short bwid, short bhei)
         {
             sprnch[n] = ch;
             sprnwid[n] = wid;
