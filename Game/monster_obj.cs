@@ -27,207 +27,199 @@
  *
  */
 using System;
-using System.Collections.Generic;
-using SDL2;
 
 namespace Digger.Net
 {
-    public static partial class DiggerC
+    public struct obj_position
     {
-        public const bool MON_NOBBIN = true;
-        public const bool MON_HOBBIN = false;
+        public int dir;
+        public int x;
+        public int y;
 
-        public struct obj_position
+        public string DIR2STR()
         {
-            public int dir;
-            public int x;
-            public int y;
-
-            public string DIR2STR()
+            switch (dir)
             {
-                switch (dir)
+                case DiggerC.DIR_NONE:
+                    return "NONE";
+                case DiggerC.DIR_RIGHT:
+                    return "RIGHT";
+                case DiggerC.DIR_UP:
+                    return "UP";
+                case DiggerC.DIR_LEFT:
+                    return "LEFT";
+                case DiggerC.DIR_DOWN:
+                    return "DOWN";
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+    }
+
+    public class monster_obj
+    {
+        private int m_id;
+        private bool nobf;
+        private bool alive;
+        private bool zombie;
+        private obj_position pos;
+        private int monspr;
+        private int monspd;
+
+        private void _drawmon()
+        {
+            int sprid = DiggerC.FIRSTMONSTER + m_id;
+
+            monspr += monspd;
+            if (monspr == 2 || monspr == 0)
+                monspd = -(monspd);
+            if (monspr > 2)
+                monspr = 2;
+            if (monspr < 0)
+                monspr = 0;
+
+            updspr();
+            DiggerC.sprites.DrawSprite(sprid, pos.x, pos.y);
+        }
+
+        public void _drawmondie()
+        {
+            int sprid = DiggerC.FIRSTMONSTER + m_id;
+
+            updspr();
+            DiggerC.sprites.DrawSprite(sprid, pos.x, pos.y);
+        }
+
+        public void updspr()
+        {
+            int sprid;
+
+            sprid = DiggerC.FIRSTMONSTER + m_id;
+
+            if (alive)
+            {
+                if (nobf)
                 {
-                    case DIR_NONE:
-                        return "NONE";
-                    case DIR_RIGHT:
-                        return "RIGHT";
-                    case DIR_UP:
-                        return "UP";
-                    case DIR_LEFT:
-                        return "LEFT";
-                    case DIR_DOWN:
-                        return "DOWN";
-                    default:
-                        throw new NotImplementedException();
+                    DiggerC.sprites.InitializeSprite(sprid, monspr + 69, 4, 15, 0, 0);
+                }
+                else
+                {
+                    switch (pos.dir)
+                    {
+                        case DiggerC.DIR_RIGHT:
+                            DiggerC.sprites.InitializeSprite(sprid, monspr + 73, 4, 15, 0, 0);
+                            break;
+                        case DiggerC.DIR_LEFT:
+                            DiggerC.sprites.InitializeSprite(sprid, monspr + 77, 4, 15, 0, 0);
+                            break;
+                    }
+                }
+            }
+            else if (zombie)
+            {
+                if (nobf)
+                {
+                    DiggerC.sprites.InitializeSprite(sprid, 72, 4, 15, 0, 0);
+                }
+                else
+                {
+                    switch (pos.dir)
+                    {
+                        case DiggerC.DIR_RIGHT:
+                            DiggerC.sprites.InitializeSprite(sprid, 76, 4, 15, 0, 0);
+                            break;
+                        case DiggerC.DIR_LEFT:
+                            DiggerC.sprites.InitializeSprite(sprid, 80, 4, 14, 0, 0);
+                            break;
+                    }
                 }
             }
         }
 
-        public class monster_obj
+        public monster_obj(int m_id, bool nobf, short dir, short x, short y)
         {
-            private int m_id;
-            private bool nobf;
-            private bool alive;
-            private bool zombie;
-            private obj_position pos;
-            private int monspr;
-            private int monspd;
+            this.nobf = nobf;
+            pos.dir = dir;
+            pos.x = x;
+            pos.y = y;
+            this.m_id = m_id;
+            alive = true;
+            zombie = false;
+            monspr = 0;
+            monspd = 1;
+        }
 
-            private void _drawmon()
+        public int put()
+        {
+            updspr();
+            DiggerC.sprites.movedrawspr(DiggerC.FIRSTMONSTER + m_id, pos.x, pos.y);
+            return (0);
+        }
+
+        public int mutate()
+        {
+            nobf = !nobf;
+            updspr();
+            DiggerC.sprites.DrawSprite(DiggerC.FIRSTMONSTER + m_id, pos.x, pos.y);
+            return (0);
+        }
+
+        public int damage()
+        {
+            if (!alive)
             {
-                int sprid = FIRSTMONSTER + m_id;
-
-                monspr += monspd;
-                if (monspr == 2 || monspr == 0)
-                    monspd = -(monspd);
-                if (monspr > 2)
-                    monspr = 2;
-                if (monspr < 0)
-                    monspr = 0;
-
-                updspr();
-                sprites.DrawSprite(sprid, pos.x, pos.y);
+                /* We can only damage live thing or try to damage zombie */
+                System.Diagnostics.Debug.Assert(zombie);
             }
+            zombie = true;
+            alive = false;
+            updspr();
+            DiggerC.sprites.DrawSprite(DiggerC.FIRSTMONSTER + m_id, pos.x, pos.y);
+            return (0);
+        }
 
-            public void _drawmondie()
+        public int kill()
+        {
+            if (!alive)
             {
-                int sprid = FIRSTMONSTER + m_id;
-
-                updspr();
-                sprites.DrawSprite(sprid, pos.x, pos.y);
+                /* No, you can't kill me twice */
+                System.Diagnostics.Debug.Assert(zombie);
             }
+            alive = false;
+            zombie = false;
+            DiggerC.sprites.erasespr(DiggerC.FIRSTMONSTER + m_id);
+            return (0);
+        }
 
-            public void updspr()
-            {
-                int sprid;
+        public int animate()
+        {
+            if (alive)
+                _drawmon();
+            else if (zombie)
+                _drawmondie();
 
-                sprid = FIRSTMONSTER + m_id;
+            return (0);
+        }
 
-                if (alive)
-                {
-                    if (nobf)
-                    {
-                        sprites.InitializeSprite(sprid, monspr + 69, 4, 15, 0, 0);
-                    }
-                    else
-                    {
-                        switch (pos.dir)
-                        {
-                            case DIR_RIGHT:
-                                sprites.InitializeSprite(sprid, monspr + 73, 4, 15, 0, 0);
-                                break;
-                            case DIR_LEFT:
-                                sprites.InitializeSprite(sprid, monspr + 77, 4, 15, 0, 0);
-                                break;
-                        }
-                    }
-                }
-                else if (zombie)
-                {
-                    if (nobf)
-                    {
-                        sprites.InitializeSprite(sprid, 72, 4, 15, 0, 0);
-                    }
-                    else
-                    {
-                        switch (pos.dir)
-                        {
-                            case DIR_RIGHT:
-                                sprites.InitializeSprite(sprid, 76, 4, 15, 0, 0);
-                                break;
-                            case DIR_LEFT:
-                                sprites.InitializeSprite(sprid, 80, 4, 14, 0, 0);
-                                break;
-                        }
-                    }
-                }
-            }
+        public obj_position getpos()
+        {
+            return pos;
+        }
 
-            public monster_obj(int m_id, bool nobf, short dir, short x, short y)
-            {
-                this.nobf = nobf;
-                pos.dir = dir;
-                pos.x = x;
-                pos.y = y;
-                this.m_id = m_id;
-                alive = true;
-                zombie = false;
-                monspr = 0;
-                monspd = 1;
-            }
+        public int setpos(obj_position pos)
+        {
+            this.pos = pos;
+            return (0);
+        }
 
-            public int put()
-            {
-                updspr();
-                sprites.movedrawspr(FIRSTMONSTER + m_id, pos.x, pos.y);
-                return (0);
-            }
+        public bool isalive()
+        {
+            return alive;
+        }
 
-            public int mutate()
-            {
-                nobf = !nobf;
-                updspr();
-                sprites.DrawSprite(FIRSTMONSTER + m_id, pos.x, pos.y);
-                return (0);
-            }
-
-            public int damage()
-            {
-                if (!alive)
-                {
-                    /* We can only damage live thing or try to damage zombie */
-                    System.Diagnostics.Debug.Assert(zombie);
-                }
-                zombie = true;
-                alive = false;
-                updspr();
-                sprites.DrawSprite(FIRSTMONSTER + m_id, pos.x, pos.y);
-                return (0);
-            }
-
-            public int kill()
-            {
-                if (!alive)
-                {
-                    /* No, you can't kill me twice */
-                    System.Diagnostics.Debug.Assert(zombie);
-                }
-                alive = false;
-                zombie = false;
-                sprites.erasespr(FIRSTMONSTER + m_id);
-                return (0);
-            }
-
-            public int animate()
-            {
-                if (alive)
-                    _drawmon();
-                else if (zombie)
-                    _drawmondie();
-
-                return (0);
-            }
-
-            public obj_position getpos()
-            {
-                return pos;
-            }
-
-            public int setpos(obj_position pos)
-            {
-                this.pos = pos;
-                return (0);
-            }
-
-            public bool isalive()
-            {
-                return alive;
-            }
-
-            public bool isnobbin()
-            {
-                return (nobf);
-            }
+        public bool isnobbin()
+        {
+            return (nobf);
         }
     }
 }

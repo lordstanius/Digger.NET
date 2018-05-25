@@ -7,36 +7,36 @@ using System.Text;
 
 namespace Digger.Net
 {
-    public static partial class DiggerC
+    public class Scores
     {
         struct scdat_struct
         {
             public int score, nextbs;
         }
 
-        static scdat_struct[] scdat = new scdat_struct[DIGGERS];
+        static scdat_struct[] scdat = new scdat_struct[DiggerC.DIGGERS];
 
-        public static string highbuf;
+        public string highbuf;
 
-        public static int[] scorehigh = new int[12];
+        public int[] scorehigh = new int[12];
 
-        public static string[] scoreinit = new string[11];
+        public string[] scoreinit = new string[11];
 
-        public static int scoret = 0;
+        public int scoret = 0;
 
-        public static string hsbuf;
+        public string hsbuf;
 
-        public static byte[] scorebuf = new byte[512];
+        public byte[] scorebuf = new byte[512];
 
-        public static int bonusscore = 20000;
+        public int bonusscore = 20000;
 
-        public static bool gotinitflag = false;
+        public bool gotinitflag = false;
 
         public const string SFNAME = "DIGGER.SCO";
 
-        static void readscores()
+        private void readscores()
         {
-            if (!level.levfflag)
+            if (!DiggerC.level.levfflag)
             {
                 if (File.Exists(SFNAME))
                 {
@@ -49,7 +49,7 @@ namespace Digger.Net
             }
             else
             {
-                using (var inFile = File.OpenRead(level.levfname))
+                using (var inFile = File.OpenRead(DiggerC.level.levfname))
                 {
                     inFile.Seek(1202, SeekOrigin.Begin);
                     if (inFile.Read(scorebuf, 0, 512) == 0)
@@ -58,9 +58,9 @@ namespace Digger.Net
             }
         }
 
-        static void writescores()
+        private void writescores()
         {
-            if (!level.levfflag)
+            if (!DiggerC.level.levfflag)
             {
                 using (var inFile = File.OpenWrite(SFNAME))
                 {
@@ -69,7 +69,7 @@ namespace Digger.Net
             }
             else
             {
-                using (var inFile = File.OpenRead(level.levfname))
+                using (var inFile = File.OpenRead(DiggerC.level.levfname))
                 {
                     inFile.Seek(1202, SeekOrigin.Begin);
                     inFile.Write(scorebuf, 0, 512);
@@ -77,20 +77,20 @@ namespace Digger.Net
             }
         }
 
-        public static void initscores(SdlGraphics ddap)
+        public void initscores(SdlGraphics ddap)
         {
             int i;
-            for (i = 0; i < g_Diggers; i++)
+            for (i = 0; i < DiggerC.g_Diggers; i++)
                 addscore(ddap, i, 0);
         }
 
-        public static void loadscores()
+        public void loadscores()
         {
             int p = 0;
             readscores();
-            if (g_isGauntletMode)
+            if (DiggerC.g_isGauntletMode)
                 p = 111;
-            if (g_Diggers == 2)
+            if (DiggerC.g_Diggers == 2)
                 p += 222;
             if (scorebuf[p++] != 's')
             {
@@ -114,16 +114,16 @@ namespace Digger.Net
             }
         }
 
-        public static void zeroscores()
+        public void zeroscores()
         {
             scdat[0].score = scdat[1].score = 0;
             scdat[0].nextbs = scdat[1].nextbs = bonusscore;
             scoret = 0;
         }
 
-        public static void writecurscore(SdlGraphics ddap, int col)
+        public void writecurscore(SdlGraphics ddap, int col)
         {
-            if (g_CurrentPlayer == 0)
+            if (DiggerC.g_CurrentPlayer == 0)
                 writenum(ddap, scdat[0].score, 0, 0, 6, col);
             else
               if (scdat[1].score < 100000)
@@ -132,10 +132,10 @@ namespace Digger.Net
                 writenum(ddap, scdat[1].score, 248, 0, 6, col);
         }
 
-        public static void drawscores(SdlGraphics ddap)
+        public void drawscores(SdlGraphics ddap)
         {
             writenum(ddap, scdat[0].score, 0, 0, 6, 3);
-            if (g_playerCount == 2 || g_Diggers == 2)
+            if (DiggerC.g_playerCount == 2 || DiggerC.g_Diggers == 2)
             {
                 if (scdat[1].score < 100000)
                     writenum(ddap, scdat[1].score, 236, 0, 6, 3);
@@ -144,7 +144,7 @@ namespace Digger.Net
             }
         }
 
-        public static void addscore(SdlGraphics ddap, int n, int score)
+        public void addscore(SdlGraphics ddap, int n, int score)
         {
             scdat[n].score += score;
             if (scdat[n].score > 999999)
@@ -158,83 +158,83 @@ namespace Digger.Net
                 writenum(ddap, scdat[n].score, 248, 0, 6, 1);
             if (scdat[n].score >= scdat[n].nextbs + n)
             { /* +n to reproduce original bug */
-                if (getlives(n) < 5 || g_hasUnlimitedLives)
+                if (DiggerC.getlives(n) < 5 || DiggerC.g_hasUnlimitedLives)
                 {
-                    if (g_isGauntletMode)
-                        cgtime += 17897715; /* 15 second time bonus instead of the life */
+                    if (DiggerC.g_isGauntletMode)
+                        DiggerC.cgtime += 17897715; /* 15 second time bonus instead of the life */
                     else
-                        addlife(n);
-                    drawApi.drawlives(ddap);
+                        DiggerC.addlife(n);
+                    DiggerC.drawApi.drawlives(ddap);
                 }
                 scdat[n].nextbs += bonusscore;
             }
-            incpenalty();
-            incpenalty();
-            incpenalty();
+            DiggerC.incpenalty();
+            DiggerC.incpenalty();
+            DiggerC.incpenalty();
         }
 
-        public static void endofgame(SdlGraphics ddap)
+        public void endofgame(SdlGraphics ddap)
         {
             bool initflag = false;
-            for (int i = 0; i < g_Diggers; i++)
+            for (int i = 0; i < DiggerC.g_Diggers; i++)
                 addscore(ddap, i, 0);
-            if (playing || !drfvalid)
+            if (DiggerC.record.playing || !DiggerC.record.drfvalid)
                 return;
 
-            if (g_isGauntletMode)
+            if (DiggerC.g_isGauntletMode)
             {
-                cleartopline();
-                drawApi.TextOut(ddap, "TIME UP", 120, 0, 3);
-                for (int i = 0; i < 50 && !escape; i++)
-                    newframe();
-                drawApi.EraseText(ddap, 7, 120, 0, 3);
+                DiggerC.cleartopline();
+                DiggerC.drawApi.TextOut(ddap, "TIME UP", 120, 0, 3);
+                for (int i = 0; i < 50 && !DiggerC.input.escape; i++)
+                    DiggerC.newframe();
+                DiggerC.drawApi.EraseText(ddap, 7, 120, 0, 3);
             }
-            for (int i = g_CurrentPlayer; i < g_CurrentPlayer + g_Diggers; i++)
+            for (int i = DiggerC.g_CurrentPlayer; i < DiggerC.g_CurrentPlayer + DiggerC.g_Diggers; i++)
             {
                 scoret = scdat[i].score;
                 if (scoret > scorehigh[11])
                 {
                     ddap.Clear();
                     drawscores(ddap);
-                    g_playerName = $"PLAYER {(i == 0 ? 1 : 2)}";
-                    drawApi.TextOut(ddap, g_playerName, 108, 0, 2);
-                    drawApi.TextOut(ddap, " NEW HIGH SCORE ", 64, 40, 2);
+                    DiggerC.g_playerName = $"PLAYER {(i == 0 ? 1 : 2)}";
+                    DiggerC.drawApi.TextOut(ddap, DiggerC.g_playerName, 108, 0, 2);
+                    DiggerC.drawApi.TextOut(ddap, " NEW HIGH SCORE ", 64, 40, 2);
                     getinitials(ddap);
                     shufflehigh();
                     savescores();
                     initflag = true;
                 }
             }
-            if (!initflag && !g_isGauntletMode)
+            if (!initflag && !DiggerC.g_isGauntletMode)
             {
-                cleartopline();
-                drawApi.TextOut(ddap, "GAME OVER", 104, 0, 3);
-                for (int i = 0; i < 50 && !escape; i++)
-                    newframe();
-                drawApi.EraseText(ddap, 9, 104, 0, 3);
+                DiggerC.cleartopline();
+                DiggerC.drawApi.TextOut(ddap, "GAME OVER", 104, 0, 3);
+                for (int i = 0; i < 50 && !DiggerC.input.escape; i++)
+                    DiggerC.newframe();
+                DiggerC.drawApi.EraseText(ddap, 9, 104, 0, 3);
             }
         }
 
-        public static void showtable(SdlGraphics ddap)
+        public void showtable(SdlGraphics ddap)
         {
             int i, col;
-            drawApi.TextOut(ddap, "HIGH SCORES", 16, 25, 3);
+            DiggerC.drawApi.TextOut(ddap, "HIGH SCORES", 16, 25, 3);
             col = 2;
             for (i = 1; i < 11; i++)
             {
                 highbuf = numtostring(scorehigh[i + 1]);
                 hsbuf = $"{scoreinit[i]}  {highbuf}";
-                drawApi.TextOut(ddap, hsbuf, 16, 31 + 13 * i, col);
+                DiggerC.drawApi.TextOut(ddap, hsbuf, 16, 31 + 13 * i, col);
                 col = 1;
             }
         }
 
-        static void savescores()
+        private void savescores()
         {
             int i, p = 0, j;
-            if (g_isGauntletMode)
+            if (DiggerC.g_isGauntletMode)
                 p = 111;
-            if (g_Diggers == 2)
+            if (DiggerC.g_Diggers == 2)
                 p += 222;
             scorebuf[p] = (byte)'s';
             for (i = 1; i < 11; i++)
@@ -247,15 +247,15 @@ namespace Digger.Net
             writescores();
         }
 
-        public static void getinitials(SdlGraphics ddap)
+        public void getinitials(SdlGraphics ddap)
         {
             int k, i;
-            newframe();
-            drawApi.TextOut(ddap, "ENTER YOUR", 100, 70, 3);
-            drawApi.TextOut(ddap, " INITIALS", 100, 90, 3);
-            drawApi.TextOut(ddap, "_ _ _", 128, 130, 3);
+            DiggerC.newframe();
+            DiggerC.drawApi.TextOut(ddap, "ENTER YOUR", 100, 70, 3);
+            DiggerC.drawApi.TextOut(ddap, " INITIALS", 100, 90, 3);
+            DiggerC.drawApi.TextOut(ddap, "_ _ _", 128, 130, 3);
             scoreinit[0] = "...";
-            KillSound();
+            DiggerC.KillSound();
             var initials = new char[3];
             for (i = 0; i < 3; i++)
             {
@@ -280,24 +280,24 @@ namespace Digger.Net
             for (i = 0; i < 20; i++)
                 flashywait(ddap, 15);
 
-            SetupSound();
+            DiggerC.SetupSound();
             ddap.Clear();
             ddap.SetPalette(0);
             ddap.SetIntensity(0);
-            recputinit(scoreinit[0]);
+            DiggerC.record.recputinit(scoreinit[0]);
         }
 
-        public static void flashywait(SdlGraphics ddap, int n)
+        public void flashywait(SdlGraphics ddap, int n)
         {
             int i, gt, cx;
             int p = 0;
             byte gap = 19;
 
-            timer.SyncFrame();
-            sdlGfx.UpdateScreen();
+            DiggerC.timer.SyncFrame();
+            DiggerC.sdlGfx.UpdateScreen();
 
             for (i = 0; i < (n << 1); i++)
-                for (cx = 0; cx < volume; cx++)
+                for (cx = 0; cx < DiggerC.volume; cx++)
                 {
                     p = 1 - p;
                     ddap.SetPalette(p);
@@ -305,7 +305,7 @@ namespace Digger.Net
                 }
         }
 
-        public static int getinitial(SdlGraphics ddap, int x, int y)
+        public int getinitial(SdlGraphics ddap, int x, int y)
         {
             int i;
             ddap.WriteChar(x, y, '_', 3);
@@ -313,9 +313,9 @@ namespace Digger.Net
             {
                 for (i = 0; i < 40; i++)
                 {
-                    if (kbhit())
+                    if (DiggerC.input.keyboard.IsKeyboardHit())
                     {
-                        int key = getkey(false);
+                        int key = DiggerC.input.keyboard.GetKey(false);
                         if (!char.IsLetterOrDigit((char)key))
                             continue;
                         return key;
@@ -324,17 +324,17 @@ namespace Digger.Net
                 }
                 for (i = 0; i < 40; i++)
                 {
-                    if (kbhit())
+                    if (DiggerC.input.keyboard.IsKeyboardHit())
                     {
                         ddap.WriteChar(x, y, '_', 3);
-                        return getkey(false);
+                        return DiggerC.input.keyboard.GetKey(false);
                     }
                     flashywait(ddap, 15);
                 }
             } while (true);
         }
 
-        static void shufflehigh()
+        private void shufflehigh()
         {
             int i, j;
             for (j = 10; j > 1; j--)
@@ -349,38 +349,38 @@ namespace Digger.Net
             scoreinit[j] = scoreinit[0];
         }
 
-        public static void scorekill(SdlGraphics ddap, int n)
+        public void scorekill(SdlGraphics ddap, int n)
         {
             addscore(ddap, n, 250);
         }
 
-        public static void scorekill2(SdlGraphics ddap)
+        public void scorekill2(SdlGraphics ddap)
         {
             addscore(ddap, 0, 125);
             addscore(ddap, 1, 125);
         }
 
-        public static void scoreemerald(SdlGraphics ddap, int n)
+        public void scoreemerald(SdlGraphics ddap, int n)
         {
             addscore(ddap, n, 25);
         }
 
-        public static void scoreoctave(SdlGraphics ddap, int n)
+        public void scoreoctave(SdlGraphics ddap, int n)
         {
             addscore(ddap, n, 250);
         }
 
-        public static void scoregold(SdlGraphics ddap, int n)
+        public void scoregold(SdlGraphics ddap, int n)
         {
             addscore(ddap, n, 500);
         }
 
-        public static void scorebonus(SdlGraphics ddap, int n)
+        public void scorebonus(SdlGraphics ddap, int n)
         {
             addscore(ddap, n, 1000);
         }
 
-        public static void scoreeatm(SdlGraphics ddap, int n, int msc)
+        public void scoreeatm(SdlGraphics ddap, int n, int msc)
         {
             addscore(ddap, n, msc * 200);
         }
@@ -402,21 +402,6 @@ namespace Digger.Net
         static string numtostring(int n)
         {
             return string.Format("{0,-6:d}", n);
-            //int x;
-            //var p = new char[7];
-            //for (x = 0; x < 6; x++)
-            //{
-            //    p[5 - x] = (char)((n % 10) + '0');
-            //    n /= 10;
-            //    if (n == 0)
-            //    {
-            //        x++;
-            //        break;
-            //    }
-            //}
-            //for (; x < 6; x++)
-            //    p[5 - x] = ' ';
-            //p[6] = '\0';
         }
     }
 }

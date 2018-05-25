@@ -106,7 +106,7 @@ namespace Digger.Net
             nljnoteduration = 20;
             soundlevdoneflag = soundpausedflag = true;
             g_FrameTime /= 5;
-            while (soundlevdoneflag && !escape)
+            while (soundlevdoneflag && !input.escape)
             {
                 if (!device.IsWaveDeviceAvailable)
                     soundlevdoneflag = false;
@@ -117,7 +117,7 @@ namespace Digger.Net
                 if (timerclock == timer)
                     continue;
                 soundlevdoneupdate();
-                checkkeyb();
+                input.checkkeyb();
                 timer = timerclock;
             }
             g_FrameTime *= 5;

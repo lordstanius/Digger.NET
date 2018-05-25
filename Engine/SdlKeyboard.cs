@@ -18,22 +18,34 @@ using SDL2;
 
 namespace Digger.Net
 {
-    public static partial class DiggerC
+    public class SdlKeyboard
     {
-        public static bool rightpressed => GetAsyncKeyState(keycodes[0][0]);
-        public static bool uppressed => GetAsyncKeyState(keycodes[1][0]);
-        public static bool leftpressed => GetAsyncKeyState(keycodes[2][0]);
-        public static bool downpressed => GetAsyncKeyState(keycodes[3][0]);
-        public static bool f1pressed => GetAsyncKeyState(keycodes[4][0]);
-        public static bool right2pressed => GetAsyncKeyState(keycodes[5][0]);
-        public static bool up2pressed => GetAsyncKeyState(keycodes[6][0]);
-        public static bool left2pressed => GetAsyncKeyState(keycodes[7][0]);
-        public static bool down2pressed => GetAsyncKeyState(keycodes[8][0]);
-        public static bool f12pressed => GetAsyncKeyState(keycodes[9][0]);
+        private static SDL.SDL_EventFilter pHandler;
+
+        public SdlKeyboard()
+        {
+            SDL.SDL_EventState(SDL.SDL_EventType.SDL_MOUSEMOTION, SDL.SDL_IGNORE);
+            SDL.SDL_EventState(SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN, SDL.SDL_IGNORE);
+            SDL.SDL_EventState(SDL.SDL_EventType.SDL_MOUSEBUTTONUP, SDL.SDL_IGNORE);
+
+            pHandler = new SDL.SDL_EventFilter(Handler);
+            SDL.SDL_SetEventFilter(pHandler, IntPtr.Zero);
+        }
+
+        public bool IsRightPressed => GetAsyncKeyState(keycodes[0][0]);
+        public bool IsUpPressed => GetAsyncKeyState(keycodes[1][0]);
+        public bool IsLeftPressed => GetAsyncKeyState(keycodes[2][0]);
+        public bool IsDownPressed => GetAsyncKeyState(keycodes[3][0]);
+        public bool IsF1Pressed => GetAsyncKeyState(keycodes[4][0]);
+        public bool IsRight2Pressed => GetAsyncKeyState(keycodes[5][0]);
+        public bool IsUp2Pressed => GetAsyncKeyState(keycodes[6][0]);
+        public bool IsLeft2Pressed => GetAsyncKeyState(keycodes[7][0]);
+        public bool IsDown2Pressed => GetAsyncKeyState(keycodes[8][0]);
+        public bool IsF12Pressed => GetAsyncKeyState(keycodes[9][0]);
 
         public const int KBLEN = 30;
 
-        public static int[][] keycodes = {
+        public readonly int[][] keycodes = {
             new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_RIGHT,-2,-2,-2,-2},    /* 1 Right */
 			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_UP,-2,-2,-2,-2},       /* 1 Up */
 			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_LEFT,-2,-2,-2,-2},     /* 1 Left */
@@ -63,9 +75,7 @@ namespace Digger.Net
         static kbent[] kbuffer = new kbent[KBLEN];
         public static short klen = 0;
 
-        public static SDL.SDL_EventFilter pHandler = Handler;
-
-        public static int Handler(IntPtr udata, IntPtr pEvent)
+        public int Handler(IntPtr udata, IntPtr pEvent)
         {
             SDL.SDL_Event sdlEvent = pEvent.ToStruct<SDL.SDL_Event>();
             if (sdlEvent.type == SDL.SDL_EventType.SDL_KEYDOWN)
@@ -85,7 +95,7 @@ namespace Digger.Net
                     sdlEvent.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) &&
                     ((sdlEvent.key.keysym.mod & SDL.SDL_Keymod.KMOD_ALT) != 0))
                 {
-                    sdlGfx.SwitchMode();
+                    DiggerC.sdlGfx.SwitchMode();
                 }
             }
 
@@ -95,7 +105,7 @@ namespace Digger.Net
             return 1;
         }
 
-        public static bool GetAsyncKeyState(int key)
+        public bool GetAsyncKeyState(int key)
         {
             SDL.SDL_PumpEvents();
             IntPtr pKeys = SDL.SDL_GetKeyboardState(out int numkeys);
@@ -103,23 +113,14 @@ namespace Digger.Net
             return keys[key] == SDL.SDL_PRESSED;
         }
 
-        public static void initkeyb()
-        {
-            SDL.SDL_EventState(SDL.SDL_EventType.SDL_MOUSEMOTION, SDL.SDL_IGNORE);
-            SDL.SDL_EventState(SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN, SDL.SDL_IGNORE);
-            SDL.SDL_EventState(SDL.SDL_EventType.SDL_MOUSEBUTTONUP, SDL.SDL_IGNORE);
-
-            SDL.SDL_SetEventFilter(pHandler, IntPtr.Zero);
-        }
-
-        public static int getkey(bool scancode)
+        public int GetKey(bool scancode)
         {
             int result;
 
-            while (!kbhit())
+            while (!IsKeyboardHit())
             {
-                timer.SyncFrame();
-                sdlGfx.UpdateScreen();
+                DiggerC.timer.SyncFrame();
+                DiggerC.sdlGfx.UpdateScreen();
             }
 
             if (scancode)
@@ -136,7 +137,7 @@ namespace Digger.Net
             return result;
         }
 
-        public static bool kbhit()
+        public bool IsKeyboardHit()
         {
             SDL.SDL_PumpEvents();
 

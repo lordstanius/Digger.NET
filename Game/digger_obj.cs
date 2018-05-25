@@ -31,54 +31,51 @@ using System;
 
 namespace Digger.Net
 {
-    public static partial class DiggerC
+    public class digger_obj
     {
-        public class digger_obj
+        public int d_id;
+        public bool alive;
+        public bool zombie;
+        public bool can_fire;
+        public int dir;
+        public int x;
+        public int y;
+
+        public digger_obj(int d_id, int dir, int x, int y)
         {
-            public int d_id;
-            public bool alive;
-            public bool zombie;
-            public bool can_fire;
-            public int dir;
-            public int x;
-            public int y;
+            this.dir = dir;
+            this.x = x;
+            this.y = y;
+            this.d_id = d_id;
+            this.alive = true;
+            this.zombie = false;
+            this.can_fire = true;
+        }
 
-            public digger_obj(int d_id, int dir, int x, int y)
-            {
-                this.dir = dir;
-                this.x = x;
-                this.y = y;
-                this.d_id = d_id;
-                this.alive = true;
-                this.zombie = false;
-                this.can_fire = true;
-            }
+        public void put()
+        {
+            DiggerC.sprites.movedrawspr(DiggerC.FIRSTDIGGER + d_id, x, y);
+        }
 
-            public void put()
-            {
-                sprites.movedrawspr(FIRSTDIGGER + d_id, x, y);
-            }
+        public void animate()
+        {
+            DiggerC.drawApi.drawdigger(d_id, dir, x, y, can_fire);
+        }
 
-            public void animate()
-            {
-                drawApi.drawdigger(d_id, dir, x, y, can_fire);
-            }
+        public void discharge()
+        {
 
-            public void discharge()
-            {
+            System.Diagnostics.Debug.Assert(can_fire);
+            can_fire = false;
+        }
 
-                System.Diagnostics.Debug.Assert(can_fire);
-                can_fire = false;
-            }
+        public void recharge()
+        {
+            System.Diagnostics.Debug.Assert(!can_fire);
+            can_fire = true;
+        }
 
-            public void recharge()
-            {
-                System.Diagnostics.Debug.Assert(!can_fire);
-                can_fire = true;
-            }
-
-            public Action damage;
-            public Action kill;
-        };
-    }
+        public Action damage;
+        public Action kill;
+    };
 }

@@ -3,8 +3,10 @@
 
 namespace Digger.Net
 {
-    public static partial class DiggerC
+    public class Input
     {
+        public SdlKeyboard keyboard = new SdlKeyboard();
+
         public const int NKEYS = 19;
         public const int DKEY_CHT = 10; /* Cheat */
         public const int DKEY_SUP = 11; /* Increase speed */
@@ -17,34 +19,42 @@ namespace Digger.Net
         public const int DKEY_SDR = 18; /* Save DRF */
 
 
-        public static bool[] krdf = new bool[NKEYS];
+        public bool[] krdf = new bool[NKEYS];
 
-        public static bool escape;
-        public static bool firepflag;
-        public static bool fire2pflag;
-        public static bool pausef;
-        public static bool mode_change;
-        public static bool aleftpressed = false;
-        public static bool arightpressed = false;
-        public static bool auppressed = false;
-        public static bool adownpressed = false;
-        public static bool start = false;
-        public static bool af1pressed = false;
-        public static bool aleft2pressed = false;
-        public static bool aright2pressed = false;
-        public static bool aup2pressed = false;
-        public static bool adown2pressed = false;
-        public static bool af12pressed = false;
+        public bool escape;
+        public bool firepflag;
+        public bool fire2pflag;
+        public bool pausef;
+        public bool mode_change;
+        public bool aleftpressed = false;
+        public bool arightpressed = false;
+        public bool auppressed = false;
+        public bool adownpressed = false;
+        public bool start = false;
+        public bool af1pressed = false;
+        public bool aleft2pressed = false;
+        public bool aright2pressed = false;
+        public bool aup2pressed = false;
+        public bool adown2pressed = false;
+        public bool af12pressed = false;
 
-        public static int akeypressed;
+        public int akeypressed;
 
-        private static int dynamicdir = -1, dynamicdir2 = -1, staticdir = -1, staticdir2 = -1, joyx = 0, joyy = 0;
+        private int dynamicdir = -1, dynamicdir2 = -1, dir = -1, dir2 = -1, joyx = 0, joyy = 0;
 
-        private static bool joybut1 = false;
-        private static bool joyflag = false;
+        private bool joybut1 = false;
+        private bool joyflag = false;
 
-        private static int keydir, keydir2, jleftthresh, jupthresh, jrightthresh, jdownthresh, joyanax, joyanay;
+        private int keydir, keydir2, jleftthresh, jupthresh, jrightthresh, jdownthresh, joyanax, joyanay;
 
+        public int prockey(int kn)
+        {
+            int key = keyboard.GetKey(true);
+            if (kn != DKEY_EXT && key == keyboard.keycodes[DKEY_EXT][0])
+                return -1;
+            keyboard.keycodes[kn][0] = key;
+            return (0);
+        }
 
         /* The standard ASCII keyboard is also checked so that very short keypresses
            are not overlooked. The functions kbhit() (returns bool denoting whether or
@@ -54,64 +64,64 @@ namespace Digger.Net
            there is none, in which case return -1. It is done this way around for
            historical reasons, there is no fundamental reason why it shouldn't be the
            other way around. */
-        public static void checkkeyb()
+        public void checkkeyb()
         {
             int k = 0;
 
-            if (leftpressed)
+            if (keyboard.IsLeftPressed)
                 aleftpressed = true;
-            if (rightpressed)
+            if (keyboard.IsRightPressed)
                 arightpressed = true;
-            if (uppressed)
+            if (keyboard.IsUpPressed)
                 auppressed = true;
-            if (downpressed)
+            if (keyboard.IsDownPressed)
                 adownpressed = true;
-            if (f1pressed)
+            if (keyboard.IsF1Pressed)
                 af1pressed = true;
-            if (left2pressed)
+            if (keyboard.IsLeft2Pressed)
                 aleft2pressed = true;
-            if (right2pressed)
+            if (keyboard.IsRight2Pressed)
                 aright2pressed = true;
-            if (up2pressed)
+            if (keyboard.IsUp2Pressed)
                 aup2pressed = true;
-            if (down2pressed)
+            if (keyboard.IsDown2Pressed)
                 adown2pressed = true;
-            if (f12pressed)
+            if (keyboard.IsF12Pressed)
                 af12pressed = true;
 
-            while (kbhit())
+            while (keyboard.IsKeyboardHit())
             {
-                akeypressed = getkey(true);
+                akeypressed = keyboard.GetKey(true);
                 for (int i = 0; i < 10; i++)
                     for (int j = 2; j < 5; j++)
-                        if (akeypressed == keycodes[i][j])
+                        if (akeypressed == keyboard.keycodes[i][j])
                             aflagp(i, true);
 
                 for (int i = 10; i < NKEYS; i++)
                     for (int j = 0; j < 5; j++)
-                        if (akeypressed == keycodes[i][j])
+                        if (akeypressed == keyboard.keycodes[i][j])
                             k = i;
                 switch (k)
                 {
                     case DKEY_CHT: /* Cheat! */
-                        if (!g_isGauntletMode)
+                        if (!DiggerC.g_isGauntletMode)
                         {
-                            playing = false;
-                            drfvalid = false;
+                            DiggerC.record.playing = false;
+                            DiggerC.record.drfvalid = false;
                         }
                         break;
                     case DKEY_SUP: /* Increase speed */
-                        if (g_FrameTime > 10000)
-                            g_FrameTime -= 10000;
+                        if (DiggerC.g_FrameTime > 10000)
+                            DiggerC.g_FrameTime -= 10000;
                         break;
                     case DKEY_SDN: /* Decrease speed */
-                        g_FrameTime += 10000;
+                        DiggerC.g_FrameTime += 10000;
                         break;
                     case DKEY_MTG: /* Toggle music */
-                        musicflag = !musicflag;
+                        DiggerC.musicflag = !DiggerC.musicflag;
                         break;
                     case DKEY_STG: /* Toggle sound */
-                        soundflag = !soundflag;
+                        DiggerC.soundflag = !DiggerC.soundflag;
                         break;
                     case DKEY_EXT: /* Exit */
                         escape = true;
@@ -123,7 +133,7 @@ namespace Digger.Net
                         mode_change = true;
                         break;
                     case DKEY_SDR: /* Save DRF */
-                        savedrf = true;
+                        DiggerC.record.savedrf = true;
                         break;
                 }
                 if (!mode_change)
@@ -131,7 +141,7 @@ namespace Digger.Net
             }
         }
 
-        private static void aflagp(int i, bool value)
+        private void aflagp(int i, bool value)
         {
             switch (i)
             {
@@ -150,27 +160,28 @@ namespace Digger.Net
 
         /* Joystick not yet implemented. It will be, though, using gethrt on platform
            DOSPC. */
-        public static void readjoy()
+        public void readjoy()
         {
         }
 
-        public static void detectjoy()
+        public void detectjoy()
         {
             joyflag = false;
-            staticdir = dynamicdir = DIR_NONE;
+            dir = dynamicdir = DiggerC.DIR_NONE;
         }
 
         /* Contrary to some beliefs, you don't need a separate OS call to flush the
            keyboard buffer. */
-        public static void flushkeybuf()
+        public void flushkeybuf()
         {
-            while (kbhit())
-                getkey(true);
+            while (keyboard.IsKeyboardHit())
+                keyboard.GetKey(true);
+
             aleftpressed = arightpressed = auppressed = adownpressed = af1pressed = false;
             aleft2pressed = aright2pressed = aup2pressed = adown2pressed = af12pressed = false;
         }
 
-        public static void clearfire(int n)
+        public void clearfire(int n)
         {
             if (n == 0)
                 af1pressed = false;
@@ -178,10 +189,10 @@ namespace Digger.Net
                 af12pressed = false;
         }
 
-        public static bool oupressed = false, odpressed = false, olpressed = false, orpressed = false;
-        public static bool ou2pressed = false, od2pressed = false, ol2pressed = false, or2pressed = false;
+        public bool oupressed = false, odpressed = false, olpressed = false, orpressed = false;
+        public bool ou2pressed = false, od2pressed = false, ol2pressed = false, or2pressed = false;
 
-        public static void readdirect(int n)
+        public void readdirect(int n)
         {
             short j;
             bool u = false, d = false, l = false, r = false;
@@ -189,11 +200,11 @@ namespace Digger.Net
 
             if (n == 0)
             {
-                if (auppressed || uppressed) { u = true; auppressed = false; }
-                if (adownpressed || downpressed) { d = true; adownpressed = false; }
-                if (aleftpressed || leftpressed) { l = true; aleftpressed = false; }
-                if (arightpressed || rightpressed) { r = true; arightpressed = false; }
-                if (f1pressed || af1pressed)
+                if (auppressed || keyboard.IsUpPressed) { u = true; auppressed = false; }
+                if (adownpressed || keyboard.IsDownPressed) { d = true; adownpressed = false; }
+                if (aleftpressed || keyboard.IsLeftPressed) { l = true; aleftpressed = false; }
+                if (arightpressed || keyboard.IsRightPressed) { r = true; arightpressed = false; }
+                if (keyboard.IsF1Pressed || af1pressed)
                 {
                     firepflag = true;
                     af1pressed = false;
@@ -201,40 +212,40 @@ namespace Digger.Net
                 else
                     firepflag = false;
                 if (u && !oupressed)
-                    staticdir = dynamicdir = DIR_UP;
+                    dir = dynamicdir = DiggerC.DIR_UP;
                 if (d && !odpressed)
-                    staticdir = dynamicdir = DIR_DOWN;
+                    dir = dynamicdir = DiggerC.DIR_DOWN;
                 if (l && !olpressed)
-                    staticdir = dynamicdir = DIR_LEFT;
+                    dir = dynamicdir = DiggerC.DIR_LEFT;
                 if (r && !orpressed)
-                    staticdir = dynamicdir = DIR_RIGHT;
-                if ((oupressed && !u && dynamicdir == DIR_UP) ||
-                    (odpressed && !d && dynamicdir == DIR_DOWN) ||
-                    (olpressed && !l && dynamicdir == DIR_LEFT) ||
-                    (orpressed && !r && dynamicdir == DIR_RIGHT))
+                    dir = dynamicdir = DiggerC.DIR_RIGHT;
+                if ((oupressed && !u && dynamicdir == DiggerC.DIR_UP) ||
+                    (odpressed && !d && dynamicdir == DiggerC.DIR_DOWN) ||
+                    (olpressed && !l && dynamicdir == DiggerC.DIR_LEFT) ||
+                    (orpressed && !r && dynamicdir == DiggerC.DIR_RIGHT))
                 {
-                    dynamicdir = DIR_NONE;
-                    if (u) dynamicdir = staticdir = 2;
-                    if (d) dynamicdir = staticdir = 6;
-                    if (l) dynamicdir = staticdir = 4;
-                    if (r) dynamicdir = staticdir = 0;
+                    dynamicdir = DiggerC.DIR_NONE;
+                    if (u) dynamicdir = dir = 2;
+                    if (d) dynamicdir = dir = 6;
+                    if (l) dynamicdir = dir = 4;
+                    if (r) dynamicdir = dir = 0;
                 }
                 oupressed = u;
                 odpressed = d;
                 olpressed = l;
                 orpressed = r;
-                keydir = staticdir;
-                if (dynamicdir != DIR_NONE)
+                keydir = dir;
+                if (dynamicdir != DiggerC.DIR_NONE)
                     keydir = dynamicdir;
-                staticdir = DIR_NONE;
+                dir = DiggerC.DIR_NONE;
             }
             else
             {
-                if (aup2pressed || up2pressed) { u2 = true; aup2pressed = false; }
-                if (adown2pressed || down2pressed) { d2 = true; adown2pressed = false; }
-                if (aleft2pressed || left2pressed) { l2 = true; aleft2pressed = false; }
-                if (aright2pressed || right2pressed) { r2 = true; aright2pressed = false; }
-                if (f12pressed || af12pressed)
+                if (aup2pressed || keyboard.IsUp2Pressed) { u2 = true; aup2pressed = false; }
+                if (adown2pressed || keyboard.IsDown2Pressed) { d2 = true; adown2pressed = false; }
+                if (aleft2pressed || keyboard.IsLeft2Pressed) { l2 = true; aleft2pressed = false; }
+                if (aright2pressed || keyboard.IsRight2Pressed) { r2 = true; aright2pressed = false; }
+                if (keyboard.IsF12Pressed || af12pressed)
                 {
                     fire2pflag = true;
                     af12pressed = false;
@@ -242,38 +253,38 @@ namespace Digger.Net
                 else
                     fire2pflag = false;
                 if (u2 && !ou2pressed)
-                    staticdir2 = dynamicdir2 = DIR_UP;
+                    dir2 = dynamicdir2 = DiggerC.DIR_UP;
                 if (d2 && !od2pressed)
-                    staticdir2 = dynamicdir2 = DIR_DOWN;
+                    dir2 = dynamicdir2 = DiggerC.DIR_DOWN;
                 if (l2 && !ol2pressed)
-                    staticdir2 = dynamicdir2 = DIR_LEFT;
+                    dir2 = dynamicdir2 = DiggerC.DIR_LEFT;
                 if (r2 && !or2pressed)
-                    staticdir2 = dynamicdir2 = DIR_RIGHT;
-                if ((ou2pressed && !u2 && dynamicdir2 == DIR_UP) ||
-                    (od2pressed && !d2 && dynamicdir2 == DIR_DOWN) ||
-                    (ol2pressed && !l2 && dynamicdir2 == DIR_LEFT) ||
-                    (or2pressed && !r2 && dynamicdir2 == DIR_RIGHT))
+                    dir2 = dynamicdir2 = DiggerC.DIR_RIGHT;
+                if ((ou2pressed && !u2 && dynamicdir2 == DiggerC.DIR_UP) ||
+                    (od2pressed && !d2 && dynamicdir2 == DiggerC.DIR_DOWN) ||
+                    (ol2pressed && !l2 && dynamicdir2 == DiggerC.DIR_LEFT) ||
+                    (or2pressed && !r2 && dynamicdir2 == DiggerC.DIR_RIGHT))
                 {
-                    dynamicdir2 = DIR_NONE;
-                    if (u2) dynamicdir2 = staticdir2 = 2;
-                    if (d2) dynamicdir2 = staticdir2 = 6;
-                    if (l2) dynamicdir2 = staticdir2 = 4;
-                    if (r2) dynamicdir2 = staticdir2 = 0;
+                    dynamicdir2 = DiggerC.DIR_NONE;
+                    if (u2) dynamicdir2 = dir2 = 2;
+                    if (d2) dynamicdir2 = dir2 = 6;
+                    if (l2) dynamicdir2 = dir2 = 4;
+                    if (r2) dynamicdir2 = dir2 = 0;
                 }
                 ou2pressed = u2;
                 od2pressed = d2;
                 ol2pressed = l2;
                 or2pressed = r2;
-                keydir2 = staticdir2;
-                if (dynamicdir2 != DIR_NONE)
+                keydir2 = dir2;
+                if (dynamicdir2 != DiggerC.DIR_NONE)
                     keydir2 = dynamicdir2;
-                staticdir2 = DIR_NONE;
+                dir2 = DiggerC.DIR_NONE;
             }
 
             if (joyflag)
             {
-                incpenalty();
-                incpenalty();
+                DiggerC.incpenalty();
+                DiggerC.incpenalty();
                 joyanay = 0;
                 joyanax = 0;
                 for (j = 0; j < 4; j++)
@@ -293,7 +304,7 @@ namespace Digger.Net
 
         /* Calibrate joystick while waiting at title screen. This works more
            effectively if the user waggles the joystick in the title screen. */
-        public static bool teststart()
+        public bool teststart()
         {
             short j;
             bool startf = false;
@@ -347,35 +358,35 @@ namespace Digger.Net
 
         /* Why the joystick reading is split between readdirect and getdir like this is a
            mystery to me. */
-        public static int getdirect(int n)
+        public int getdirect(int n)
         {
             int dir = ((n == 0) ? keydir : keydir2);
             if (joyflag)
             {
-                dir = DIR_NONE;
+                dir = DiggerC.DIR_NONE;
                 if (joyx < jleftthresh)
-                    dir = DIR_LEFT;
+                    dir = DiggerC.DIR_LEFT;
                 if (joyx > jrightthresh)
-                    dir = DIR_RIGHT;
+                    dir = DiggerC.DIR_RIGHT;
                 if (joyx >= jleftthresh && joyx <= jrightthresh)
                 {
                     if (joyy < jupthresh)
-                        dir = DIR_UP;
+                        dir = DiggerC.DIR_UP;
                     if (joyy > jdownthresh)
-                        dir = DIR_DOWN;
+                        dir = DiggerC.DIR_DOWN;
                 }
             }
             if (n == 0)
             {
-                if (playing)
-                    playgetdir(ref dir, ref firepflag);
-                recputdir(dir, firepflag);
+                if (DiggerC.record.playing)
+                    DiggerC.record.playgetdir(ref dir, ref firepflag);
+                DiggerC.record.recputdir(dir, firepflag);
             }
             else
             {
-                if (playing)
-                    playgetdir(ref dir, ref fire2pflag);
-                recputdir(dir, fire2pflag);
+                if (DiggerC.record.playing)
+                    DiggerC.record.playgetdir(ref dir, ref fire2pflag);
+                DiggerC.record.recputdir(dir, fire2pflag);
             }
 
             return dir;

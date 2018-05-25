@@ -68,14 +68,14 @@ namespace Digger.Net
             {
                 for (; g_CurrentTime < g_FrameTime; g_CurrentTime += 17094)
                 { /* 17094 = ticks in a refresh */
-                    checkkeyb();
+                    input.checkkeyb();
                 }
                 g_CurrentTime -= g_FrameTime;
             }
             else
             {
                 timer.SyncFrame();
-                checkkeyb();
+                input.checkkeyb();
                 sdlGfx.UpdateScreen();
             }
         }
@@ -268,7 +268,7 @@ namespace Digger.Net
                 while (i != -1)
                 {
                     killmon(i - FIRSTMONSTER);
-                    scorekill(ddap, n);
+                    scores.scorekill(ddap, n);
                     digdat[n].bob.explode();
                     i = clcoll[i];
                 }
@@ -404,8 +404,8 @@ namespace Digger.Net
             bool push = true, bagf;
             int[] clfirst = new int[TYPES];
             int[] clcoll = new int[SPRITES];
-            readdirect(n - g_CurrentPlayer);
-            dir = getdirect(n - g_CurrentPlayer);
+            input.readdirect(n - g_CurrentPlayer);
+            dir = input.getdirect(n - g_CurrentPlayer);
             if (dir == DIR_RIGHT || dir == DIR_UP || dir == DIR_LEFT || dir == DIR_DOWN)
                 ddir = dir;
             else
@@ -452,7 +452,7 @@ namespace Digger.Net
             {
                 if (digdat[n].emocttime == 0)
                     digdat[n].emn = 0;
-                scoreemerald(ddap, n);
+                scores.scoreemerald(ddap, n);
                 soundem();
                 soundemerald(digdat[n].emn);
 
@@ -460,7 +460,7 @@ namespace Digger.Net
                 if (digdat[n].emn == 8)
                 {
                     digdat[n].emn = 0;
-                    scoreoctave(ddap, n);
+                    scores.scoreoctave(ddap, n);
                 }
                 digdat[n].emocttime = 9;
             }
@@ -511,7 +511,7 @@ namespace Digger.Net
                 }
             if (clfirst[0] != -1)
             {
-                scorebonus(ddap, n);
+                scores.scorebonus(ddap, n);
                 initbonusmode(ddap);
             }
             digdat[n].h = (digdat[n].dob.x - 12) / 20;
@@ -522,7 +522,7 @@ namespace Digger.Net
 
         public static void sceatm(SdlGraphics ddap, int n)
         {
-            scoreeatm(ddap, n, digdat[n].msc);
+            scores.scoreeatm(ddap, n, digdat[n].msc);
             digdat[n].msc <<= 1;
         }
 
@@ -619,8 +619,7 @@ namespace Digger.Net
                             }
                         if (alldead)
                             setdead(true);
-                        else
-                          if (isalive() && digdat[n].lives > 0)
+                        else if (isalive() && digdat[n].lives > 0)
                         {
                             if (!g_isGauntletMode)
                                 digdat[n].lives--;
@@ -651,7 +650,7 @@ namespace Digger.Net
                                 digdat[n].emn = 0;
                                 digdat[n].msc = 1;
                             }
-                            clearfire(n);
+                            input.clearfire(n);
                             if (bonusmode)
                                 music(0);
                             else
@@ -806,7 +805,7 @@ namespace Digger.Net
 
         static bool getfirepflag(int n)
         {
-            return n == 0 ? firepflag : fire2pflag;
+            return n == 0 ? input.firepflag : input.fire2pflag;
         }
 
         public static int diggerx(int n)

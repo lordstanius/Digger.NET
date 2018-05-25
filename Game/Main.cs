@@ -56,6 +56,9 @@ namespace Digger.Net
         public const int FIRSTDIGGER = LASTFIREBALL;
         public const int LASTDIGGER = (FIRSTDIGGER + DIGGERS);
 
+        public const bool MON_NOBBIN = true;
+        public const bool MON_HOBBIN = false;
+
         /* using lesser buffer size will break ie. alsa on linux, no reason to use
          * lesser size anyways...
          */
@@ -74,7 +77,10 @@ namespace Digger.Net
         public static Level level;
         public static DrawApi drawApi;
         public static Sprites sprites;
-        public static Timer timer;
+        public static SdlTimer timer;
+        public static Scores scores;
+        public static Record record;
+        public static Input input;
 
         /* global variables */
         public static string g_playerName;
@@ -96,7 +102,10 @@ namespace Digger.Net
             level = new Level(gamedat);
             sprites = new Sprites(sdlGfx);
             drawApi = new DrawApi(sprites);
-            timer = new Timer();
+            timer = new SdlTimer();
+            scores = new Scores();
+            record = new Record();
+            input = new Input();
         }
 
 
@@ -111,10 +120,9 @@ namespace Digger.Net
             calibrate();
             sdlGfx.Initialize();
             sdlGfx.SetPalette(0);
-            initkeyb();
-            detectjoy();
+            input.detectjoy();
             initsound();
-            recstart();
+            record.recstart();
 
             maininited = true;
         }
@@ -134,23 +142,23 @@ namespace Digger.Net
             initlevel();
             g_CurrentPlayer = 1;
             initlevel();
-            zeroscores();
+            scores.zeroscores();
             bonusvisible = true;
             if (g_playerCount == 2)
                 flashplayer = true;
             g_CurrentPlayer = 0;
-            while (getalllives() != 0 && !escape && !g_isTimeOut)
+            while (getalllives() != 0 && !input.escape && !g_isTimeOut)
             {
-                while (!alldead && !escape && !g_isTimeOut)
+                while (!alldead && !input.escape && !g_isTimeOut)
                 {
                     drawApi.initmbspr();
 
-                    if (playing)
-                        randv = playgetrand();
+                    if (record.playing)
+                        randv = record.playgetrand();
                     else
                         randv = 0;
 
-                    RecortPutRandom(randv);
+                    record.RecordPutRandom(randv);
                     if (levnotdrawn)
                     {
                         levnotdrawn = false;
@@ -165,30 +173,30 @@ namespace Digger.Net
                                 for (int c = 1; c <= 3; c++)
                                 {
                                     drawApi.TextOut(sdlGfx, g_playerName, 108, 0, c);
-                                    writecurscore(sdlGfx, c);
+                                    scores.writecurscore(sdlGfx, c);
                                     newframe();
-                                    if (escape)
+                                    if (input.escape)
                                         return;
                                 }
                             }
-                            drawscores(sdlGfx);
+                            scores.drawscores(sdlGfx);
                             for (int i = 0; i < g_Diggers; i++)
-                                addscore(sdlGfx, i, 0);
+                                scores.addscore(sdlGfx, i, 0);
                         }
                     }
                     else
                         initchars();
 
                     drawApi.EraseText(sdlGfx, 8, 108, 0, 3);
-                    initscores(sdlGfx);
+                    scores.initscores(sdlGfx);
                     drawApi.drawlives(sdlGfx);
                     music(1);
 
-                    flushkeybuf();
+                    input.flushkeybuf();
                     for (int i = 0; i < g_Diggers; i++)
-                        readdirect(i);
+                        input.readdirect(i);
 
-                    while (!alldead && !gamedat[g_CurrentPlayer].levdone && !escape && !g_isTimeOut)
+                    while (!alldead && !gamedat[g_CurrentPlayer].levdone && !input.escape && !g_isTimeOut)
                     {
                         g_Penalty = 0;
                         dodigger(sdlGfx);
@@ -202,7 +210,7 @@ namespace Digger.Net
                     erasediggers();
                     musicoff();
                     int t = 20;
-                    while ((getnmovingbags() != 0 || t != 0) && !escape && !g_isTimeOut)
+                    while ((getnmovingbags() != 0 || t != 0) && !input.escape && !g_isTimeOut)
                     {
                         if (t != 0)
                             t--;
@@ -220,11 +228,11 @@ namespace Digger.Net
                     cleanupbags();
                     drawApi.SaveField();
                     erasemonsters();
-                    recputeol();
-                    if (playing)
-                        playskipeol();
-                    if (escape)
-                        recputeog();
+                    record.recputeol();
+                    if (record.playing)
+                        record.playskipeol();
+                    if (input.escape)
+                        record.recputeog();
                     if (gamedat[g_CurrentPlayer].levdone)
                         soundlevdone();
                     if (countem() == 0 || gamedat[g_CurrentPlayer].levdone)
@@ -245,8 +253,8 @@ namespace Digger.Net
                                 declife(i);
                         drawApi.drawlives(sdlGfx);
                     }
-                    if ((alldead && getalllives() == 0 && !g_isGauntletMode && !escape) || g_isTimeOut)
-                        endofgame(sdlGfx);
+                    if ((alldead && getalllives() == 0 && !g_isGauntletMode && !input.escape) || g_isTimeOut)
+                        scores.endofgame(sdlGfx);
                 }
                 alldead = false;
                 if (g_playerCount == 2 && getlives(1 - g_CurrentPlayer) != 0)
@@ -263,32 +271,32 @@ namespace Digger.Net
             monster_obj nobbin, hobbin;
             digger_obj odigger = null;
             obj_position newpos;
-            loadscores();
-            escape = false;
+            scores.loadscores();
+            input.escape = false;
             nobbin = null;
             hobbin = null;
             do
             {
                 soundstop();
                 drawApi.creatembspr();
-                detectjoy();
+                input.detectjoy();
                 sdlGfx.Clear();
                 sdlGfx.DrawTitleScreen();
                 drawApi.TextOut(sdlGfx, "D I G G E R", 100, 0, 3);
                 shownplayers();
-                showtable(sdlGfx);
+                scores.showtable(sdlGfx);
                 started = false;
                 frame = 0;
                 newframe();
-                teststart();
+                input.teststart();
                 while (!started)
                 {
-                    started = teststart();
-                    if (mode_change)
+                    started = input.teststart();
+                    if (input.mode_change)
                     {
                         switchnplayers();
                         shownplayers();
-                        mode_change = false;
+                        input.mode_change = false;
                     }
                     if (frame == 0)
                         for (t = 54; t < 174; t += 12)
@@ -395,29 +403,26 @@ namespace Digger.Net
                     if (frame > 250)
                         frame = 0;
                 }
-                if (savedrf)
+                if (record.savedrf)
                 {
-                    if (gotgame)
+                    if (record.gotgame)
                     {
-                        recsavedrf();
-                        gotgame = false;
+                        record.recsavedrf();
+                        record.gotgame = false;
                     }
-                    savedrf = false;
+                    record.savedrf = false;
                     continue;
                 }
-                if (escape)
+                if (input.escape)
                     break;
-                recinit();
+                record.recinit();
                 game();
-                gotgame = true;
-                if (gotname)
-                {
-                    recsavedrf();
-                    gotgame = false;
-                }
-                savedrf = false;
-                escape = false;
-            } while (!escape);
+                record.gotgame = true;
+                record.recsavedrf();
+                record.gotgame = false;
+                record.savedrf = false;
+                input.escape = false;
+            } while (!input.escape);
             return 0;
         }
 
@@ -560,25 +565,25 @@ namespace Digger.Net
         public static void testpause()
         {
             int i;
-            if (pausef)
+            if (input.pausef)
             {
                 soundpause();
                 sett2val(40);
                 setsoundt2();
                 cleartopline();
                 drawApi.TextOut(sdlGfx, "PRESS ANY KEY", 80, 0, 1);
-                getkey(true);
+                input.keyboard.GetKey(true);
                 cleartopline();
-                drawscores(sdlGfx);
+                scores.drawscores(sdlGfx);
                 for (i = 0; i < g_Diggers; i++)
-                    addscore(sdlGfx, i, 0);
+                    scores.addscore(sdlGfx, i, 0);
                 drawApi.drawlives(sdlGfx);
                 if (!g_isVideoSync)
                 {
                     timer.SyncFrame();
                     sdlGfx.UpdateScreen();
                 }
-                pausef = false;
+                input.pausef = false;
             }
             else
                 soundpauseoff();
@@ -624,17 +629,17 @@ namespace Digger.Net
                         sdlGfx.EnableFullScreen();
                     }
                     if (argch == 'R')
-                        recname(word + i);
+                        record.recname(word + i);
                     if (argch == 'P' || argch == 'E')
                     {
                         maininit();
-                        openplay(word + i);
-                        if (escape)
+                        record.openplay(word + i);
+                        if (input.escape)
                             norepf = true;
                     }
                     if (argch == 'E')
                     {
-                        if (escape)
+                        if (input.escape)
                             Environment.Exit(0);
                         Environment.Exit(1);
                     }
@@ -818,15 +823,20 @@ namespace Digger.Net
             bool cgaflag;
             string vbuf;
 
-            for (int i = 0; i < NKEYS; i++)
+            for (int i = 0; i < Input.NKEYS; i++)
             {
                 string kbuf = string.Format("{0}{1}", keynames[i], (i >= 5 && i < 10) ? '2' : 0);
-                vbuf = string.Format("{0}/{1}/{2}/{3}/{4}", keycodes[i][0], keycodes[i][1], keycodes[i][2], keycodes[i][3], keycodes[i][4]);
+                vbuf = string.Format("{0}/{1}/{2}/{3}/{4}", 
+                    input.keyboard.keycodes[i][0], 
+                    input.keyboard.keycodes[i][1], 
+                    input.keyboard.keycodes[i][2], 
+                    input.keyboard.keycodes[i][3], 
+                    input.keyboard.keycodes[i][4]);
                 vbuf = Ini.GetINIString(INI_KEY_SETTINGS, kbuf, vbuf, ININAME);
-                krdf[i] = true;
+                input.krdf[i] = true;
                 int j = 0;
                 foreach (string keyCode in vbuf.Split('/'))
-                    keycodes[i][j++] = int.Parse(keyCode);
+                    input.keyboard.keycodes[i][j++] = int.Parse(keyCode);
             }
             g_gameTime = (uint)Ini.GetINIInt(INI_GAME_SETTINGS, "GauntletTime", 120, ININAME);
             if (g_FrameTime == 0)

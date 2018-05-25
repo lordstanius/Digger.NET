@@ -370,14 +370,14 @@ namespace Digger.Net
                         mondat[m].dir = reversedir(mondat[m].dir);
                     /* The kludge here is to preserve playback for a bug in previous
                        versions. */
-                    if (!kludge)
+                    if (!record.kludge)
                         incpenalty();
                     else
                       if ((m & 1) == 0)
                         incpenalty();
                     i = clcoll[i];
                 } while (i != -1);
-                if (kludge)
+                if (record.kludge)
                     if (clfirst[0] != -1)
                         incpenalty();
             }
@@ -503,9 +503,9 @@ namespace Digger.Net
                     {
                         killmon(mon);
                         if (g_Diggers == 2)
-                            scorekill2(ddap);
+                            scores.scorekill2(ddap);
                         else
-                            scorekill(ddap, g_CurrentPlayer);
+                            scores.scorekill(ddap, g_CurrentPlayer);
                     }
                     break;
             }

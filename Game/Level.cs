@@ -154,7 +154,7 @@ namespace Digger.Net
                 {
                     try
                     {
-                        DiggerC.bonusscore = br.ReadInt32();
+                        DiggerC.scores.bonusscore = br.ReadInt32();
                     }
                     catch (Exception ex)
                     {

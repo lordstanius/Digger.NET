@@ -54,7 +54,7 @@ namespace Digger.Net
         public double z1;
     };
 
-    public class Filter
+    public static class DigMath
     {
         public static void PFD_init(ref PFD pfd_p, double phi_round)
         {

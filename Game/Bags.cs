@@ -545,7 +545,7 @@ namespace Digger.Net
             {
                 if (digalive(i - FIRSTDIGGER + g_CurrentPlayer))
                 {
-                    scoregold(ddap, i - FIRSTDIGGER + g_CurrentPlayer);
+                    scores.scoregold(ddap, i - FIRSTDIGGER + g_CurrentPlayer);
                     soundgold();
                     digresettime(i - FIRSTDIGGER + g_CurrentPlayer);
                     f = false;

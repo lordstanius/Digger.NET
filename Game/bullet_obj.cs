@@ -26,71 +26,65 @@
  * SUCH DAMAGE.
  *
  */
-
-using System;
-
 namespace Digger.Net
 {
-    public static partial class DiggerC
+    public class bullet_obj
     {
-        public class bullet_obj
+        public int f_id;
+        public int expsn;
+        public int dir;
+        public int x;
+        public int y;
+
+        public bullet_obj(int f_id, int dir, int x, int y)
         {
-            public int f_id;
-            public int expsn;
-            public int dir;
-            public int x;
-            public int y;
+            this.dir = dir;
+            this.x = x;
+            this.y = y;
+            this.f_id = f_id;
+            this.expsn = 0;
+        }
 
-            public bullet_obj(int f_id, int dir, int x, int y)
-            {
-                this.dir = dir;
-                this.x = x;
-                this.y = y;
-                this.f_id = f_id;
-                this.expsn = 0;
-            }
+        public void put()
+        {
+            DiggerC.sprites.movedrawspr(DiggerC.FIRSTFIREBALL + f_id, x, y);
+        }
 
-            public void put()
+        public void animate()
+        {
+            System.Diagnostics.Debug.Assert(expsn < 4);
+            DiggerC.drawApi.drawfire(f_id, x, y, expsn);
+            if (expsn > 0)
             {
-                sprites.movedrawspr(FIRSTFIREBALL + f_id, x, y);
-            }
-
-            public void animate()
-            {
-                System.Diagnostics.Debug.Assert(expsn < 4);
-                drawApi.drawfire(f_id, x, y, expsn);
-                if (expsn > 0)
+                if (expsn == 1)
                 {
-                    if (expsn == 1)
-                    {
-                        soundexplode(f_id);
-                    }
-                    ++expsn;
+                    DiggerC.soundexplode(f_id);
                 }
+                ++expsn;
             }
+        }
 
-            public void remove()
+        public void remove()
+        {
+            DiggerC.sprites.erasespr(DiggerC.FIRSTFIREBALL + f_id);
+            if (expsn > 1)
             {
-                sprites.erasespr(FIRSTFIREBALL + f_id);
-                if (expsn > 1)
-                {
-                    soundfireoff(f_id);
-                }
-                expsn = 0;
+                DiggerC.soundfireoff(f_id);
             }
+            expsn = 0;
+        }
 
-            public void explode()
-            {
-                /*assert(self.expsn == 0);*/
-                expsn = 1;
-            }
+        public void explode()
+        {
+            /*assert(self.expsn == 0);*/
+            expsn = 1;
+        }
 
-            public void update(int dir, int fx, int fy)
-            {
-                this.dir = dir;
-                this.x = fx;
-                this.y = fy;
-            }
+        public void update(int dir, int fx, int fy)
+        {
+            this.dir = dir;
+            this.x = fx;
+            this.y = fy;
         }
     }
 }

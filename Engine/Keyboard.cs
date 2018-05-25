@@ -7,18 +7,9 @@ namespace Digger.Net
     {
         public static readonly string[] keynames = {
             "Right","Up","Left","Down","Fire",
-                    "Right","Up","Left","Down","Fire",
-                    "Cheat","Accel","Brake","Music","Sound","Exit","Pause",
-                    "Mode Change","Save DRF"};
-
-        static int prockey(int kn)
-        {
-            int key = getkey(true);
-            if (kn != DKEY_EXT && key == keycodes[DKEY_EXT][0])
-                return -1;
-            keycodes[kn][0] = key;
-            return (0);
-        }
+            "Right","Up","Left","Down","Fire",
+            "Cheat","Accel","Brake","Music","Sound","Exit","Pause",
+            "Mode Change","Save DRF"};
 
         public static void redefkeyb(SdlGraphics ddap, bool allf)
         {
@@ -42,13 +33,13 @@ namespace Digger.Net
             for (i = 0; i < 5; i++)
             {
                 drawApi.TextOut(ddap, keynames[i], 0, y, 2); /* Red first */
-                if (prockey(i) == -1) return;
+                if (input.prockey(i) == -1) return;
                 drawApi.TextOut(ddap, keynames[i], 0, y, 1); /* Green once got */
                 y += CHR_H;
                 for (j = 0; j < i; j++)
                 { /* Note: only check keys just pressed (I hate it when
                            this is done wrong, and it often is.) */
-                    if (keycodes[i][0] == keycodes[j][0] && keycodes[i][0] != 0)
+                    if (input.keyboard.keycodes[i][0] == input.keyboard.keycodes[j][0] && input.keyboard.keycodes[i][0] != 0)
                     {
                         i--;
                         y -= CHR_H;
@@ -56,7 +47,7 @@ namespace Digger.Net
                     }
                     for (k = 2; k < 5; k++)
                         for (l = 2; l < 5; l++)
-                            if (keycodes[i][k] == keycodes[j][l] && keycodes[i][k] != -2)
+                            if (input.keyboard.keycodes[i][k] == input.keyboard.keycodes[j][l] && input.keyboard.keycodes[i][k] != -2)
                             {
                                 j = i;
                                 k = 5;
@@ -74,13 +65,13 @@ namespace Digger.Net
                 for (i = 5; i < 10; i++)
                 {
                     drawApi.TextOut(ddap, keynames[i], 0, y, 2); /* Red first */
-                    if (prockey(i) == -1) return;
+                    if (input.prockey(i) == -1) return;
                     drawApi.TextOut(ddap, keynames[i], 0, y, 1); /* Green once got */
                     y += CHR_H;
                     for (j = 0; j < i; j++)
                     { /* Note: only check keys just pressed (I hate it when
                              this is done wrong, and it often is.) */
-                        if (keycodes[i][0] == keycodes[j][0] && keycodes[i][0] != 0)
+                        if (input.keyboard.keycodes[i][0] == input.keyboard.keycodes[j][0] && input.keyboard.keycodes[i][0] != 0)
                         {
                             i--;
                             y -= CHR_H;
@@ -88,7 +79,7 @@ namespace Digger.Net
                         }
                         for (k = 2; k < 5; k++)
                             for (l = 2; l < 5; l++)
-                                if (keycodes[i][k] == keycodes[j][l] && keycodes[i][k] != -2)
+                                if (input.keyboard.keycodes[i][k] == input.keyboard.keycodes[j][l] && input.keyboard.keycodes[i][k] != -2)
                                 {
                                     j = i;
                                     k = 5;
@@ -111,18 +102,18 @@ namespace Digger.Net
             z = 0;
             x = 0;
             y -= CHR_H;
-            for (i = 10; i < NKEYS; i++)
+            for (i = 10; i < Input.NKEYS; i++)
             {
                 f = false;
                 for (j = 0; j < 10; j++)
                     for (k = 0; k < 5; k++)
                         for (l = 2; l < 5; l++)
-                            if (keycodes[i][k] == keycodes[j][l] && keycodes[i][k] != -2)
+                            if (input.keyboard.keycodes[i][k] == input.keyboard.keycodes[j][l] && input.keyboard.keycodes[i][k] != -2)
                                 f = true;
                 for (j = 10; j < i; j++)
                     for (k = 0; k < 5; k++)
                         for (l = 0; l < 5; l++)
-                            if (keycodes[i][k] == keycodes[j][l] && keycodes[i][k] != -2)
+                            if (input.keyboard.keycodes[i][k] == input.keyboard.keycodes[j][l] && input.keyboard.keycodes[i][k] != -2)
                                 f = true;
                 if (f || (allf && i != z))
                 {
@@ -134,7 +125,7 @@ namespace Digger.Net
                         x = (MAX_TEXT_LEN / 2) * CHR_W;
                     }
                     drawApi.TextOut(ddap, keynames[i], x, y, 2); /* Red first */
-                    if (prockey(i) == -1) return;
+                    if (input.prockey(i) == -1) return;
                     drawApi.TextOut(ddap, keynames[i], x, y, 1); /* Green once got */
                     z = i;
                     i--;
@@ -143,18 +134,16 @@ namespace Digger.Net
 
             /* Step three: save the INI file */
 
-            for (i = 0; i < NKEYS; i++)
+            for (i = 0; i < Input.NKEYS; i++)
             {
-                if (krdf[i])
+                if (input.krdf[i])
                 {
                     string kbuf = string.Format("{0}{1}", keynames[i], (i >= 5 && i < 10) ? '2' : 0);
-                    string vbuf = string.Format("{0}/{1}/{2}/{3}/{4}", keycodes[i][0], keycodes[i][1],
-                            keycodes[i][2], keycodes[i][3], keycodes[i][4]);
+                    string vbuf = string.Format("{0}/{1}/{2}/{3}/{4}", input.keyboard.keycodes[i][0], input.keyboard.keycodes[i][1],
+                            input.keyboard.keycodes[i][2], input.keyboard.keycodes[i][3], input.keyboard.keycodes[i][4]);
                     Ini.WriteINIString(INI_KEY_SETTINGS, kbuf, vbuf, ININAME);
                 }
             }
         }
-
     }
-
 }

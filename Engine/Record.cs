@@ -6,35 +6,35 @@ using System.IO;
 
 namespace Digger.Net
 {
-    public static partial class DiggerC
+    public class Record
     {
         public const string DEFAULTSN = "DRF";
         public const int MAX_REC_BUFFER = 262144;
 
-        static readonly int A_minus_a = 'A' - 'a';
+        readonly int A_minus_a = 'A' - 'a';
         /* I reckon this is enough for about 36 hours of continuous play. */
 
-        public static char[] recb, plb, plp;
+        public char[] recb, plb, plp;
 
-        public static bool playing, savedrf, gotname, gotgame, drfvalid, kludge;
+        public bool playing, savedrf, gotname, gotgame, drfvalid, kludge;
 
-        public static string rname;
+        public string rname;
 
-        public static int reccc, recrl, rlleft;
-        public static uint recp;
-        public static char recd, rld;
+        public int reccc, recrl, rlleft;
+        public uint recp;
+        public char recd, rld;
 
-# if INTDRF
-        private static FileStream info;
+#if INTDRF
+        private  FileStream info;
 #endif
 
-        static string smart_fgets(FileStream stream)
+        string smart_fgets(FileStream stream)
         {
             using (var reader = new StreamReader(stream))
                 return reader.ReadLine();
         }
 
-        public static void openplay(string name)
+        public void openplay(string name)
         {
             FileStream playf;
             try
@@ -44,20 +44,20 @@ namespace Digger.Net
             catch (Exception ex)
             {
                 DebugLog.Write(ex);
-                escape = true;
+                DiggerC.input.escape = true;
                 return;
             }
 
-            uint origgtime = g_gameTime;
-            bool origg = g_isGauntletMode;
-            int origstartlev = g_StartingLevel, orignplayers = g_playerCount, origdiggers = g_Diggers;
+            uint origgtime = DiggerC.g_gameTime;
+            bool origg = DiggerC.g_isGauntletMode;
+            int origstartlev = DiggerC.g_StartingLevel, orignplayers = DiggerC.g_playerCount, origdiggers = DiggerC.g_Diggers;
 # if INTDRF
             info = File.OpenWrite("DRFINFO.TXT");
 #endif
-            g_isGauntletMode = false;
-            g_StartingLevel = 1;
-            g_playerCount = 1;
-            g_Diggers = 1;
+            DiggerC.g_isGauntletMode = false;
+            DiggerC.g_StartingLevel = 1;
+            DiggerC.g_playerCount = 1;
+            DiggerC.g_Diggers = 1;
             /* The file is in two distinct parts. In the first, line breaks are used as
                separators. In the second, they are ignored. This is the first. */
 
@@ -87,21 +87,21 @@ namespace Digger.Net
             int x;
             if (buf == "1")
             {
-                g_playerCount = 1;
+                DiggerC.g_playerCount = 1;
                 x = 1;
             }
             else
             {
                 if (buf == "2")
                 {
-                    g_playerCount = 2;
+                    DiggerC.g_playerCount = 2;
                     x = 1;
                 }
                 else
                 {
                     if (buf[0] == 'M')
                     {
-                        g_Diggers = buf[1] - '0';
+                        DiggerC.g_Diggers = buf[1] - '0';
                         x = 2;
                     }
                     else
@@ -110,9 +110,9 @@ namespace Digger.Net
                     }
                     if (buf[x] == 'G')
                     {
-                        g_isGauntletMode = true;
+                        DiggerC.g_isGauntletMode = true;
                         x++;
-                        g_gameTime = uint.Parse(buf.Substring(x));
+                        DiggerC.g_gameTime = uint.Parse(buf.Substring(x));
                         while (buf[x] >= '0' && buf[x] <= '9')
                             x++;
                     }
@@ -121,13 +121,13 @@ namespace Digger.Net
             if (buf[x] == 'U') /* Unlimited lives are ignored on playback. */
                 x++;
             if (buf[x] == 'I')
-                g_StartingLevel = int.Parse(buf.Substring(x + 1));
+                DiggerC.g_StartingLevel = int.Parse(buf.Substring(x + 1));
             /* Get bonus score */
             if ((buf = smart_fgets(playf)) == null)
             {
                 goto out_0;
             }
-            bonusscore = int.Parse(buf);
+            DiggerC.scores.bonusscore = int.Parse(buf);
             for (int n = 0; n < 8; n++)
                 for (int y = 0; y < 10; y++)
                 {
@@ -136,7 +136,7 @@ namespace Digger.Net
                     {
                         goto out_0;
                     }
-                    level.leveldat[n, y] = buf;
+                    DiggerC.level.leveldat[n, y] = buf;
                 }
 
             /* This is the second. The line breaks here really are only so that the file
@@ -155,29 +155,29 @@ namespace Digger.Net
 
             playing = true;
             recinit();
-            game();
+            DiggerC.game();
             gotgame = true;
             playing = false;
-            g_isGauntletMode = origg;
-            g_gameTime = origgtime;
+            DiggerC.g_isGauntletMode = origg;
+            DiggerC.g_gameTime = origgtime;
             kludge = false;
-            g_StartingLevel = origstartlev;
-            g_Diggers = origdiggers;
-            g_playerCount = orignplayers;
+            DiggerC.g_StartingLevel = origstartlev;
+            DiggerC.g_Diggers = origdiggers;
+            DiggerC.g_playerCount = orignplayers;
             return;
             out_0:
             if (playf != null)
                 playf.Close();
-            escape = true;
+            DiggerC.input.escape = true;
         }
 
-        public static void recstart()
+        public void recstart()
         {
             recb = new char[MAX_REC_BUFFER];
             recp = 0;
         }
 
-        public static void mprintf(string format, params object[] args)
+        public void mprintf(string format, params object[] args)
         {
             string buf = string.Format(format, args);
             for (int i = 0; i < buf.Length; i++)
@@ -187,7 +187,7 @@ namespace Digger.Net
                 recp = 0;          /* Give up, file is too long */
         }
 
-        public static void makedir(ref int dir, ref bool fire, char d)
+        public void makedir(ref int dir, ref bool fire, char d)
         {
             if (d >= 'A' && d <= 'Z')
             {
@@ -198,15 +198,15 @@ namespace Digger.Net
                 fire = false;
             switch (d)
             {
-                case 's': dir = DIR_NONE; break;
-                case 'r': dir = DIR_RIGHT; break;
-                case 'u': dir = DIR_UP; break;
-                case 'l': dir = DIR_LEFT; break;
-                case 'd': dir = DIR_DOWN; break;
+                case 's': dir = DiggerC.DIR_NONE; break;
+                case 'r': dir = DiggerC.DIR_RIGHT; break;
+                case 'u': dir = DiggerC.DIR_UP; break;
+                case 'l': dir = DiggerC.DIR_LEFT; break;
+                case 'd': dir = DiggerC.DIR_DOWN; break;
             }
         }
 
-        public static void playgetdir(ref int dir, ref bool fire)
+        public void playgetdir(ref int dir, ref bool fire)
         {
             if (rlleft > 0)
             {
@@ -219,7 +219,7 @@ namespace Digger.Net
                 {
                     if (plp[i] == 'E' || plp[i] == 'e')
                     {
-                        escape = true;
+                        DiggerC.input.escape = true;
                         return;
                     }
                     rld = plp[i];
@@ -232,10 +232,10 @@ namespace Digger.Net
             }
         }
 
-        public static char maked(int dir, bool fire)
+        public char maked(int dir, bool fire)
         {
             char d;
-            if (dir == DIR_NONE)
+            if (dir == DiggerC.DIR_NONE)
                 d = 's';
             else
                 d = "ruld"[dir >> 1];
@@ -245,7 +245,7 @@ namespace Digger.Net
             return d;
         }
 
-        public static void putrun()
+        public void putrun()
         {
             if (recrl > 1)
                 mprintf("{0}{1:d}", recd, recrl);
@@ -269,7 +269,7 @@ namespace Digger.Net
             }
         }
 
-        public static void recputdir(int dir, bool fire)
+        public void recputdir(int dir, bool fire)
         {
             char d = maked(dir, fire);
             if (recrl == 0)
@@ -291,7 +291,7 @@ namespace Digger.Net
             }
         }
 
-        public static void recinit()
+        public void recinit()
         {
             recp = 0;
             drfvalid = true;
@@ -300,42 +300,42 @@ namespace Digger.Net
             if (kludge)
                 mprintf("AJ DOS 19981125\n");
             else
-                mprintf(DIGGER_VERSION + "\n");
-            if (g_Diggers > 1)
+                mprintf(DiggerC.DIGGER_VERSION + "\n");
+            if (DiggerC.g_Diggers > 1)
             {
-                mprintf("M{0}", g_Diggers);
-                if (g_isGauntletMode)
-                    mprintf("G{0}", g_gameTime);
+                mprintf("M{0}", DiggerC.g_Diggers);
+                if (DiggerC.g_isGauntletMode)
+                    mprintf("G{0}", DiggerC.g_gameTime);
             }
             else
-              if (g_isGauntletMode)
-                mprintf("G{0}", g_gameTime);
+              if (DiggerC.g_isGauntletMode)
+                mprintf("G{0}", DiggerC.g_gameTime);
             else
-                mprintf("{0}", g_playerCount);
+                mprintf("{0}", DiggerC.g_playerCount);
             /*  if (unlimlives)
                 mprintf("U"); */
-            if (g_StartingLevel > 1)
-                mprintf("I{0}", g_StartingLevel);
-            mprintf("\n{0}\n", bonusscore);
+            if (DiggerC.g_StartingLevel > 1)
+                mprintf("I{0}", DiggerC.g_StartingLevel);
+            mprintf("\n{0}\n", DiggerC.scores.bonusscore);
             for (int l = 0; l < 8; l++)
             {
-                for (int y = 0; y < MHEIGHT; y++)
+                for (int y = 0; y < DiggerC.MHEIGHT; y++)
                 {
-                    for (int x = 0; x < MWIDTH; x++)
-                        mprintf("{0}", level.leveldat[l, y][x]);
+                    for (int x = 0; x < DiggerC.MWIDTH; x++)
+                        mprintf("{0}", DiggerC.level.leveldat[l, y][x]);
                     mprintf("\n");
                 }
             }
             reccc = recrl = 0;
         }
 
-        public static void RecortPutRandom(uint randv)
+        public void RecordPutRandom(uint randv)
         {
             mprintf("{0:X8}\n", randv);
             reccc = recrl = 0;
         }
 
-        public static void recsavedrf()
+        public void recsavedrf()
         {
             if (!drfvalid)
                 return;
@@ -356,28 +356,28 @@ namespace Digger.Net
                 }
                 if (!gotname)
                 {
-                    if (g_playerCount == 2)
+                    if (DiggerC.g_playerCount == 2)
                         recf = File.OpenWrite(DEFAULTSN); /* Should get a name, really */
                     else
                     {
                         char[] init = new char[4];
                         for (int j = 0; j < 3; j++)
                         {
-                            init[j] = scoreinit[0][j];
+                            init[j] = DiggerC.scores.scoreinit[0][j];
                             if (!((init[j] >= 'A' && init[j] <= 'Z') ||
                                   (init[j] >= 'a' && init[j] <= 'z')))
                                 init[j] = '_';
                         }
                         init[3] = '\0';
                         string nambuf;
-                        if (scoret < 100000)
-                            nambuf = $"{init}{scoret}";
+                        if (DiggerC.scores.scoret < 100000)
+                            nambuf = string.Format("{0}{1}", init[0], DiggerC.scores.scoret);
                         else if (init[2] == '_')
-                            nambuf = $"{init[0]}{init[1]}{scoret}";
+                            nambuf = string.Format("{0}{1}{2}", init[0], init[1], DiggerC.scores.scoret);
                         else if (init[0] == '_')
-                            nambuf = $"{init[1]}{init[2]}{scoret}";
+                            nambuf = string.Format("{0}{1}{2}", init[1], init[2], DiggerC.scores.scoret);
                         else
-                            nambuf = $"{init[0]}{init[2]}{scoret}";
+                            nambuf = string.Format("{0}{1}{2}", init[0], init[2], DiggerC.scores.scoret);
                         nambuf += ".drf";
                         recf = File.OpenWrite(nambuf);
                     }
@@ -393,14 +393,14 @@ namespace Digger.Net
             }
         }
 
-        public static void playskipeol()
+        public void playskipeol()
         {
             var tmp = new char[plp.Length - 3];
             Buffer.BlockCopy(plp, 3, tmp, 0, tmp.Length);
             plp = tmp;
         }
 
-        public static uint playgetrand()
+        public uint playgetrand()
         {
             uint r = 0;
             char p;
@@ -420,12 +420,12 @@ namespace Digger.Net
             return r;
         }
 
-        public static void recputinit(string init)
+        public void recputinit(string init)
         {
             mprintf("*{0}{1}{2}\n", init[0], init[1], init[2]);
         }
 
-        public static void recputeol()
+        public void recputeol()
         {
             if (recrl > 0)
                 putrun();
@@ -434,12 +434,12 @@ namespace Digger.Net
             mprintf("EOL\n");
         }
 
-        public static void recputeog()
+        public void recputeog()
         {
             mprintf("EOG\n");
         }
 
-        public static void recname(string name)
+        public void recname(string name)
         {
             gotname = true;
             rname = name;
