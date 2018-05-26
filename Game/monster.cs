@@ -170,7 +170,7 @@ namespace Digger.Net
                 if (!digalive(dig))
                     dig = (g_Diggers - 1) - dig;
 
-                if (Math.Abs(diggery(dig) - mopos.y) > Math.Abs(diggerx(dig) - mopos.x))
+                if (System.Math.Abs(diggery(dig) - mopos.y) > System.Math.Abs(diggerx(dig) - mopos.x))
                 {
                     mdirp1 = 0;
                     if (diggery(dig) < mopos.y)
@@ -453,7 +453,7 @@ namespace Digger.Net
                             sceatm(ddap, i - FIRSTDIGGER + g_CurrentPlayer);
                         i = clcoll[i];
                     }
-                    soundeatm(); /* Collision in bonus mode */
+                    sound.soundeatm(); /* Collision in bonus mode */
                 }
                 else
                 {

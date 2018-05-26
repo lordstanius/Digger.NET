@@ -85,7 +85,7 @@
     <Compile Include="Engine\SdlSound.cs" />
     <Compile Include="Engine\SdlTimer.cs" />
     <Compile Include="Engine\SdlGraphicsVga.cs" />
-    <Compile Include="Game\sound.cs" />
+    <Compile Include="Game\Sound.cs" />
     <Compile Include="Engine\Sprites.cs" />
     <Compile Include="Utility\Log.cs" />
     <Compile Include="Utility\StdLib.cs" />

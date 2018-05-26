@@ -3,28 +3,28 @@
 
 namespace Digger.Net
 {
-    public static partial class DiggerC
+    public static class Keyboard
     {
-        public static readonly string[] keynames = {
+        public static readonly string[] KeyNames = {
             "Right","Up","Left","Down","Fire",
             "Right","Up","Left","Down","Fire",
             "Cheat","Accel","Brake","Music","Sound","Exit","Pause",
             "Mode Change","Save DRF"};
 
-        public static void redefkeyb(SdlGraphics ddap, bool allf)
+        public static void Redefine(Input input, DrawApi drawApi, bool allf)
         {
             int i, j, k, l, z, y = 0, x, savey;
             bool f;
 
-            maininit();
+            DiggerC.maininit();
 
-            drawApi.TextOut(ddap, "PRESS NEW KEY FOR", 0, y, 3);
-            y += CHR_H;
+            drawApi.TextOut("PRESS NEW KEY FOR", 0, y, 3);
+            y += DiggerC.CHR_H;
 
-            if (g_Diggers == 2)
+            if (DiggerC.g_Diggers == 2)
             {
-                drawApi.TextOut(ddap, "PLAYER 1:", 0, y, 3);
-                y += CHR_H;
+                drawApi.TextOut("PLAYER 1:", 0, y, 3);
+                y += DiggerC.CHR_H;
             }
 
             /* Step one: redefine keys that are always redefined. */
@@ -32,17 +32,17 @@ namespace Digger.Net
             savey = y;
             for (i = 0; i < 5; i++)
             {
-                drawApi.TextOut(ddap, keynames[i], 0, y, 2); /* Red first */
+                drawApi.TextOut(KeyNames[i], 0, y, 2); /* Red first */
                 if (input.prockey(i) == -1) return;
-                drawApi.TextOut(ddap, keynames[i], 0, y, 1); /* Green once got */
-                y += CHR_H;
+                drawApi.TextOut(KeyNames[i], 0, y, 1); /* Green once got */
+                y += DiggerC.CHR_H;
                 for (j = 0; j < i; j++)
                 { /* Note: only check keys just pressed (I hate it when
                            this is done wrong, and it often is.) */
                     if (input.keyboard.keycodes[i][0] == input.keyboard.keycodes[j][0] && input.keyboard.keycodes[i][0] != 0)
                     {
                         i--;
-                        y -= CHR_H;
+                        y -= DiggerC.CHR_H;
                         break;
                     }
                     for (k = 2; k < 5; k++)
@@ -52,29 +52,29 @@ namespace Digger.Net
                                 j = i;
                                 k = 5;
                                 i--;
-                                y -= CHR_H;
+                                y -= DiggerC.CHR_H;
                                 break; /* Try again if this key already used */
                             }
                 }
             }
 
-            if (g_Diggers == 2)
+            if (DiggerC.g_Diggers == 2)
             {
-                drawApi.TextOut(ddap, "PLAYER 2:", 0, y, 3);
-                y += CHR_H;
+                drawApi.TextOut("PLAYER 2:", 0, y, 3);
+                y += DiggerC.CHR_H;
                 for (i = 5; i < 10; i++)
                 {
-                    drawApi.TextOut(ddap, keynames[i], 0, y, 2); /* Red first */
+                    drawApi.TextOut(KeyNames[i], 0, y, 2); /* Red first */
                     if (input.prockey(i) == -1) return;
-                    drawApi.TextOut(ddap, keynames[i], 0, y, 1); /* Green once got */
-                    y += CHR_H;
+                    drawApi.TextOut(KeyNames[i], 0, y, 1); /* Green once got */
+                    y += DiggerC.CHR_H;
                     for (j = 0; j < i; j++)
                     { /* Note: only check keys just pressed (I hate it when
                              this is done wrong, and it often is.) */
                         if (input.keyboard.keycodes[i][0] == input.keyboard.keycodes[j][0] && input.keyboard.keycodes[i][0] != 0)
                         {
                             i--;
-                            y -= CHR_H;
+                            y -= DiggerC.CHR_H;
                             break;
                         }
                         for (k = 2; k < 5; k++)
@@ -84,7 +84,7 @@ namespace Digger.Net
                                     j = i;
                                     k = 5;
                                     i--;
-                                    y -= CHR_H;
+                                    y -= DiggerC.CHR_H;
                                     break; /* Try again if this key already used */
                                 }
                     }
@@ -95,13 +95,13 @@ namespace Digger.Net
 
             if (allf)
             {
-                drawApi.TextOut(ddap, "OTHER:", 0, y, 3);
-                y += CHR_H;
+                drawApi.TextOut("OTHER:", 0, y, 3);
+                y += DiggerC.CHR_H;
             }
 
             z = 0;
             x = 0;
-            y -= CHR_H;
+            y -= DiggerC.CHR_H;
             for (i = 10; i < Input.NKEYS; i++)
             {
                 f = false;
@@ -118,15 +118,15 @@ namespace Digger.Net
                 if (f || (allf && i != z))
                 {
                     if (i != z)
-                        y += CHR_H;
-                    if (y >= MAX_H - CHR_H)
+                        y += DiggerC.CHR_H;
+                    if (y >= DiggerC.MAX_H - DiggerC.CHR_H)
                     {
                         y = savey;
-                        x = (MAX_TEXT_LEN / 2) * CHR_W;
+                        x = (DiggerC.MAX_TEXT_LEN / 2) * DiggerC.CHR_W;
                     }
-                    drawApi.TextOut(ddap, keynames[i], x, y, 2); /* Red first */
+                    drawApi.TextOut(KeyNames[i], x, y, 2); /* Red first */
                     if (input.prockey(i) == -1) return;
-                    drawApi.TextOut(ddap, keynames[i], x, y, 1); /* Green once got */
+                    drawApi.TextOut(KeyNames[i], x, y, 1); /* Green once got */
                     z = i;
                     i--;
                 }
@@ -138,10 +138,10 @@ namespace Digger.Net
             {
                 if (input.krdf[i])
                 {
-                    string kbuf = string.Format("{0}{1}", keynames[i], (i >= 5 && i < 10) ? '2' : 0);
+                    string kbuf = string.Format("{0}{1}", KeyNames[i], (i >= 5 && i < 10) ? '2' : 0);
                     string vbuf = string.Format("{0}/{1}/{2}/{3}/{4}", input.keyboard.keycodes[i][0], input.keyboard.keycodes[i][1],
                             input.keyboard.keycodes[i][2], input.keyboard.keycodes[i][3], input.keyboard.keycodes[i][4]);
-                    Ini.WriteINIString(INI_KEY_SETTINGS, kbuf, vbuf, ININAME);
+                    Ini.WriteINIString(DiggerC.INI_KEY_SETTINGS, kbuf, vbuf, DiggerC.ININAME);
                 }
             }
         }

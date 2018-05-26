@@ -68,15 +68,15 @@ namespace Digger.Net
             {
                 for (; g_CurrentTime < g_FrameTime; g_CurrentTime += 17094)
                 { /* 17094 = ticks in a refresh */
-                    input.checkkeyb();
+                    input.checkkeyb(sound);
                 }
                 g_CurrentTime -= g_FrameTime;
             }
             else
             {
                 timer.SyncFrame();
-                input.checkkeyb();
-                sdlGfx.UpdateScreen();
+                input.checkkeyb(sound);
+                gfx.UpdateScreen();
             }
         }
 
@@ -143,17 +143,17 @@ namespace Digger.Net
                         if ((bonustimeleft & 1) != 0)
                         {
                             ddap.SetIntensity(0);
-                            soundbonus();
+                            sound.soundbonus();
                         }
                         else
                         {
                             ddap.SetIntensity(1);
-                            soundbonus();
+                            sound.soundbonus();
                         }
                         if (startbonustimeleft == 0)
                         {
-                            music(0);
-                            soundbonusoff();
+                            sound.music(0);
+                            sound.soundbonusoff();
                             ddap.SetIntensity(1);
                         }
                     }
@@ -161,15 +161,15 @@ namespace Digger.Net
                 else
                 {
                     endbonusmode(ddap);
-                    soundbonusoff();
-                    music(1);
+                    sound.soundbonusoff();
+                    sound.music(1);
                 }
             }
             if (bonusmode && !isalive())
             {
                 endbonusmode(ddap);
-                soundbonusoff();
-                music(1);
+                sound.soundbonusoff();
+                sound.music(1);
             }
         }
 
@@ -223,7 +223,7 @@ namespace Digger.Net
                             }
                             digdat[n].bob.update(digdat[n].dob.dir, fx, fy);
                             digdat[n].bob.put();
-                            soundfire(n);
+                            sound.soundfire(n);
                         }
                     }
                 }
@@ -453,8 +453,8 @@ namespace Digger.Net
                 if (digdat[n].emocttime == 0)
                     digdat[n].emn = 0;
                 scores.scoreemerald(ddap, n);
-                soundem();
-                soundemerald(digdat[n].emn);
+                sound.soundem();
+                sound.soundemerald(digdat[n].emn);
 
                 digdat[n].emn++;
                 if (digdat[n].emn == 8)
@@ -506,7 +506,7 @@ namespace Digger.Net
             if (clfirst[2] != -1 && bonusmode && digdat[n].dob.alive)
                 for (nmon = killmonsters(clfirst, clcoll); nmon != 0; nmon--)
                 {
-                    soundeatm();
+                    sound.soundeatm();
                     sceatm(ddap, n);
                 }
             if (clfirst[0] != -1)
@@ -542,7 +542,7 @@ namespace Digger.Net
                     incpenalty();
                     if (getbagdir(digdat[n].deathbag) + 1 == 0)
                     {
-                        soundddie();
+                        sound.soundddie();
                         digdat[n].deathtime = 5;
                         digdat[n].deathstage = 2;
                         digdat[n].deathani = 0;
@@ -556,7 +556,7 @@ namespace Digger.Net
                         break;
                     }
                     if (digdat[n].deathani == 0)
-                        music(2);
+                        sound.music(2);
                     drawApi.drawdigger(n - g_CurrentPlayer, 14 - digdat[n].deathani, digdat[n].dob.x, digdat[n].dob.y,
                                false);
                     for (int i = 0; i < TYPES; i++)
@@ -574,7 +574,7 @@ namespace Digger.Net
                     else
                     {
                         digdat[n].deathstage = 4;
-                        if (musicflag || g_Diggers > 1)
+                        if (sound.musicflag || g_Diggers > 1)
                             digdat[n].deathtime = 60;
                         else
                             digdat[n].deathtime = 10;
@@ -591,11 +591,11 @@ namespace Digger.Net
                         drawApi.drawdigger(n - g_CurrentPlayer, 15, digdat[n].dob.x,
                                    digdat[n].dob.y - deatharc[digdat[n].deathani], false);
                         if (digdat[n].deathani == 6 && !isalive())
-                            musicoff();
+                            sound.musicoff();
                         incpenalty();
                         digdat[n].deathani++;
                         if (digdat[n].deathani == 1)
-                            soundddie();
+                            sound.soundddie();
                         if (digdat[n].deathani == 7)
                         {
                             digdat[n].deathtime = 5;
@@ -652,9 +652,9 @@ namespace Digger.Net
                             }
                             input.clearfire(n);
                             if (bonusmode)
-                                music(0);
+                                sound.music(0);
                             else
-                                music(1);
+                                sound.music(1);
                         }
                     }
                     break;
@@ -845,7 +845,7 @@ namespace Digger.Net
         public static void addlife(int pl)
         {
             digdat[pl].lives++;
-            sound1up();
+            sound.sound1up();
         }
 
         public static void initlives()

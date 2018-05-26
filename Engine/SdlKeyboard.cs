@@ -95,7 +95,7 @@ namespace Digger.Net
                     sdlEvent.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) &&
                     ((sdlEvent.key.keysym.mod & SDL.SDL_Keymod.KMOD_ALT) != 0))
                 {
-                    DiggerC.sdlGfx.SwitchMode();
+                    DiggerC.gfx.SwitchMode();
                 }
             }
 
@@ -120,7 +120,7 @@ namespace Digger.Net
             while (!IsKeyboardHit())
             {
                 DiggerC.timer.SyncFrame();
-                DiggerC.sdlGfx.UpdateScreen();
+                DiggerC.gfx.UpdateScreen();
             }
 
             if (scancode)

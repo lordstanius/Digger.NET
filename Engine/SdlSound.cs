@@ -50,8 +50,8 @@ namespace Digger.Net
             sud.bsize = sud.obtained.size;
             sud.buf = Marshal.AllocHGlobal((int)sud.bsize);
 
-            sud.lp_fltr = DigMath.bqd_lp_init(sud.obtained.freq, 4000).ToPointer();
-            sud.hp_fltr = DigMath.bqd_hp_init(sud.obtained.freq, 1000).ToPointer();
+            sud.lp_fltr = Math.bqd_lp_init(sud.obtained.freq, 4000).ToPointer();
+            sud.hp_fltr = Math.bqd_hp_init(sud.obtained.freq, 1000).ToPointer();
 
             Marshal.StructureToPtr(sud, wanted.userdata, false);
             IsWaveDeviceAvailable = true;
@@ -75,9 +75,9 @@ namespace Digger.Net
                 bqd_filter lp_fltr = sud.lp_fltr.ToStruct<bqd_filter>();
 
                 double sample = GetSample();
-                sample = DigMath.bqd_apply(ref hp_fltr, (sample - 127.0) * 128.0);
-                sample = DigMath.bqd_apply(ref lp_fltr, sample);
-                Marshal.WriteInt16(sud.buf, i * sizeof(short), (short)Math.Round(sample));
+                sample = Math.bqd_apply(ref hp_fltr, (sample - 127.0) * 128.0);
+                sample = Math.bqd_apply(ref lp_fltr, sample);
+                Marshal.WriteInt16(sud.buf, i * sizeof(short), (short)System.Math.Round(sample));
             }
 
             SDL.SDL_MixAudioFormat(stream, sud.buf, sud.obtained.format, (uint)len, 80);

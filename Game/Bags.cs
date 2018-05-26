@@ -77,7 +77,7 @@ namespace Digger.Net
                             if (bagdat[bag].wt == 0)
                             {
                                 bagdat[bag].dir = DIR_DOWN;
-                                soundfall();
+                                sound.soundfall();
                                 break;
                             }
                             bagdat[bag].wt--;
@@ -86,7 +86,7 @@ namespace Digger.Net
                             {
                                 drawApi.DrawGold(bag, wblanim[wbl >> 1], x, y);
                                 incpenalty();
-                                soundwobble();
+                                sound.soundwobble();
                             }
                         }
                         else
@@ -108,7 +108,7 @@ namespace Digger.Net
                         {
                             bagdat[bag].dir = DIR_DOWN;
                             bagdat[bag].wt = 0;
-                            soundfall();
+                            sound.soundfall();
                         }
                         else
                             baghitground(bag);
@@ -153,7 +153,7 @@ namespace Digger.Net
         public static void cleanupbags()
         {
             short bag;
-            soundfalloff();
+            sound.soundfalloff();
             for (bag = 0; bag < BAGS; bag++)
             {
                 if (bagdat[bag].exist && ((bagdat[bag].h == 7 && bagdat[bag].v == 9) ||
@@ -181,7 +181,7 @@ namespace Digger.Net
                     {
                         if (bagdat[bag].gt == 1)
                         {
-                            soundbreak();
+                            sound.soundbreak();
                             drawApi.DrawGold(bag, 4, bagdat[bag].x, bagdat[bag].y);
                             incpenalty();
                         }
@@ -217,9 +217,9 @@ namespace Digger.Net
             }
 
             if (soundfalloffflag)
-                soundfalloff();
+                sound.soundfalloff();
             if (soundwobbleoffflag)
-                soundwobbleoff();
+                sound.soundwobbleoff();
         }
 
         private static int[] wblanim = { 2, 0, 1, 0 };
@@ -243,7 +243,7 @@ namespace Digger.Net
                             if (bagdat[bag].wt == 0)
                             {
                                 bagdat[bag].dir = DIR_DOWN;
-                                soundfall();
+                                sound.soundfall();
                                 break;
                             }
                             bagdat[bag].wt--;
@@ -252,7 +252,7 @@ namespace Digger.Net
                             {
                                 drawApi.DrawGold(bag, wblanim[wbl >> 1], x, y);
                                 incpenalty();
-                                soundwobble();
+                                sound.soundwobble();
                             }
                         }
                         else
@@ -274,7 +274,7 @@ namespace Digger.Net
                         {
                             bagdat[bag].dir = DIR_DOWN;
                             bagdat[bag].wt = 0;
-                            soundfall();
+                            sound.soundfall();
                         }
                         else
                             baghitground(bag);
@@ -546,7 +546,7 @@ namespace Digger.Net
                 if (digalive(i - FIRSTDIGGER + g_CurrentPlayer))
                 {
                     scores.scoregold(ddap, i - FIRSTDIGGER + g_CurrentPlayer);
-                    soundgold();
+                    sound.soundgold();
                     digresettime(i - FIRSTDIGGER + g_CurrentPlayer);
                     f = false;
                 }

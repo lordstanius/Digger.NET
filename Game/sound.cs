@@ -1,39 +1,36 @@
 /* Digger Remastered
    Copyright (c) Andrew Jenner 1998-2004 */
 
-using SDL2;
-using System;
-
 namespace Digger.Net
 {
-    public static partial class DiggerC
+    public class Sound
     {
-        public static int wavetype = 0, musvol = 0;
-        public static int spkrmode = 0, timerrate = 0x7d0;
-        public static ushort timercount = 0, t2val = 0, t0val = 0;
-        public static int pulsewidth = 1;
-        public static int volume = 0;
+        public int wavetype = 0, musvol = 0;
+        public int spkrmode = 0, timerrate = 0x7d0;
+        public ushort timercount = 0, t2val = 0, t0val = 0;
+        public int pulsewidth = 1;
+        public int volume = 0;
 
-        public static byte timerclock = 0;
+        public byte timerclock = 0;
 
-        public static bool soundflag = true, musicflag = true;
-        public static bool sndflag = false, soundpausedflag = false;
+        public bool soundflag = true, musicflag = true;
+        public bool sndflag = false, soundpausedflag = false;
 
-        public static uint randvs = 0;
+        public uint randvs = 0;
 
-        public static uint randnos(int n)
+        public uint randnos(int n)
         {
             randvs = randvs * 0x15a4e35 + 1;
             return (uint)((randvs & 0x7fffffff) % n);
         }
 
-        public static void sett2val(ushort t2v)
+        public void sett2val(ushort t2v)
         {
             if (sndflag)
                 Timer2(t2v);
         }
 
-        public static void soundint()
+        public void soundint()
         {
             timerclock++;
             if (soundflag && !sndflag)
@@ -74,16 +71,16 @@ namespace Digger.Net
             }
         }
 
-        public static void soundstop()
+        public void soundstop()
         {
             int i;
             soundfalloff();
             soundwobbleoff();
-            for (i = 0; i < FIREBALLS; i++)
+            for (i = 0; i < DiggerC.FIREBALLS; i++)
                 soundfireoff(i);
             musicoff();
             soundbonusoff();
-            for (i = 0; i < FIREBALLS; i++)
+            for (i = 0; i < DiggerC.FIREBALLS; i++)
                 soundexplodeoff(i);
             soundbreakoff();
             soundemoff();
@@ -95,17 +92,17 @@ namespace Digger.Net
         }
 
 
-        public static bool soundlevdoneflag = false;
-        public static short nljpointer = 0, nljnoteduration = 0;
+        public bool soundlevdoneflag = false;
+        public short nljpointer = 0, nljnoteduration = 0;
 
-        public static void soundlevdone()
+        public void soundlevdone(Input input)
         {
             short timer = 0;
             soundstop();
             nljpointer = 0;
             nljnoteduration = 20;
             soundlevdoneflag = soundpausedflag = true;
-            g_FrameTime /= 5;
+            DiggerC.g_FrameTime /= 5;
             while (soundlevdoneflag && !input.escape)
             {
                 if (!device.IsWaveDeviceAvailable)
@@ -117,26 +114,26 @@ namespace Digger.Net
                 if (timerclock == timer)
                     continue;
                 soundlevdoneupdate();
-                input.checkkeyb();
+                input.checkkeyb(this);
                 timer = timerclock;
             }
-            g_FrameTime *= 5;
+            DiggerC.g_FrameTime *= 5;
             soundlevdoneoff();
         }
 
-        public static void soundlevdoneoff()
+        public void soundlevdoneoff()
         {
             soundlevdoneflag = soundpausedflag = false;
         }
 
-        public static ushort[] newlevjingle = { 0x8e8, 0x712, 0x5f2, 0x7f0, 0x6ac, 0x54c, 0x712, 0x5f2, 0x4b8, 0x474, 0x474 };
+        public ushort[] NewLevelJingle = { 0x8e8, 0x712, 0x5f2, 0x7f0, 0x6ac, 0x54c, 0x712, 0x5f2, 0x4b8, 0x474, 0x474 };
 
-        public static void soundlevdoneupdate()
+        public void soundlevdoneupdate()
         {
             if (sndflag)
             {
                 if (nljpointer < 11)
-                    t2val = newlevjingle[nljpointer];
+                    t2val = NewLevelJingle[nljpointer];
                 t0val = (ushort)(t2val + 35);
                 musvol = 50;
                 setsoundmode();
@@ -157,22 +154,22 @@ namespace Digger.Net
         }
 
 
-        public static bool soundfallflag = false, soundfallf = false;
-        public static ushort soundfallvalue, soundfalln = 0;
+        public bool soundfallflag = false, soundfallf = false;
+        public ushort soundfallvalue, soundfalln = 0;
 
-        public static void soundfall()
+        public void soundfall()
         {
             soundfallvalue = 1000;
             soundfallflag = true;
         }
 
-        public static void soundfalloff()
+        public void soundfalloff()
         {
             soundfallflag = false;
             soundfalln = 0;
         }
 
-        public static void soundfallupdate()
+        public void soundfallupdate()
         {
             if (soundfallflag)
             {
@@ -197,10 +194,10 @@ namespace Digger.Net
         }
 
 
-        public static bool soundbreakflag = false;
-        public static ushort soundbreakduration = 0, soundbreakvalue = 0;
+        public bool soundbreakflag = false;
+        public ushort soundbreakduration = 0, soundbreakvalue = 0;
 
-        public static void soundbreak()
+        public void soundbreak()
         {
             soundbreakduration = 3;
             if (soundbreakvalue < 15000)
@@ -208,12 +205,12 @@ namespace Digger.Net
             soundbreakflag = true;
         }
 
-        public static void soundbreakoff()
+        public void soundbreakoff()
         {
             soundbreakflag = false;
         }
 
-        public static void soundbreakupdate()
+        public void soundbreakupdate()
         {
             if (soundbreakflag)
             {
@@ -228,21 +225,21 @@ namespace Digger.Net
         }
 
 
-        public static bool soundwobbleflag = false;
-        public static short soundwobblen = 0;
+        public bool soundwobbleflag = false;
+        public short soundwobblen = 0;
 
-        public static void soundwobble()
+        public void soundwobble()
         {
             soundwobbleflag = true;
         }
 
-        public static void soundwobbleoff()
+        public void soundwobbleoff()
         {
             soundwobbleflag = false;
             soundwobblen = 0;
         }
 
-        public static void soundwobbleupdate()
+        public void soundwobbleupdate()
         {
             if (soundwobbleflag)
             {
@@ -265,29 +262,29 @@ namespace Digger.Net
             }
         }
 
-        public static bool[] soundfireflag = new bool[FIREBALLS];
-        public static bool[] sff = new bool[FIREBALLS];
-        public static ushort[] soundfirevalue = new ushort[FIREBALLS];
-        public static ushort[] soundfiren = new ushort[FIREBALLS];
-        public static int soundfirew = 0;
+        public bool[] soundfireflag = new bool[DiggerC.FIREBALLS];
+        public bool[] sff = new bool[DiggerC.FIREBALLS];
+        public ushort[] soundfirevalue = new ushort[DiggerC.FIREBALLS];
+        public ushort[] soundfiren = new ushort[DiggerC.FIREBALLS];
+        public int soundfirew = 0;
 
-        public static void soundfire(int n)
+        public void soundfire(int n)
         {
             soundfirevalue[n] = 500;
             soundfireflag[n] = true;
         }
 
-        public static void soundfireoff(int n)
+        public void soundfireoff(int n)
         {
             soundfireflag[n] = false;
             soundfiren[n] = 0;
         }
 
-        public static void soundfireupdate()
+        public void soundfireupdate()
         {
             int n;
             bool f = false;
-            for (n = 0; n < FIREBALLS; n++)
+            for (n = 0; n < DiggerC.FIREBALLS; n++)
             {
                 sff[n] = false;
                 if (soundfireflag[n])
@@ -310,20 +307,20 @@ namespace Digger.Net
                 do
                 {
                     n = soundfirew++;
-                    if (soundfirew == FIREBALLS)
+                    if (soundfirew == DiggerC.FIREBALLS)
                         soundfirew = 0;
                 } while (!sff[n]);
                 t2val = (ushort)(soundfirevalue[n] + randnos(soundfirevalue[n] >> 3));
             }
         }
 
-        public static bool[] soundexplodeflag = new bool[FIREBALLS];
-        public static bool[] sef = new bool[FIREBALLS];
-        public static ushort[] soundexplodevalue = new ushort[FIREBALLS];
-        public static ushort[] soundexplodeduration = new ushort[FIREBALLS];
-        public static int soundexplodew = 0;
+        public bool[] soundexplodeflag = new bool[DiggerC.FIREBALLS];
+        public bool[] sef = new bool[DiggerC.FIREBALLS];
+        public ushort[] soundexplodevalue = new ushort[DiggerC.FIREBALLS];
+        public ushort[] soundexplodeduration = new ushort[DiggerC.FIREBALLS];
+        public int soundexplodew = 0;
 
-        public static void soundexplode(int n)
+        public void soundexplode(int n)
         {
             soundexplodevalue[n] = 1500;
             soundexplodeduration[n] = 10;
@@ -331,16 +328,16 @@ namespace Digger.Net
             soundfireoff(n);
         }
 
-        public static void soundexplodeoff(int n)
+        public void soundexplodeoff(int n)
         {
             soundexplodeflag[n] = false;
         }
 
-        public static void soundexplodeupdate()
+        public void soundexplodeupdate()
         {
             int n;
             bool f = false;
-            for (n = 0; n < FIREBALLS; n++)
+            for (n = 0; n < DiggerC.FIREBALLS; n++)
             {
                 sef[n] = false;
                 if (soundexplodeflag[n])
@@ -361,7 +358,7 @@ namespace Digger.Net
                 do
                 {
                     n = soundexplodew++;
-                    if (soundexplodew == FIREBALLS)
+                    if (soundexplodew == DiggerC.FIREBALLS)
                         soundexplodew = 0;
                 } while (!sef[n]);
                 t2val = soundexplodevalue[n];
@@ -369,21 +366,21 @@ namespace Digger.Net
         }
 
 
-        public static bool soundbonusflag = false;
-        public static short soundbonusn = 0;
+        public bool soundbonusflag = false;
+        public short soundbonusn = 0;
 
-        public static void soundbonus()
+        public void soundbonus()
         {
             soundbonusflag = true;
         }
 
-        public static void soundbonusoff()
+        public void soundbonusoff()
         {
             soundbonusflag = false;
             soundbonusn = 0;
         }
 
-        public static void soundbonusupdate()
+        public void soundbonusupdate()
         {
             if (soundbonusflag)
             {
@@ -398,19 +395,19 @@ namespace Digger.Net
         }
 
 
-        public static bool soundemflag = false;
+        public bool soundemflag = false;
 
-        public static void soundem()
+        public void soundem()
         {
             soundemflag = true;
         }
 
-        public static void soundemoff()
+        public void soundemoff()
         {
             soundemflag = false;
         }
 
-        public static void soundemupdate()
+        public void soundemupdate()
         {
             if (soundemflag)
             {
@@ -420,12 +417,12 @@ namespace Digger.Net
         }
 
 
-        public static bool soundemeraldflag = false;
-        public static ushort soundemeraldduration, emerfreq, soundemeraldn;
+        public bool soundemeraldflag = false;
+        public ushort soundemeraldduration, emerfreq, soundemeraldn;
 
-        public static ushort[] emfreqs = { 0x8e8, 0x7f0, 0x712, 0x6ac, 0x5f2, 0x54c, 0x4b8, 0x474 };
+        public ushort[] emfreqs = { 0x8e8, 0x7f0, 0x712, 0x6ac, 0x5f2, 0x54c, 0x4b8, 0x474 };
 
-        public static void soundemerald(int n)
+        public void soundemerald(int n)
         {
             emerfreq = emfreqs[n];
             soundemeraldduration = 7;
@@ -433,12 +430,12 @@ namespace Digger.Net
             soundemeraldflag = true;
         }
 
-        public static void soundemeraldoff()
+        public void soundemeraldoff()
         {
             soundemeraldflag = false;
         }
 
-        public static void soundemeraldupdate()
+        public void soundemeraldupdate()
         {
             if (soundemeraldflag)
             {
@@ -459,10 +456,10 @@ namespace Digger.Net
         }
 
 
-        public static bool soundgoldflag = false, soundgoldf = false;
-        public static ushort soundgoldvalue1, soundgoldvalue2, soundgoldduration;
+        public bool soundgoldflag = false, soundgoldf = false;
+        public ushort soundgoldvalue1, soundgoldvalue2, soundgoldduration;
 
-        public static void soundgold()
+        public void soundgold()
         {
             soundgoldvalue1 = 500;
             soundgoldvalue2 = 4000;
@@ -471,12 +468,12 @@ namespace Digger.Net
             soundgoldflag = true;
         }
 
-        public static void soundgoldoff()
+        public void soundgoldoff()
         {
             soundgoldflag = false;
         }
 
-        public static void soundgoldupdate()
+        public void soundgoldupdate()
         {
             if (soundgoldflag)
             {
@@ -499,10 +496,10 @@ namespace Digger.Net
             }
         }
 
-        public static bool soundeatmflag = false;
-        public static ushort soundeatmvalue, soundeatmduration, soundeatmn;
+        public bool soundeatmflag = false;
+        public ushort soundeatmvalue, soundeatmduration, soundeatmn;
 
-        public static void soundeatm()
+        public void soundeatm()
         {
             soundeatmduration = 20;
             soundeatmn = 3;
@@ -510,12 +507,12 @@ namespace Digger.Net
             soundeatmflag = true;
         }
 
-        public static void soundeatmoff()
+        public void soundeatmoff()
         {
             soundeatmflag = false;
         }
 
-        public static void soundeatmupdate()
+        public void soundeatmupdate()
         {
             if (soundeatmflag)
             {
@@ -543,22 +540,22 @@ namespace Digger.Net
         }
 
 
-        public static bool soundddieflag = false;
-        public static ushort soundddien, soundddievalue;
+        public bool soundddieflag = false;
+        public ushort soundddien, soundddievalue;
 
-        public static void soundddie()
+        public void soundddie()
         {
             soundddien = 0;
             soundddievalue = 20000;
             soundddieflag = true;
         }
 
-        public static void soundddieoff()
+        public void soundddieoff()
         {
             soundddieflag = false;
         }
 
-        public static void soundddieupdate()
+        public void soundddieupdate()
         {
             if (soundddieflag)
             {
@@ -576,21 +573,21 @@ namespace Digger.Net
         }
 
 
-        public static bool sound1upflag = false;
-        public static short sound1upduration = 0;
+        public bool sound1upflag = false;
+        public short sound1upduration = 0;
 
-        public static void sound1up()
+        public void sound1up()
         {
             sound1upduration = 96;
             sound1upflag = true;
         }
 
-        public static void sound1upoff()
+        public void sound1upoff()
         {
             sound1upflag = false;
         }
 
-        public static void sound1upupdate()
+        public void sound1upupdate()
         {
             if (sound1upflag)
             {
@@ -603,12 +600,12 @@ namespace Digger.Net
         }
 
 
-        public static bool musicplaying = false;
-        public static short musicp = 0, tuneno = 0, noteduration = 0, notevalue = 0, musicmaxvol = 0,
+        public bool musicplaying = false;
+        public short musicp = 0, tuneno = 0, noteduration = 0, notevalue = 0, musicmaxvol = 0,
               musicattackrate = 0, musicsustainlevel = 0, musicdecayrate = 0, musicnotewidth = 0,
               musicreleaserate = 0, musicstage = 0, musicn = 0;
 
-        public static void music(short tune)
+        public void music(short tune)
         {
             tuneno = tune;
             musicp = 0;
@@ -642,13 +639,13 @@ namespace Digger.Net
                 soundddieoff();
         }
 
-        public static void musicoff()
+        public void musicoff()
         {
             musicplaying = false;
             musicp = 0;
         }
 
-        public static short[] bonusjingle = {
+        public short[] bonusjingle = {
             0x11d1,2,0x11d1,2,0x11d1,4,0x11d1,2,0x11d1,2,0x11d1,4,0x11d1,2,0x11d1,2,
             0xd59,4, 0xbe4,4, 0xa98,4,0x11d1,2,0x11d1,2,0x11d1,4,0x11d1,2,0x11d1,2,
             0x11d1,4, 0xd59,2, 0xa98,2, 0xbe4,4, 0xe24,4,0x11d1,4,0x11d1,2,0x11d1,2,
@@ -671,7 +668,7 @@ namespace Digger.Net
             0x7f0,4, 0xa98,4, 0x7f0,4, 0x8e8,4, 0x970,4, 0x8e8,4, 0x970,4, 0x8e8,4,
             0x7d64};
 
-        public static short[] backgjingle ={
+        public short[] backgjingle ={
             0xfdf,2,0x11d1,2, 0xfdf,2,0x1530,2,0x1ab2,2,0x1530,2,0x1fbf,4, 0xfdf,2,
             0x11d1,2, 0xfdf,2,0x1530,2,0x1ab2,2,0x1530,2,0x1fbf,4, 0xfdf,2, 0xe24,2,
             0xd59,2, 0xe24,2, 0xd59,2, 0xfdf,2, 0xe24,2, 0xfdf,2, 0xe24,2,0x11d1,2,
@@ -692,13 +689,13 @@ namespace Digger.Net
             0x970,2, 0xa98,2, 0x970,2, 0xbe4,2, 0xa98,2, 0xbe4,2, 0xd59,2, 0xbe4,2,
             0xa98,4,0x7d64};
 
-        public static short[] dirge ={
+        public short[] dirge ={
             0x7d00, 2,0x11d1, 6,0x11d1, 4,0x11d1, 2,0x11d1, 6, 0xefb, 4, 0xfdf, 2,
             0xfdf, 4,0x11d1, 2,0x11d1, 4,0x12e0, 2,0x11d1,12,0x7d00,16,0x7d00,16,
             0x7d00,16,0x7d00,16,0x7d00,16,0x7d00,16,0x7d00,16,0x7d00,16,0x7d00,16,
             0x7d00,16,0x7d00,16,0x7d00,16,0x7d64};
 
-        public static void musicupdate()
+        public void musicupdate()
         {
             if (!musicplaying)
                 return;
@@ -773,19 +770,19 @@ namespace Digger.Net
         }
 
 
-        public static void soundpause()
+        public void soundpause()
         {
             soundpausedflag = true;
             device.DisableSound();
         }
 
-        public static void soundpauseoff()
+        public void soundpauseoff()
         {
             soundpausedflag = false;
             device.EnableSound();
         }
 
-        public static void sett0()
+        public void sett0()
         {
             if (sndflag)
             {
@@ -803,9 +800,9 @@ namespace Digger.Net
             }
         }
 
-        public static bool soundt0flag = false;
+        public bool soundt0flag = false;
 
-        public static void setsoundt2()
+        public void setsoundt2()
         {
             if (soundt0flag)
             {
@@ -815,7 +812,7 @@ namespace Digger.Net
             }
         }
 
-        public static void setsoundmode()
+        public void setsoundmode()
         {
             spkrmode = wavetype;
             if (!soundt0flag && sndflag)
@@ -825,9 +822,9 @@ namespace Digger.Net
             }
         }
 
-        public static bool int8flag = false;
+        public bool int8flag = false;
 
-        public static void startint8()
+        public void startint8()
         {
             if (!int8flag)
             {
@@ -837,7 +834,7 @@ namespace Digger.Net
             }
         }
 
-        public static void stopint8()
+        public void stopint8()
         {
             SetTimer0(0);
             if (int8flag)
@@ -847,7 +844,7 @@ namespace Digger.Net
             SetSpeakerT2();
         }
 
-        public static void initsound()
+        public void initsound()
         {
             SetTimer2(40);
             SetSpeakerT2();
@@ -868,7 +865,7 @@ namespace Digger.Net
             randvs = 0;
         }
 
-        public static void KillSound()
+        public void KillSound()
         {
             setsoundt2();
             Timer2(40);
@@ -876,13 +873,13 @@ namespace Digger.Net
             setsoundt2();
         }
 
-        public static void SetupSound()
+        public void SetupSound()
         {
-            g_CurrentTime = 0;
+            DiggerC.g_CurrentTime = 0;
             startint8();
         }
 
-        public static ISoundDevice device = new SdlSound();
+        public ISoundDevice device = new SdlSound();
 
         public const int MIN_SAMP = 0;
         public const int MAX_SAMP = 0xff;
@@ -896,15 +893,15 @@ namespace Digger.Net
            If DMA is used, doubling the buffer so the data is always continguous, and
            giving half of the buffer at once to the DMA driver may be a good idea. */
 
-        public static byte[] buffer;
-        public static ushort firsts, last, size;           /* data available to output device */
+        public byte[] buffer;
+        public ushort firsts, last, size;           /* data available to output device */
 
-        public static int rate;
-        public static ushort t0rate, t2rate, t2new, t0v, t2v;
-        public static short i8pulse = 0;
-        public static bool t2f = false, t2sw, i8flag = false;
-        public static byte[] lut = new byte[257];
-        public static ushort[] pwlut = new ushort[51];
+        public int rate;
+        public ushort t0rate, t2rate, t2new, t0v, t2v;
+        public short i8pulse = 0;
+        public bool t2f = false, t2sw, i8flag = false;
+        public byte[] lut = new byte[257];
+        public ushort[] pwlut = new ushort[51];
 
         /* Initialise circular buffer and PC speaker emulator
 
@@ -923,7 +920,7 @@ namespace Digger.Net
            which does not make the sound break up. There may also be DMA considerations
            to take into account. bufsize should also be a power of 2.
         */
-        public static void soundinitglob(ushort bufsize, ushort samprate)
+        public void soundinitglob(ushort bufsize, ushort samprate)
         {
             device.SetDevice(samprate, bufsize, getsample);
             size = (ushort)(bufsize << 1);
@@ -943,7 +940,7 @@ namespace Digger.Net
            try to mess with, or even understand, the following. I don't understand most
            of it myself, and I wrote it. */
 
-        public static void SetTimer2(ushort t2)
+        public void SetTimer2(ushort t2)
         {
             if (t2 == 40)
                 t2 = (ushort)rate;   /* Otherwise aliasing would cause noise artifacts */
@@ -951,27 +948,27 @@ namespace Digger.Net
             t2v = t2new = t2;
         }
 
-        public static void SoundOff()
+        public void SoundOff()
         {
             t2sw = false;
         }
 
-        public static void SetSpeakerT2()
+        public void SetSpeakerT2()
         {
             t2sw = true;
         }
 
-        public static void SetTimer0(ushort t0)
+        public void SetTimer0(ushort t0)
         {
             t0v = t0rate = t0;
         }
 
-        public static void Timer0(ushort t0)
+        public void Timer0(ushort t0)
         {
             t0rate = t0;
         }
 
-        public static void Timer2(ushort t2)
+        public void Timer2(ushort t2)
         {
             if (t2 == 40)
                 t2 = (ushort)rate;    /* Otherwise aliasing would cause noise artifacts */
@@ -980,13 +977,13 @@ namespace Digger.Net
             t2v = t2rate;
         }
 
-        public static bool addcarry(ref ushort dest, ushort add)
+        public bool addcarry(ref ushort dest, ushort add)
         {
             dest += add;
             return dest < add;
         }
 
-        public static bool subcarry(ref ushort dest, ushort sub)
+        public bool subcarry(ref ushort dest, ushort sub)
         {
             dest -= sub;
             return dest >= (ushort)-sub;
@@ -1008,7 +1005,7 @@ namespace Digger.Net
            are 1,193,181 bits to add up per second, so you'd need a fast PC. This may
            be a little more complicated, but its much faster.
         */
-        public static byte getsample()
+        public byte getsample()
         {
             bool f = false, t2sw0;
             ushort spkrt2 = 0, noi8 = 0, complicate = 0, not2 = 0;

@@ -18,7 +18,6 @@ namespace Digger.Net
         public const int DKEY_MCH = 17; /* Mode change */
         public const int DKEY_SDR = 18; /* Save DRF */
 
-
         public bool[] krdf = new bool[NKEYS];
 
         public bool escape;
@@ -64,7 +63,7 @@ namespace Digger.Net
            there is none, in which case return -1. It is done this way around for
            historical reasons, there is no fundamental reason why it shouldn't be the
            other way around. */
-        public void checkkeyb()
+        public void checkkeyb(Sound sound)
         {
             int k = 0;
 
@@ -118,10 +117,10 @@ namespace Digger.Net
                         DiggerC.g_FrameTime += 10000;
                         break;
                     case DKEY_MTG: /* Toggle music */
-                        DiggerC.musicflag = !DiggerC.musicflag;
+                        sound.musicflag = !sound.musicflag;
                         break;
                     case DKEY_STG: /* Toggle sound */
-                        DiggerC.soundflag = !DiggerC.soundflag;
+                        sound.soundflag = !sound.soundflag;
                         break;
                     case DKEY_EXT: /* Exit */
                         escape = true;

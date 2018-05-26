@@ -22,35 +22,38 @@ namespace Digger.Net
         public int[] digspr = new int[DiggerC.DIGGERS];
         public int[] digspd = new int[DiggerC.DIGGERS];
         public int[] firespr = new int[DiggerC.FIREBALLS];
-        private readonly Sprites sprite;
 
-        public DrawApi(Sprites sprite)
+        private readonly Sprites sprite;
+        private readonly SdlGraphics gfx;
+
+        public DrawApi(SdlGraphics gfx, Sprites sprite)
         {
             this.sprite = sprite;
+            this.gfx = gfx;
         }
 
         public readonly string empty_line = new string(' ', DiggerC.MAX_TEXT_LEN + 1);
 
-        private void TextOut(SdlGraphics sdlGfx, string text, int x, int y, int c, int l)
+        private void TextOut(string text, int x, int y, int c, int l)
         {
 #if DEBUG
   System.Diagnostics.Debug.Assert(l > 0 && l <= DiggerC.MAX_TEXT_LEN);
 #endif
             for (int i = 0; i < l; i++)
             {
-                sdlGfx.WriteChar(x, y, Alpha.isvalchar(text[i]) ? text[i] : ' ', c);
+                gfx.WriteChar(x, y, Alpha.isvalchar(text[i]) ? text[i] : ' ', c);
                 x += DiggerC.CHR_W;
             }
         }
 
-        public void TextOut(SdlGraphics sdlGfx, string text, int x, int y, int c)
+        public void TextOut(string text, int x, int y, int c)
         {
-            TextOut(sdlGfx, text, x, y, c, text.Length);
+            TextOut(text, x, y, c, text.Length);
         }
 
-        public void EraseText(SdlGraphics sdlGfx, short n, int x, int y, short c)
+        public void EraseText(short n, int x, int y, short c)
         {
-            TextOut(sdlGfx, empty_line, x, y, c, n);
+            TextOut(empty_line, x, y, c, n);
         }
 
         public void MakeField(Level level)
@@ -368,16 +371,16 @@ namespace Digger.Net
             {
                 g = (int)(DiggerC.cgtime / 1193181);
                 string buf = string.Format("{0:D3}:{1:D2}", g / 60, g % 60);
-                TextOut(sdlGfx, buf, 124, 0, 3);
+                TextOut(buf, 124, 0, 3);
                 return;
             }
             n = DiggerC.getlives(0) - 1;
-            EraseText(sdlGfx, 5, 96, 0, 2);
+            EraseText(5, 96, 0, 2);
             if (n > 4)
             {
                 DrawLife(0, 80, 0);
                 string buf = string.Format("0x{0:X4}", n);
-                TextOut(sdlGfx, buf, 100, 0, 2);
+                TextOut(buf, 100, 0, 2);
             }
             else
             {
@@ -390,12 +393,12 @@ namespace Digger.Net
 
             if (DiggerC.g_playerCount == 2)
             {
-                EraseText(sdlGfx, 5, 164, 0, 2);
+                EraseText(5, 164, 0, 2);
                 n = DiggerC.getlives(1) - 1;
                 if (n > 4)
                 {
                     string buf = string.Format("0x{0:X4}", n);
-                    TextOut(sdlGfx, buf, 220 - buf.Length * DiggerC.CHR_W, 0, 2);
+                    TextOut(buf, 220 - buf.Length * DiggerC.CHR_W, 0, 2);
                     DrawLife(1, 224, 0);
                 }
                 else
@@ -410,12 +413,12 @@ namespace Digger.Net
 
             if (DiggerC.g_Diggers == 2)
             {
-                EraseText(sdlGfx, 5, 164, 0, 1);
+                EraseText(5, 164, 0, 1);
                 n = DiggerC.getlives(1) - 1;
                 if (n > 4)
                 {
                     string buf = string.Format("0x{0:X4}", n);
-                    TextOut(sdlGfx, buf, 220 - buf.Length * DiggerC.CHR_W, 0, 1);
+                    TextOut(buf, 220 - buf.Length * DiggerC.CHR_W, 0, 1);
                     DrawLife(3, 224, 0);
                 }
                 else

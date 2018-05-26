@@ -54,7 +54,7 @@ namespace Digger.Net
         public double z1;
     };
 
-    public static class DigMath
+    public static class Math
     {
         public static void PFD_init(ref PFD pfd_p, double phi_round)
         {
@@ -67,9 +67,9 @@ namespace Digger.Net
             double next_clk, err0r;
 
             if (pfd_p.phi_round > 0.0)
-                dtime = Math.Truncate(dtime * pfd_p.phi_round) / pfd_p.phi_round;
+                dtime = System.Math.Truncate(dtime * pfd_p.phi_round) / pfd_p.phi_round;
 
-            next_clk = Math.Truncate(dtime) + 1.0;
+            next_clk = System.Math.Truncate(dtime) + 1.0;
             if (pfd_p.target_clk == 0.0)
             {
                 pfd_p.target_clk = next_clk;
@@ -88,7 +88,7 @@ namespace Digger.Net
 
         public static double sigmoid(double x)
         {
-            return x / (1 + Math.Abs(x));
+            return x / (1 + System.Math.Abs(x));
         }
 
         public static void _recfilter_peak_detect(ref recfilter f)
@@ -128,7 +128,7 @@ namespace Digger.Net
                 Environment.Exit(0);
             }
 
-            f.b = Math.Exp(-2.0 * Math.PI * Fc / Fs);
+            f.b = System.Math.Exp(-2.0 * System.Math.PI * Fc / Fs);
             f.a = 1.0 - f.b;
             return f;
         }
@@ -167,7 +167,7 @@ namespace Digger.Net
                 DebugLog.Write($"fo_init: cutoff frequency ({Fc:N1}) should be less than half of the sampling rate ({Fs:N2})");
                 Environment.Exit(0);
             }
-            w = Math.Tan(Math.PI * Fc / Fs);
+            w = System.Math.Tan(System.Math.PI * Fc / Fs);
             n = 1.0 / (1.0 + w);
             fp.a1 = n * (w - 1);
             fp.b0 = n * w;
@@ -186,7 +186,7 @@ namespace Digger.Net
                 Environment.Exit(0);
             }
 
-            w = Math.Tan(Math.PI * Fc / Fs);
+            w = System.Math.Tan(System.Math.PI * Fc / Fs);
             n = 1.0 / (1.0 + w);
             fp.a1 = n * (w - 1);
             fp.b0 = n;

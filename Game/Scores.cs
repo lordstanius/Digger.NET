@@ -184,10 +184,10 @@ namespace Digger.Net
             if (DiggerC.g_isGauntletMode)
             {
                 DiggerC.cleartopline();
-                DiggerC.drawApi.TextOut(ddap, "TIME UP", 120, 0, 3);
+                DiggerC.drawApi.TextOut("TIME UP", 120, 0, 3);
                 for (int i = 0; i < 50 && !DiggerC.input.escape; i++)
                     DiggerC.newframe();
-                DiggerC.drawApi.EraseText(ddap, 7, 120, 0, 3);
+                DiggerC.drawApi.EraseText(7, 120, 0, 3);
             }
             for (int i = DiggerC.g_CurrentPlayer; i < DiggerC.g_CurrentPlayer + DiggerC.g_Diggers; i++)
             {
@@ -197,8 +197,8 @@ namespace Digger.Net
                     ddap.Clear();
                     drawscores(ddap);
                     DiggerC.g_playerName = $"PLAYER {(i == 0 ? 1 : 2)}";
-                    DiggerC.drawApi.TextOut(ddap, DiggerC.g_playerName, 108, 0, 2);
-                    DiggerC.drawApi.TextOut(ddap, " NEW HIGH SCORE ", 64, 40, 2);
+                    DiggerC.drawApi.TextOut(DiggerC.g_playerName, 108, 0, 2);
+                    DiggerC.drawApi.TextOut(" NEW HIGH SCORE ", 64, 40, 2);
                     getinitials(ddap);
                     shufflehigh();
                     savescores();
@@ -208,23 +208,23 @@ namespace Digger.Net
             if (!initflag && !DiggerC.g_isGauntletMode)
             {
                 DiggerC.cleartopline();
-                DiggerC.drawApi.TextOut(ddap, "GAME OVER", 104, 0, 3);
+                DiggerC.drawApi.TextOut("GAME OVER", 104, 0, 3);
                 for (int i = 0; i < 50 && !DiggerC.input.escape; i++)
                     DiggerC.newframe();
-                DiggerC.drawApi.EraseText(ddap, 9, 104, 0, 3);
+                DiggerC.drawApi.EraseText(9, 104, 0, 3);
             }
         }
 
         public void showtable(SdlGraphics ddap)
         {
             int i, col;
-            DiggerC.drawApi.TextOut(ddap, "HIGH SCORES", 16, 25, 3);
+            DiggerC.drawApi.TextOut("HIGH SCORES", 16, 25, 3);
             col = 2;
             for (i = 1; i < 11; i++)
             {
                 highbuf = numtostring(scorehigh[i + 1]);
                 hsbuf = $"{scoreinit[i]}  {highbuf}";
-                DiggerC.drawApi.TextOut(ddap, hsbuf, 16, 31 + 13 * i, col);
+                DiggerC.drawApi.TextOut(hsbuf, 16, 31 + 13 * i, col);
                 col = 1;
             }
         }
@@ -251,11 +251,11 @@ namespace Digger.Net
         {
             int k, i;
             DiggerC.newframe();
-            DiggerC.drawApi.TextOut(ddap, "ENTER YOUR", 100, 70, 3);
-            DiggerC.drawApi.TextOut(ddap, " INITIALS", 100, 90, 3);
-            DiggerC.drawApi.TextOut(ddap, "_ _ _", 128, 130, 3);
+            DiggerC.drawApi.TextOut("ENTER YOUR", 100, 70, 3);
+            DiggerC.drawApi.TextOut(" INITIALS", 100, 90, 3);
+            DiggerC.drawApi.TextOut("_ _ _", 128, 130, 3);
             scoreinit[0] = "...";
-            DiggerC.KillSound();
+            DiggerC.sound.KillSound();
             var initials = new char[3];
             for (i = 0; i < 3; i++)
             {
@@ -280,7 +280,7 @@ namespace Digger.Net
             for (i = 0; i < 20; i++)
                 flashywait(ddap, 15);
 
-            DiggerC.SetupSound();
+            DiggerC.sound.SetupSound();
             ddap.Clear();
             ddap.SetPalette(0);
             ddap.SetIntensity(0);
@@ -294,10 +294,10 @@ namespace Digger.Net
             byte gap = 19;
 
             DiggerC.timer.SyncFrame();
-            DiggerC.sdlGfx.UpdateScreen();
+            DiggerC.gfx.UpdateScreen();
 
             for (i = 0; i < (n << 1); i++)
-                for (cx = 0; cx < DiggerC.volume; cx++)
+                for (cx = 0; cx < DiggerC.sound.volume; cx++)
                 {
                     p = 1 - p;
                     ddap.SetPalette(p);

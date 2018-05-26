@@ -58,7 +58,7 @@ namespace Digger.Net
             {
                 if (expsn == 1)
                 {
-                    DiggerC.soundexplode(f_id);
+                    DiggerC.sound.soundexplode(f_id);
                 }
                 ++expsn;
             }
@@ -69,7 +69,7 @@ namespace Digger.Net
             DiggerC.sprites.erasespr(DiggerC.FIRSTFIREBALL + f_id);
             if (expsn > 1)
             {
-                DiggerC.soundfireoff(f_id);
+                DiggerC.sound.soundfireoff(f_id);
             }
             expsn = 0;
         }
