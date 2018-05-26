@@ -20,6 +20,8 @@ namespace Digger.Net
         private const int TYPES = DiggerC.TYPES;
         private const int SPRITES = DiggerC.SPRITES;
         private const int FIRSTMONSTER = DiggerC.FIRSTMONSTER;
+        private const int FIRSTDIGGER = DiggerC.FIRSTDIGGER;
+        private const int FIRSTBAG = DiggerC.FIRSTBAG;
         // TODO: Refactor
         private const bool MON_NOBBIN = DiggerC.MON_NOBBIN;
 
@@ -84,20 +86,20 @@ namespace Digger.Net
                     sprites.erasespr(i + FIRSTMONSTER);
         }
 
-        public void domonsters(Bags bags)
+        public void domonsters(Bags bags, Digger digger)
         {
             short i;
             if (nextmontime > 0)
                 nextmontime--;
             else
             {
-                if (nextmonster < totalmonsters && nmononscr() < maxmononscr && DiggerC.isalive() && !DiggerC.bonusmode)
+                if (nextmonster < totalmonsters && nmononscr() < maxmononscr && digger.isalive() && !digger.bonusmode)
                     CreateMonster();
 
-                if (unbonusflag && nextmonster == totalmonsters && nextmontime == 0 && DiggerC.isalive())
+                if (unbonusflag && nextmonster == totalmonsters && nextmontime == 0 && digger.isalive())
                 {
                     unbonusflag = false;
-                    DiggerC.createbonus();
+                    digger.createbonus();
                 }
             }
 
@@ -115,15 +117,15 @@ namespace Digger.Net
                     if (mondat[i].mop.isalive())
                         if (mondat[i].t == 0)
                         {
-                            monai(i, bags);
+                            monai(i, bags, digger);
                             if (StdLib.RandFrom0To(15 - level.levof10()) == 0) /* Need to split for determinism */
                                 if (!mondat[i].mop.isnobbin() && mondat[i].mop.isalive())
-                                    monai(i, bags);
+                                    monai(i, bags, digger);
                         }
                         else
                             mondat[i].t--;
                     else
-                        mondie(i, bags);
+                        mondie(i, bags, digger);
                 }
         }
 
@@ -158,7 +160,7 @@ namespace Digger.Net
             mongotgold = true;
         }
 
-        private void monai(int mon, Bags bags)
+        private void monai(int mon, Bags bags, Digger digger)
         {
             int[] clcoll = new int[SPRITES];
             int[] clfirst = new int[TYPES];
@@ -186,32 +188,32 @@ namespace Digger.Net
                 /* Set up monster direction properties to chase Digger */
 
                 int dig = mondat[mon].chase;
-                if (!DiggerC.digalive(dig))
+                if (!digger.digalive(dig))
                     dig = (DiggerC.g_Diggers - 1) - dig;
 
-                if (System.Math.Abs(DiggerC.diggery(dig) - mopos.y) > System.Math.Abs(DiggerC.diggerx(dig) - mopos.x))
+                if (System.Math.Abs(digger.diggery(dig) - mopos.y) > System.Math.Abs(digger.diggerx(dig) - mopos.x))
                 {
                     mdirp1 = 0;
-                    if (DiggerC.diggery(dig) < mopos.y)
+                    if (digger.diggery(dig) < mopos.y)
                     {
                         mdirp1 = DIR_UP;
                         mdirp4 = DIR_DOWN;
                     }
                     else { mdirp1 = DIR_DOWN; mdirp4 = DIR_UP; }
-                    if (DiggerC.diggerx(dig) < mopos.x) { mdirp2 = DIR_LEFT; mdirp3 = DIR_RIGHT; }
+                    if (digger.diggerx(dig) < mopos.x) { mdirp2 = DIR_LEFT; mdirp3 = DIR_RIGHT; }
                     else { mdirp2 = DIR_RIGHT; mdirp3 = DIR_LEFT; }
                 }
                 else
                 {
-                    if (DiggerC.diggerx(dig) < mopos.x) { mdirp1 = DIR_LEFT; mdirp4 = DIR_RIGHT; }
+                    if (digger.diggerx(dig) < mopos.x) { mdirp1 = DIR_LEFT; mdirp4 = DIR_RIGHT; }
                     else { mdirp1 = DIR_RIGHT; mdirp4 = DIR_LEFT; }
-                    if (DiggerC.diggery(dig) < mopos.y) { mdirp2 = DIR_UP; mdirp3 = DIR_DOWN; }
+                    if (digger.diggery(dig) < mopos.y) { mdirp2 = DIR_UP; mdirp3 = DIR_DOWN; }
                     else { mdirp2 = DIR_DOWN; mdirp3 = DIR_UP; }
                 }
 
                 /* In bonus mode, run away from Digger */
 
-                if (DiggerC.bonusmode)
+                if (digger.bonusmode)
                 {
                     t = mdirp1; mdirp1 = mdirp4; mdirp4 = t;
                     t = mdirp2; mdirp2 = mdirp3; mdirp3 = t;
@@ -220,7 +222,7 @@ namespace Digger.Net
                 /* Adjust priorities so that monsters don't reverse direction unless they
                    really have to */
 
-                dir = DiggerC.reversedir(mondat[mon].dir);
+                dir = digger.reversedir(mondat[mon].dir);
                 if (dir == mdirp1)
                 {
                     mdirp1 = mdirp2;
@@ -335,7 +337,7 @@ namespace Digger.Net
                            mondat[mon].dir);
 
             /* If Digger's gone, don't bother */
-            if (!DiggerC.isalive() && mopos_changed)
+            if (!digger.isalive() && mopos_changed)
             {
                 mopos.x = monox;
                 mopos.y = monoy;
@@ -368,9 +370,9 @@ namespace Digger.Net
             /* Draw monster */
             push = true;
             mondat[mon].mop.animate();
-            for (i = 0; i < DiggerC.TYPES; i++)
+            for (i = 0; i < TYPES; i++)
                 clfirst[i] = sprites.first[i];
-            for (i = 0; i < DiggerC.SPRITES; i++)
+            for (i = 0; i < SPRITES; i++)
                 clcoll[i] = sprites.coll[i];
             DiggerC.incpenalty();
 
@@ -383,10 +385,10 @@ namespace Digger.Net
                 i = clfirst[2];
                 do
                 {
-                    int m = i - DiggerC.FIRSTMONSTER;
+                    int m = i - FIRSTMONSTER;
                     if (mondat[mon].dir == mondat[m].dir && mondat[m].stime == 0 &&
                         mondat[mon].stime == 0)
-                        mondat[m].dir = DiggerC.reversedir(mondat[m].dir);
+                        mondat[m].dir = digger.reversedir(mondat[m].dir);
                     /* The kludge here is to preserve playback for a bug in previous
                        versions. */
                     if (!record.kludge)
@@ -407,7 +409,7 @@ namespace Digger.Net
             bagf = false;
             while (i != -1)
             {
-                if (bags.BagExists(i - DiggerC.FIRSTBAG))
+                if (bags.BagExists(i - FIRSTBAG))
                 {
                     bagf = true;
                     break;
@@ -435,7 +437,7 @@ namespace Digger.Net
 
             /* Increase hobbin cross counter */
 
-            if (mondat[mon].mop.isnobbin() && clfirst[2] != -1 && DiggerC.isalive())
+            if (mondat[mon].mop.isnobbin() && clfirst[2] != -1 && digger.isalive())
                 mondat[mon].hnt++;
 
             /* See if bags push monster back */
@@ -455,21 +457,21 @@ namespace Digger.Net
                     mondat[mon].hnt++;
                 if ((mondat[mon].dir == DIR_UP || mondat[mon].dir == DIR_DOWN) &&
                     mondat[mon].mop.isnobbin())
-                    mondat[mon].dir = DiggerC.reversedir(mondat[mon].dir); /* If vertical, give up */
+                    mondat[mon].dir = digger.reversedir(mondat[mon].dir); /* If vertical, give up */
             }
 
             /* Collision with Digger */
 
-            if (clfirst[4] != -1 && DiggerC.isalive())
+            if (clfirst[4] != -1 && digger.isalive())
             {
-                if (DiggerC.bonusmode)
+                if (digger.bonusmode)
                 {
-                    killmon(mon);
+                    killmon(mon, digger);
                     i = clfirst[4];
                     while (i != -1)
                     {
-                        if (DiggerC.digalive(i - DiggerC.FIRSTDIGGER + DiggerC.g_CurrentPlayer))
-                            DiggerC.sceatm(i - DiggerC.FIRSTDIGGER + DiggerC.g_CurrentPlayer);
+                        if (digger.digalive(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer))
+                            digger.sceatm(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer, scores);
                         i = clcoll[i];
                     }
                     sound.soundeatm(); /* Collision in bonus mode */
@@ -479,8 +481,8 @@ namespace Digger.Net
                     i = clfirst[4];
                     while (i != -1)
                     {
-                        if (DiggerC.digalive(i - DiggerC.FIRSTDIGGER + DiggerC.g_CurrentPlayer))
-                            DiggerC.killdigger(i - DiggerC.FIRSTDIGGER + DiggerC.g_CurrentPlayer, 3, 0); /* Kill Digger */
+                        if (digger.digalive(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer))
+                            digger.killdigger(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer, 3, 0); /* Kill Digger */
                         i = clcoll[i];
                     }
                 }
@@ -494,7 +496,7 @@ namespace Digger.Net
             mondat[mon].yr = (mopos.y - 18) % 18;
         }
 
-        private void mondie(int mon, Bags bags)
+        private void mondie(int mon, Bags bags, Digger digger)
         {
             obj_position monpos;
 
@@ -520,7 +522,7 @@ namespace Digger.Net
                         mondat[mon].dtime--;
                     else
                     {
-                        killmon(mon);
+                        killmon(mon, digger);
                         if (DiggerC.g_Diggers == 2)
                             scores.scorekill2();
                         else
@@ -570,13 +572,13 @@ namespace Digger.Net
                     mondat[m].dir = DIR_DOWN;
         }
 
-        public void killmon(int mon)
+        public void killmon(int mon, Digger digger)
         {
             if (mondat[mon].flag)
             {
                 mondat[mon].flag = false;
                 mondat[mon].mop.kill();
-                if (DiggerC.bonusmode)
+                if (digger.bonusmode)
                     totalmonsters++;
             }
         }
@@ -595,13 +597,13 @@ namespace Digger.Net
             }
         }
 
-        public int KillMonsters(int[] clfirst, int[] clcoll)
+        public int KillMonsters(int[] clfirst, int[] clcoll, Digger digger)
         {
             int next = clfirst[2], m, n = 0;
             while (next != -1)
             {
-                m = next - DiggerC.FIRSTMONSTER;
-                killmon(m);
+                m = next - FIRSTMONSTER;
+                killmon(m, digger);
                 n++;
                 next = clcoll[next];
             }

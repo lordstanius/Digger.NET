@@ -78,6 +78,7 @@ namespace Digger.Net
         /* global variables */
         public static string g_playerName;
         public static int g_CurrentPlayer = 0, g_playerCount = 1, g_Penalty = 0, g_Diggers = 1, g_StartingLevel = 1;
+        public static uint g_CurrentTime, g_FrameTime;
         public static bool g_hasUnlimitedLives = false, g_isGauntletMode = false, g_isTimeOut = false, g_isVideoSync = false;
         public static uint g_gameTime = 0;
         public static uint randv;
@@ -98,29 +99,28 @@ namespace Digger.Net
         public static Sound sound;
         public static Monsters monsters;
         public static Bags bags;
+        public static Digger digger;
 
         public static void GlobalInit()
         {
             gfx = new SdlGraphicsVga();
+            sound = new Sound();
+            input = new Input();
             level = new Level(gamedat);
             sprites = new Sprites(gfx);
-            drawApi = new DrawApi(gfx, sprites);
             timer = new SdlTimer();
-            scores = new Scores(gfx, level);
+            drawApi = new DrawApi(gfx, sprites);
+            digger = new Digger(input, drawApi, sound, sprites, level);
+            scores = new Scores(gfx, level, digger);
             record = new Record(scores);
-            input = new Input();
-            sound = new Sound();
             monsters = new Monsters(level, sprites, sound, drawApi, record, scores);
-            bags = new Bags(level, sound, drawApi, monsters, sprites, scores);
+            bags = new Bags(level, sound, drawApi, monsters, sprites, scores, digger);
         }
 
         public static void maininit()
         {
             if (maininited)
                 return;
-
-            for (int i = 0; i < DIGGERS; ++i)
-                digdat[i] = new digger_struct();
 
             calibrate();
             gfx.Initialize();
@@ -137,10 +137,10 @@ namespace Digger.Net
             bool flashplayer = false;
             if (g_isGauntletMode)
             {
-                cgtime = g_gameTime * 1193181;
+                digger.cgtime = g_gameTime * 1193181;
                 g_isTimeOut = false;
             }
-            initlives();
+            digger.initlives();
             alldead = false;
             gfx.Clear();
             g_CurrentPlayer = 0;
@@ -148,7 +148,7 @@ namespace Digger.Net
             g_CurrentPlayer = 1;
             initlevel();
             scores.zeroscores();
-            bonusvisible = true;
+            digger.bonusvisible = true;
             if (g_playerCount == 2)
                 flashplayer = true;
             g_CurrentPlayer = 0;
@@ -194,7 +194,7 @@ namespace Digger.Net
 
                     drawApi.EraseText(8, 108, 0, 3);
                     scores.initscores();
-                    drawApi.drawlives();
+                    digger.drawlives();
                     sound.music(1);
 
                     input.flushkeybuf();
@@ -204,15 +204,15 @@ namespace Digger.Net
                     while (!alldead && !gamedat[g_CurrentPlayer].levdone && !input.escape && !g_isTimeOut)
                     {
                         g_Penalty = 0;
-                        dodigger();
-                        monsters.domonsters(bags);
+                        digger.dodigger(bags, monsters, scores);
+                        monsters.domonsters(bags, digger);
                         bags.DoBags();
                         if (g_Penalty > 8)
                             monsters.incmont(g_Penalty - 8);
                         testpause();
                         checklevdone();
                     }
-                    erasediggers();
+                    digger.erasediggers();
                     sound.musicoff();
                     int t = 20;
                     while ((bags.GetNotMovingBags() != 0 || t != 0) && !input.escape && !g_isTimeOut)
@@ -221,15 +221,16 @@ namespace Digger.Net
                             t--;
                         g_Penalty = 0;
                         bags.DoBags();
-                        dodigger();
-                        monsters.domonsters(bags);
+                        digger.dodigger(bags, monsters, scores);
+                        monsters.domonsters(bags, digger);
                         if (g_Penalty < 8)
                             t = 0;
                     }
                     sound.soundstop();
                     for (int i = 0; i < g_Diggers; i++)
-                        killfire(i);
-                    erasebonus();
+                        digger.killfire(i);
+
+                    digger.erasebonus();
                     bags.Cleanup();
                     drawApi.SaveField();
                     monsters.EraseMonsters();
@@ -243,9 +244,9 @@ namespace Digger.Net
                     if (countem() == 0 || gamedat[g_CurrentPlayer].levdone)
                     {
                         for (int i = g_CurrentPlayer; i < g_Diggers + g_CurrentPlayer; i++)
-                            if (getlives(i) > 0 && !digalive(i))
-                                declife(i);
-                        drawApi.drawlives();
+                            if (digger.getlives(i) > 0 && !digger.digalive(i))
+                                digger.declife(i);
+                        digger.drawlives();
                         gamedat[g_CurrentPlayer].level++;
                         if (gamedat[g_CurrentPlayer].level > 1000)
                             gamedat[g_CurrentPlayer].level = 1000;
@@ -254,15 +255,15 @@ namespace Digger.Net
                     else if (alldead)
                     {
                         for (int i = g_CurrentPlayer; i < g_CurrentPlayer + g_Diggers; i++)
-                            if (getlives(i) > 0)
-                                declife(i);
-                        drawApi.drawlives();
+                            if (digger.getlives(i) > 0)
+                                digger.declife(i);
+                        digger.drawlives();
                     }
                     if ((alldead && getalllives() == 0 && !g_isGauntletMode && !input.escape) || g_isTimeOut)
                         scores.endofgame();
                 }
                 alldead = false;
-                if (g_playerCount == 2 && getlives(1 - g_CurrentPlayer) != 0)
+                if (g_playerCount == 2 && digger.getlives(1 - g_CurrentPlayer) != 0)
                 {
                     g_CurrentPlayer = 1 - g_CurrentPlayer;
                     flashplayer = levnotdrawn = true;
@@ -434,6 +435,24 @@ namespace Digger.Net
             return 0;
         }
 
+        public static void newframe()
+        {
+            if (g_isVideoSync)
+            {
+                for (; g_CurrentTime < g_FrameTime; g_CurrentTime += 17094)
+                { /* 17094 = ticks in a refresh */
+                    input.checkkeyb(sound);
+                }
+                g_CurrentTime -= g_FrameTime;
+            }
+            else
+            {
+                timer.SyncFrame();
+                input.checkkeyb(sound);
+                gfx.UpdateScreen();
+            }
+        }
+
         static bool quiet = false;
         static ushort sound_rate, sound_length;
 
@@ -507,7 +526,7 @@ namespace Digger.Net
         {
             int t = 0, i;
             for (i = g_CurrentPlayer; i < g_Diggers + g_CurrentPlayer; i++)
-                t += getlives(i);
+                t += digger.getlives(i);
             return t;
         }
 
@@ -535,20 +554,20 @@ namespace Digger.Net
             drawApi.DrawStatistics(ddap, level);
             bags.DrawBags();
             drawemeralds();
-            initdigger();
+            digger.initdigger();
             monsters.Initialize();
         }
 
         public static void initchars()
         {
             drawApi.initmbspr();
-            initdigger();
+            digger.initdigger();
             monsters.Initialize();
         }
 
         public static void checklevdone()
         {
-            if ((countem() == 0 || monsters.monleft() == 0) && isalive())
+            if ((countem() == 0 || monsters.monleft() == 0) && digger.isalive())
                 gamedat[g_CurrentPlayer].levdone = true;
             else
                 gamedat[g_CurrentPlayer].levdone = false;
@@ -585,7 +604,7 @@ namespace Digger.Net
                 scores.drawscores();
                 for (i = 0; i < g_Diggers; i++)
                     scores.addscore(i, 0);
-                drawApi.drawlives();
+                digger.drawlives();
                 if (!g_isVideoSync)
                 {
                     timer.SyncFrame();
@@ -879,6 +898,82 @@ namespace Digger.Net
 
             g_hasUnlimitedLives = Ini.GetINIBool(INI_GAME_SETTINGS, "UnlimitedLives", false, ININAME);
             g_StartingLevel = Ini.GetINIInt(INI_GAME_SETTINGS, "StartLevel", 1, ININAME);
+        }
+
+        public static int emmask = 0;
+
+        public static void drawemeralds()
+        {
+            emmask = (short)(1 << DiggerC.g_CurrentPlayer);
+            for (int x = 0; x < MWIDTH; x++)
+                for (int y = 0; y < MHEIGHT; y++)
+                    if ((emfield[y * MWIDTH + x] & emmask) != 0)
+                        drawApi.DrawEmerald(x * 20 + 12, y * 18 + 21);
+        }
+
+        public static void makeemfield()
+        {
+            emmask = (short)(1 << DiggerC.g_CurrentPlayer);
+            for (int x = 0; x < MWIDTH; x++)
+                for (int y = 0; y < MHEIGHT; y++)
+                    if (level.getlevch(x, y, level.levplan()) == 'C')
+                        emfield[y * MWIDTH + x] |= (byte)emmask;
+                    else
+                        emfield[y * MWIDTH + x] &= (byte)~emmask;
+        }
+
+        static short[] embox = { 8, 12, 12, 9, 16, 12, 6, 9 };
+        public static byte[] emfield = new byte[MSIZE];
+
+        public static bool hitemerald(int x, int y, int rx, int ry, int dir)
+        {
+            bool hit = false;
+            int r;
+            if (dir != DIR_RIGHT && dir != DIR_UP && dir != DIR_LEFT && dir != DIR_DOWN)
+                return hit;
+            if (dir == DIR_RIGHT && rx != 0)
+                x++;
+            if (dir == DIR_DOWN && ry != 0)
+                y++;
+            if (dir == DIR_RIGHT || dir == DIR_LEFT)
+                r = rx;
+            else
+                r = ry;
+            if ((emfield[y * MWIDTH + x] & emmask) != 0)
+            {
+                if (r == embox[dir])
+                {
+                    drawApi.DrawEmerald(x * 20 + 12, y * 18 + 21);
+                    DiggerC.incpenalty();
+                }
+                if (r == embox[dir + 1])
+                {
+                    drawApi.EraseEmerald(x * 20 + 12, y * 18 + 21);
+                    DiggerC.incpenalty();
+                    hit = true;
+                    emfield[y * MWIDTH + x] &= (byte)~emmask;
+                }
+            }
+            return hit;
+        }
+
+        public static int countem()
+        {
+            int n = 0;
+            for (int x = 0; x < MWIDTH; x++)
+                for (int y = 0; y < MHEIGHT; y++)
+                    if ((emfield[y * MWIDTH + x] & emmask) != 0)
+                        n++;
+            return n;
+        }
+
+        public static void killemerald(int x, int y)
+        {
+            if ((emfield[(y + 1) * MWIDTH + x] & emmask) != 0)
+            {
+                emfield[(y + 1) * MWIDTH + x] &= (byte)~emmask;
+                drawApi.EraseEmerald(x * 20 + 12, (y + 1) * 18 + 21);
+            }
         }
     }
 }

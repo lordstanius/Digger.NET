@@ -61,7 +61,7 @@
     <Compile Include="Game\Bags.cs" />
     <Compile Include="Game\bullet_obj.cs" />
     <Compile Include="Graphics\CgaGrafx.cs" />
-    <Compile Include="Game\digger.cs" />
+    <Compile Include="Game\Digger.cs" />
     <Compile Include="Engine\DigMath.cs" />
     <Compile Include="Game\digger_obj.cs" />
     <Compile Include="Engine\SdlGraphics.cs" />

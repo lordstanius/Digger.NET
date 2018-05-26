@@ -36,11 +36,13 @@ namespace Digger.Net
 
         private SdlGraphics gfx;
         private Level level;
+        private Digger digger;
 
-        public Scores(SdlGraphics gfx, Level level)
+        public Scores(SdlGraphics gfx, Level level, Digger digger)
         {
             this.gfx = gfx;
             this.level = level;
+            this.digger = digger;
         }
 
         private void readscores()
@@ -167,13 +169,13 @@ namespace Digger.Net
                 writenum(scdat[n].score, 248, 0, 6, 1);
             if (scdat[n].score >= scdat[n].nextbs + n)
             { /* +n to reproduce original bug */
-                if (DiggerC.getlives(n) < 5 || DiggerC.g_hasUnlimitedLives)
+                if (digger.getlives(n) < 5 || DiggerC.g_hasUnlimitedLives)
                 {
                     if (DiggerC.g_isGauntletMode)
-                        DiggerC.cgtime += 17897715; /* 15 second time bonus instead of the life */
+                        digger.cgtime += 17897715; /* 15 second time bonus instead of the life */
                     else
-                        DiggerC.addlife(n);
-                    DiggerC.drawApi.drawlives();
+                        digger.addlife(n);
+                    digger.drawlives();
                 }
                 scdat[n].nextbs += bonusscore;
             }

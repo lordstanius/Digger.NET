@@ -43,8 +43,9 @@ namespace Digger.Net
         private Monsters monsters;
         private Sprites sprites;
         private Scores scores;
+        private Digger digger;
 
-        public Bags(Level level, Sound sound, DrawApi drawApi, Monsters monsters, Sprites sprites, Scores scores)
+        public Bags(Level level, Sound sound, DrawApi drawApi, Monsters monsters, Sprites sprites, Scores scores, Digger digger)
         {
             this.level = level;
             this.sound = sound;
@@ -52,6 +53,7 @@ namespace Digger.Net
             this.monsters = monsters;
             this.sprites = sprites;
             this.scores = scores;
+            this.digger = digger;
         }
 
         public void Initialize()
@@ -212,7 +214,7 @@ namespace Digger.Net
                         }
                         else
                           if ((monsters.getfield(h, v + 1) & 0xfdf) != 0xfdf)
-                            if (!DiggerC.checkdiggerunderbag(h, v + 1))
+                            if (!digger.checkdiggerunderbag(h, v + 1))
                                 bagdat[bag].wobbling = true;
                     }
                     else
@@ -309,8 +311,8 @@ namespace Digger.Net
                 i = clfirst[4];
                 while (i != -1)
                 {
-                    if (DiggerC.diggery(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer) >= y)
-                        DiggerC.killdigger(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer, 1, bag);
+                    if (digger.diggery(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer) >= y)
+                        digger.killdigger(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer, 1, bag);
                     i = clcoll[i];
                 }
                 if (clfirst[2] != -1)
@@ -356,8 +358,8 @@ namespace Digger.Net
                         i = clfirst[4];
                         while (i != -1)
                         {
-                            if (DiggerC.diggery(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer) >= y)
-                                DiggerC.killdigger(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer, 1, bag);
+                            if (digger.diggery(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer) >= y)
+                                digger.killdigger(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer, 1, bag);
                             i = clcoll[i];
                         }
                         if (clfirst[2] != -1)
@@ -387,7 +389,7 @@ namespace Digger.Net
                         digf = false;
                         while (i != -1)
                         {
-                            if (DiggerC.digalive(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer))
+                            if (digger.digalive(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer))
                                 digf = true;
                             i = clcoll[i];
                         }
@@ -404,7 +406,7 @@ namespace Digger.Net
                 if (push)
                     bagdat[bag].dir = dir;
                 else
-                    bagdat[bag].dir = DiggerC.reversedir(dir);
+                    bagdat[bag].dir = digger.reversedir(dir);
                 bagdat[bag].x = x;
                 bagdat[bag].y = y;
                 bagdat[bag].h = (x - 12) / 20;
@@ -498,11 +500,11 @@ namespace Digger.Net
             i = sprites.first[4];
             while (i != -1)
             {
-                if (DiggerC.digalive(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer))
+                if (digger.digalive(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer))
                 {
                     scores.scoregold(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer);
                     sound.soundgold();
-                    DiggerC.digresettime(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer);
+                    digger.digresettime(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer);
                     f = false;
                 }
                 i = sprites.coll[i];
