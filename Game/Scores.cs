@@ -34,9 +34,18 @@ namespace Digger.Net
 
         public const string SFNAME = "DIGGER.SCO";
 
+        private SdlGraphics gfx;
+        private Level level;
+
+        public Scores(SdlGraphics gfx, Level level)
+        {
+            this.gfx = gfx;
+            this.level = level;
+        }
+
         private void readscores()
         {
-            if (!DiggerC.level.levfflag)
+            if (!level.levfflag)
             {
                 if (File.Exists(SFNAME))
                 {
@@ -49,7 +58,7 @@ namespace Digger.Net
             }
             else
             {
-                using (var inFile = File.OpenRead(DiggerC.level.levfname))
+                using (var inFile = File.OpenRead(level.levfname))
                 {
                     inFile.Seek(1202, SeekOrigin.Begin);
                     if (inFile.Read(scorebuf, 0, 512) == 0)
@@ -60,7 +69,7 @@ namespace Digger.Net
 
         private void writescores()
         {
-            if (!DiggerC.level.levfflag)
+            if (!level.levfflag)
             {
                 using (var inFile = File.OpenWrite(SFNAME))
                 {
@@ -69,7 +78,7 @@ namespace Digger.Net
             }
             else
             {
-                using (var inFile = File.OpenRead(DiggerC.level.levfname))
+                using (var inFile = File.OpenRead(level.levfname))
                 {
                     inFile.Seek(1202, SeekOrigin.Begin);
                     inFile.Write(scorebuf, 0, 512);
@@ -77,11 +86,11 @@ namespace Digger.Net
             }
         }
 
-        public void initscores(SdlGraphics ddap)
+        public void initscores()
         {
             int i;
             for (i = 0; i < DiggerC.g_Diggers; i++)
-                addscore(ddap, i, 0);
+                addscore(i, 0);
         }
 
         public void loadscores()
@@ -121,41 +130,41 @@ namespace Digger.Net
             scoret = 0;
         }
 
-        public void writecurscore(SdlGraphics ddap, int col)
+        public void writecurscore(int col)
         {
             if (DiggerC.g_CurrentPlayer == 0)
-                writenum(ddap, scdat[0].score, 0, 0, 6, col);
+                writenum(scdat[0].score, 0, 0, 6, col);
             else
               if (scdat[1].score < 100000)
-                writenum(ddap, scdat[1].score, 236, 0, 6, col);
+                writenum(scdat[1].score, 236, 0, 6, col);
             else
-                writenum(ddap, scdat[1].score, 248, 0, 6, col);
+                writenum(scdat[1].score, 248, 0, 6, col);
         }
 
-        public void drawscores(SdlGraphics ddap)
+        public void drawscores()
         {
-            writenum(ddap, scdat[0].score, 0, 0, 6, 3);
+            writenum(scdat[0].score, 0, 0, 6, 3);
             if (DiggerC.g_playerCount == 2 || DiggerC.g_Diggers == 2)
             {
                 if (scdat[1].score < 100000)
-                    writenum(ddap, scdat[1].score, 236, 0, 6, 3);
+                    writenum(scdat[1].score, 236, 0, 6, 3);
                 else
-                    writenum(ddap, scdat[1].score, 248, 0, 6, 3);
+                    writenum(scdat[1].score, 248, 0, 6, 3);
             }
         }
 
-        public void addscore(SdlGraphics ddap, int n, int score)
+        public void addscore(int n, int score)
         {
             scdat[n].score += score;
             if (scdat[n].score > 999999)
                 scdat[n].score = 0;
             if (n == 0)
-                writenum(ddap, scdat[n].score, 0, 0, 6, 1);
+                writenum(scdat[n].score, 0, 0, 6, 1);
             else
               if (scdat[n].score < 100000)
-                writenum(ddap, scdat[n].score, 236, 0, 6, 1);
+                writenum(scdat[n].score, 236, 0, 6, 1);
             else
-                writenum(ddap, scdat[n].score, 248, 0, 6, 1);
+                writenum(scdat[n].score, 248, 0, 6, 1);
             if (scdat[n].score >= scdat[n].nextbs + n)
             { /* +n to reproduce original bug */
                 if (DiggerC.getlives(n) < 5 || DiggerC.g_hasUnlimitedLives)
@@ -164,7 +173,7 @@ namespace Digger.Net
                         DiggerC.cgtime += 17897715; /* 15 second time bonus instead of the life */
                     else
                         DiggerC.addlife(n);
-                    DiggerC.drawApi.drawlives(ddap);
+                    DiggerC.drawApi.drawlives();
                 }
                 scdat[n].nextbs += bonusscore;
             }
@@ -173,11 +182,11 @@ namespace Digger.Net
             DiggerC.incpenalty();
         }
 
-        public void endofgame(SdlGraphics ddap)
+        public void endofgame()
         {
             bool initflag = false;
             for (int i = 0; i < DiggerC.g_Diggers; i++)
-                addscore(ddap, i, 0);
+                addscore(i, 0);
             if (DiggerC.record.playing || !DiggerC.record.drfvalid)
                 return;
 
@@ -194,12 +203,12 @@ namespace Digger.Net
                 scoret = scdat[i].score;
                 if (scoret > scorehigh[11])
                 {
-                    ddap.Clear();
-                    drawscores(ddap);
+                    gfx.Clear();
+                    drawscores();
                     DiggerC.g_playerName = $"PLAYER {(i == 0 ? 1 : 2)}";
                     DiggerC.drawApi.TextOut(DiggerC.g_playerName, 108, 0, 2);
                     DiggerC.drawApi.TextOut(" NEW HIGH SCORE ", 64, 40, 2);
-                    getinitials(ddap);
+                    getinitials();
                     shufflehigh();
                     savescores();
                     initflag = true;
@@ -247,7 +256,7 @@ namespace Digger.Net
             writescores();
         }
 
-        public void getinitials(SdlGraphics ddap)
+        public void getinitials()
         {
             int k, i;
             DiggerC.newframe();
@@ -262,7 +271,7 @@ namespace Digger.Net
                 k = 0;
                 while (k == 0)
                 {
-                    k = getinitial(ddap, i * 24 + 128, 130);
+                    k = getinitial(i * 24 + 128, 130);
                     if (k == 8 || k == 127)
                     {
                         if (i > 0)
@@ -272,22 +281,22 @@ namespace Digger.Net
                 }
                 if (k != 0)
                 {
-                    ddap.WriteChar(i * 24 + 128, 130, (char)k, 3);
+                    gfx.WriteChar(i * 24 + 128, 130, (char)k, 3);
                     initials[i] = (char)k;
                 }
             }
             scoreinit[0] = new string(initials);
             for (i = 0; i < 20; i++)
-                flashywait(ddap, 15);
+                flashywait(15);
 
             DiggerC.sound.SetupSound();
-            ddap.Clear();
-            ddap.SetPalette(0);
-            ddap.SetIntensity(0);
+            gfx.Clear();
+            gfx.SetPalette(0);
+            gfx.SetIntensity(0);
             DiggerC.record.recputinit(scoreinit[0]);
         }
 
-        public void flashywait(SdlGraphics ddap, int n)
+        public void flashywait(int n)
         {
             int i, gt, cx;
             int p = 0;
@@ -300,15 +309,15 @@ namespace Digger.Net
                 for (cx = 0; cx < DiggerC.sound.volume; cx++)
                 {
                     p = 1 - p;
-                    ddap.SetPalette(p);
+                    gfx.SetPalette(p);
                     for (gt = 0; gt < gap; gt++) ;
                 }
         }
 
-        public int getinitial(SdlGraphics ddap, int x, int y)
+        public int getinitial(int x, int y)
         {
             int i;
-            ddap.WriteChar(x, y, '_', 3);
+            gfx.WriteChar(x, y, '_', 3);
             do
             {
                 for (i = 0; i < 40; i++)
@@ -320,16 +329,16 @@ namespace Digger.Net
                             continue;
                         return key;
                     }
-                    flashywait(ddap, 15);
+                    flashywait(15);
                 }
                 for (i = 0; i < 40; i++)
                 {
                     if (DiggerC.input.keyboard.IsKeyboardHit())
                     {
-                        ddap.WriteChar(x, y, '_', 3);
+                        gfx.WriteChar(x, y, '_', 3);
                         return DiggerC.input.keyboard.GetKey(false);
                     }
-                    flashywait(ddap, 15);
+                    flashywait(15);
                 }
             } while (true);
         }
@@ -349,50 +358,50 @@ namespace Digger.Net
             scoreinit[j] = scoreinit[0];
         }
 
-        public void scorekill(SdlGraphics ddap, int n)
+        public void scorekill(int n)
         {
-            addscore(ddap, n, 250);
+            addscore(n, 250);
         }
 
-        public void scorekill2(SdlGraphics ddap)
+        public void scorekill2()
         {
-            addscore(ddap, 0, 125);
-            addscore(ddap, 1, 125);
+            addscore(0, 125);
+            addscore(1, 125);
         }
 
-        public void scoreemerald(SdlGraphics ddap, int n)
+        public void scoreemerald(int n)
         {
-            addscore(ddap, n, 25);
+            addscore(n, 25);
         }
 
-        public void scoreoctave(SdlGraphics ddap, int n)
+        public void scoreoctave(int n)
         {
-            addscore(ddap, n, 250);
+            addscore(n, 250);
         }
 
-        public void scoregold(SdlGraphics ddap, int n)
+        public void scoregold(int n)
         {
-            addscore(ddap, n, 500);
+            addscore(n, 500);
         }
 
-        public void scorebonus(SdlGraphics ddap, int n)
+        public void scorebonus(int n)
         {
-            addscore(ddap, n, 1000);
+            addscore(n, 1000);
         }
 
-        public void scoreeatm(SdlGraphics ddap, int n, int msc)
+        public void scoreeatm(int n, int msc)
         {
-            addscore(ddap, n, msc * 200);
+            addscore(n, msc * 200);
         }
 
-        static void writenum(SdlGraphics ddap, int n, int x, int y, int w, int c)
+        private void writenum(int n, int x, int y, int w, int c)
         {
             int xp = (w - 1) * 12 + x;
             while (w > 0)
             {
                 int d = n % 10;
                 if (w > 1 || d > 0)
-                    ddap.WriteChar(xp, y, (char)(d + '0'), c);
+                    gfx.WriteChar(xp, y, (char)(d + '0'), c);
                 n /= 10;
                 w--;
                 xp -= 12;

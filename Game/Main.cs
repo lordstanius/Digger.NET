@@ -19,6 +19,14 @@ namespace Digger.Net
         public const int DIR_LEFT = 4;
         public const int DIR_DOWN = 6;
 
+        public const int TYPES = 5;
+        public const int SPRITES = (BONUSES + BAGS + MONSTERS + FIREBALLS + DIGGERS);
+        public const int BONUSES = 1;
+        public const int BAGS = 7;
+        public const int MONSTERS = 6;
+        public const int FIREBALLS = DIGGERS;
+        public const int DIGGERS = 2;
+
         public const int MAX_W = 320;
         public const int MAX_H = 200;
         public const int CHR_W = 12;
@@ -35,14 +43,7 @@ namespace Digger.Net
         public const string INI_SOUND_SETTINGS = "Sound";
         public const string INI_KEY_SETTINGS = "Keys";
 
-        public const int TYPES = 5;
 
-        public const int BONUSES = 1;
-        public const int BAGS = 7;
-        public const int MONSTERS = 6;
-        public const int FIREBALLS = DIGGERS;
-        public const int DIGGERS = 2;
-        public const int SPRITES = (BONUSES + BAGS + MONSTERS + FIREBALLS + DIGGERS);
 
         /* Sprite order is figured out here. By LAST I mean last+1. */
         public const int FIRSTBONUS = 0;
@@ -74,6 +75,18 @@ namespace Digger.Net
         /// </summary>
         public const string DIGGER_VERSION = "MS SDL 20180419";
 
+        /* global variables */
+        public static string g_playerName;
+        public static int g_CurrentPlayer = 0, g_playerCount = 1, g_Penalty = 0, g_Diggers = 1, g_StartingLevel = 1;
+        public static bool g_hasUnlimitedLives = false, g_isGauntletMode = false, g_isTimeOut = false, g_isVideoSync = false;
+        public static uint g_gameTime = 0;
+        public static uint randv;
+
+        public static game_data[] gamedat = { new game_data(), new game_data() };
+
+        public static bool levnotdrawn = false, alldead = false;
+        public static bool maininited, started;
+
         public static SdlGraphics gfx;
         public static Level level;
         public static DrawApi drawApi;
@@ -84,19 +97,7 @@ namespace Digger.Net
         public static Input input;
         public static Sound sound;
         public static Monsters monsters;
-
-        /* global variables */
-        public static string g_playerName;
-        public static int g_CurrentPlayer = 0, g_playerCount = 1, g_Penalty = 0, g_Diggers = 1, g_StartingLevel = 1;
-        public static bool g_hasUnlimitedLives = false, g_isGauntletMode = false, g_isTimeOut = false, g_isVideoSync = false;
-        public static uint g_gameTime = 0;
-        public static uint randv;
-
-        public static game_data[] gamedat = { new game_data(), new game_data() };
-
-
-        public static bool levnotdrawn = false, alldead = false;
-        public static bool maininited, started;
+        public static Bags bags;
 
         public static void GlobalInit()
         {
@@ -105,11 +106,12 @@ namespace Digger.Net
             sprites = new Sprites(gfx);
             drawApi = new DrawApi(gfx, sprites);
             timer = new SdlTimer();
-            scores = new Scores();
-            record = new Record();
+            scores = new Scores(gfx, level);
+            record = new Record(scores);
             input = new Input();
             sound = new Sound();
             monsters = new Monsters(level, sprites, sound, drawApi, record, scores);
+            bags = new Bags(level, sound, drawApi, monsters, sprites, scores);
         }
 
         public static void maininit()
@@ -176,23 +178,23 @@ namespace Digger.Net
                                 for (int c = 1; c <= 3; c++)
                                 {
                                     drawApi.TextOut(g_playerName, 108, 0, c);
-                                    scores.writecurscore(gfx, c);
+                                    scores.writecurscore(c);
                                     newframe();
                                     if (input.escape)
                                         return;
                                 }
                             }
-                            scores.drawscores(gfx);
+                            scores.drawscores();
                             for (int i = 0; i < g_Diggers; i++)
-                                scores.addscore(gfx, i, 0);
+                                scores.addscore(i, 0);
                         }
                     }
                     else
                         initchars();
 
                     drawApi.EraseText(8, 108, 0, 3);
-                    scores.initscores(gfx);
-                    drawApi.drawlives(gfx);
+                    scores.initscores();
+                    drawApi.drawlives();
                     sound.music(1);
 
                     input.flushkeybuf();
@@ -202,9 +204,9 @@ namespace Digger.Net
                     while (!alldead && !gamedat[g_CurrentPlayer].levdone && !input.escape && !g_isTimeOut)
                     {
                         g_Penalty = 0;
-                        dodigger(gfx);
-                        monsters.domonsters(gfx);
-                        dobags(gfx);
+                        dodigger();
+                        monsters.domonsters(bags);
+                        bags.DoBags();
                         if (g_Penalty > 8)
                             monsters.incmont(g_Penalty - 8);
                         testpause();
@@ -213,24 +215,24 @@ namespace Digger.Net
                     erasediggers();
                     sound.musicoff();
                     int t = 20;
-                    while ((getnmovingbags() != 0 || t != 0) && !input.escape && !g_isTimeOut)
+                    while ((bags.GetNotMovingBags() != 0 || t != 0) && !input.escape && !g_isTimeOut)
                     {
                         if (t != 0)
                             t--;
                         g_Penalty = 0;
-                        dobags(gfx);
-                        dodigger(gfx);
-                        monsters.domonsters(gfx);
+                        bags.DoBags();
+                        dodigger();
+                        monsters.domonsters(bags);
                         if (g_Penalty < 8)
                             t = 0;
                     }
                     sound.soundstop();
                     for (int i = 0; i < g_Diggers; i++)
                         killfire(i);
-                    erasebonus(gfx);
-                    cleanupbags();
+                    erasebonus();
+                    bags.Cleanup();
                     drawApi.SaveField();
-                    monsters.erasemonsters();
+                    monsters.EraseMonsters();
                     record.recputeol();
                     if (record.playing)
                         record.playskipeol();
@@ -243,7 +245,7 @@ namespace Digger.Net
                         for (int i = g_CurrentPlayer; i < g_Diggers + g_CurrentPlayer; i++)
                             if (getlives(i) > 0 && !digalive(i))
                                 declife(i);
-                        drawApi.drawlives(gfx);
+                        drawApi.drawlives();
                         gamedat[g_CurrentPlayer].level++;
                         if (gamedat[g_CurrentPlayer].level > 1000)
                             gamedat[g_CurrentPlayer].level = 1000;
@@ -254,10 +256,10 @@ namespace Digger.Net
                         for (int i = g_CurrentPlayer; i < g_CurrentPlayer + g_Diggers; i++)
                             if (getlives(i) > 0)
                                 declife(i);
-                        drawApi.drawlives(gfx);
+                        drawApi.drawlives();
                     }
                     if ((alldead && getalllives() == 0 && !g_isGauntletMode && !input.escape) || g_isTimeOut)
-                        scores.endofgame(gfx);
+                        scores.endofgame();
                 }
                 alldead = false;
                 if (g_playerCount == 2 && getlives(1 - g_CurrentPlayer) != 0)
@@ -408,7 +410,7 @@ namespace Digger.Net
                 }
                 if (record.savedrf)
                 {
-                    if (record.gotgame)
+                    if (record.gotname)
                     {
                         record.recsavedrf();
                         record.gotgame = false;
@@ -421,8 +423,11 @@ namespace Digger.Net
                 record.recinit();
                 game();
                 record.gotgame = true;
-                record.recsavedrf();
-                record.gotgame = false;
+                if (record.gotname)
+                {
+                    record.recsavedrf();
+                    record.gotgame = false;
+                }
                 record.savedrf = false;
                 input.escape = false;
             } while (!input.escape);
@@ -520,7 +525,7 @@ namespace Digger.Net
             gamedat[g_CurrentPlayer].levdone = false;
             drawApi.MakeField(level);
             makeemfield();
-            initbags();
+            bags.Initialize();
             levnotdrawn = true;
         }
 
@@ -528,17 +533,17 @@ namespace Digger.Net
         {
             drawApi.creatembspr();
             drawApi.DrawStatistics(ddap, level);
-            drawbags();
+            bags.DrawBags();
             drawemeralds();
             initdigger();
-            monsters.initmonsters();
+            monsters.Initialize();
         }
 
         public static void initchars()
         {
             drawApi.initmbspr();
             initdigger();
-            monsters.initmonsters();
+            monsters.Initialize();
         }
 
         public static void checklevdone()
@@ -577,10 +582,10 @@ namespace Digger.Net
                 drawApi.TextOut("PRESS ANY KEY", 80, 0, 1);
                 input.keyboard.GetKey(true);
                 cleartopline();
-                scores.drawscores(gfx);
+                scores.drawscores();
                 for (i = 0; i < g_Diggers; i++)
-                    scores.addscore(gfx, i, 0);
-                drawApi.drawlives(gfx);
+                    scores.addscore(i, 0);
+                drawApi.drawlives();
                 if (!g_isVideoSync)
                 {
                     timer.SyncFrame();

@@ -28,6 +28,13 @@ namespace Digger.Net
         private  FileStream info;
 #endif
 
+        private Scores scores;
+
+        public Record(Scores scores)
+        {
+            this.scores = scores;
+        }
+
         string smart_fgets(FileStream stream)
         {
             using (var reader = new StreamReader(stream))
@@ -127,7 +134,7 @@ namespace Digger.Net
             {
                 goto out_0;
             }
-            DiggerC.scores.bonusscore = int.Parse(buf);
+            scores.bonusscore = int.Parse(buf);
             for (int n = 0; n < 8; n++)
                 for (int y = 0; y < 10; y++)
                 {
@@ -316,7 +323,7 @@ namespace Digger.Net
                 mprintf("U"); */
             if (DiggerC.g_StartingLevel > 1)
                 mprintf("I{0}", DiggerC.g_StartingLevel);
-            mprintf("\n{0}\n", DiggerC.scores.bonusscore);
+            mprintf("\n{0}\n", scores.bonusscore);
             for (int l = 0; l < 8; l++)
             {
                 for (int y = 0; y < DiggerC.MHEIGHT; y++)
@@ -363,21 +370,21 @@ namespace Digger.Net
                         char[] init = new char[4];
                         for (int j = 0; j < 3; j++)
                         {
-                            init[j] = DiggerC.scores.scoreinit[0][j];
+                            init[j] = scores.scoreinit[0][j];
                             if (!((init[j] >= 'A' && init[j] <= 'Z') ||
                                   (init[j] >= 'a' && init[j] <= 'z')))
                                 init[j] = '_';
                         }
                         init[3] = '\0';
                         string nambuf;
-                        if (DiggerC.scores.scoret < 100000)
-                            nambuf = string.Format("{0}{1}", init[0], DiggerC.scores.scoret);
+                        if (scores.scoret < 100000)
+                            nambuf = string.Format("{0}{1}", init[0], scores.scoret);
                         else if (init[2] == '_')
-                            nambuf = string.Format("{0}{1}{2}", init[0], init[1], DiggerC.scores.scoret);
+                            nambuf = string.Format("{0}{1}{2}", init[0], init[1], scores.scoret);
                         else if (init[0] == '_')
-                            nambuf = string.Format("{0}{1}{2}", init[1], init[2], DiggerC.scores.scoret);
+                            nambuf = string.Format("{0}{1}{2}", init[1], init[2], scores.scoret);
                         else
-                            nambuf = string.Format("{0}{1}{2}", init[0], init[2], DiggerC.scores.scoret);
+                            nambuf = string.Format("{0}{1}{2}", init[0], init[2], scores.scoret);
                         nambuf += ".drf";
                         recf = File.OpenWrite(nambuf);
                     }

@@ -24,7 +24,7 @@ namespace Digger.Net
         public int[] firespr = new int[DiggerC.FIREBALLS];
 
         private readonly Sprites sprite;
-        private readonly SdlGraphics gfx;
+        public readonly SdlGraphics gfx;
 
         public DrawApi(SdlGraphics gfx, Sprites sprite)
         {
@@ -364,7 +364,7 @@ namespace Digger.Net
             sprite.first[0] = sprite.first[1] = sprite.first[2] = sprite.first[3] = sprite.first[4] = -1;
         }
 
-        public void drawlives(SdlGraphics sdlGfx)
+        public void drawlives()
         {
             int l, n, g;
             if (DiggerC.g_isGauntletMode)

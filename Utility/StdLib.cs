@@ -72,10 +72,11 @@ public static class StdLib
         }
     }
 
-    public static int randno(int n)
+    public static int RandFrom0To(int n)
     {
         Random r = new Random((int)DateTime.Now.Ticks);
-        int randv = r.Next() * 0x15a4e35 + 1;
-        return (randv & 0x7fffffff) % n;
+        int randv = r.Next() * 0x15A4E35 + 1;
+
+        return (randv & 0x7FFFFFFF) % n;
     }
 }

@@ -96,12 +96,12 @@ namespace Digger.Net
             }
         }
 
-        public static void dodigger(SdlGraphics ddap)
+        public static void dodigger()
         {
             newframe();
             if (g_isGauntletMode)
             {
-                drawApi.drawlives(ddap);
+                drawApi.drawlives();
                 if (cgtime < g_FrameTime)
                     g_isTimeOut = true;
                 cgtime -= g_FrameTime;
@@ -111,7 +111,7 @@ namespace Digger.Net
                 if (digdat[n].bob.expsn != 0)
                     drawexplosion(n);
                 else
-                    updatefire(ddap, n);
+                    updatefire(n);
                 if (digvisible)
                 {
                     if (digdat[n].dob.alive)
@@ -125,9 +125,9 @@ namespace Digger.Net
                             digdat[n].bagtime--;
                         }
                         else
-                            updatedigger(ddap, n);
+                            updatedigger(gfx, n);
                     else
-                        diggerdie(ddap, n);
+                        diggerdie(gfx, n);
                 }
                 if (digdat[n].emocttime > 0)
                     digdat[n].emocttime--;
@@ -142,38 +142,38 @@ namespace Digger.Net
                         startbonustimeleft--;
                         if ((bonustimeleft & 1) != 0)
                         {
-                            ddap.SetIntensity(0);
+                            gfx.SetIntensity(0);
                             sound.soundbonus();
                         }
                         else
                         {
-                            ddap.SetIntensity(1);
+                            gfx.SetIntensity(1);
                             sound.soundbonus();
                         }
                         if (startbonustimeleft == 0)
                         {
                             sound.music(0);
                             sound.soundbonusoff();
-                            ddap.SetIntensity(1);
+                            gfx.SetIntensity(1);
                         }
                     }
                 }
                 else
                 {
-                    endbonusmode(ddap);
+                    endbonusmode();
                     sound.soundbonusoff();
                     sound.music(1);
                 }
             }
             if (bonusmode && !isalive())
             {
-                endbonusmode(ddap);
+                endbonusmode();
                 sound.soundbonusoff();
                 sound.music(1);
             }
         }
 
-        private static void updatefire(SdlGraphics ddap, int n)
+        private static void updatefire(int n)
         {
             int pix, fx = 0, fy = 0;
             int[] clfirst = new int[TYPES];
@@ -235,26 +235,26 @@ namespace Digger.Net
                 {
                     case DIR_RIGHT:
                         digdat[n].bob.x += 8;
-                        pix = ddap.GetPixel(digdat[n].bob.x, digdat[n].bob.y + 4) |
-                            ddap.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + 4);
+                        pix = gfx.GetPixel(digdat[n].bob.x, digdat[n].bob.y + 4) |
+                            gfx.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + 4);
                         break;
                     case DIR_UP:
                         digdat[n].bob.y -= 7;
                         pix = 0;
                         for (i = 0; i < 7; i++)
-                            pix |= ddap.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + i);
+                            pix |= gfx.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + i);
                         pix &= 0xc0;
                         break;
                     case DIR_LEFT:
                         digdat[n].bob.x -= 8;
-                        pix = ddap.GetPixel(digdat[n].bob.x, digdat[n].bob.y + 4) |
-                            ddap.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + 4);
+                        pix = gfx.GetPixel(digdat[n].bob.x, digdat[n].bob.y + 4) |
+                            gfx.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + 4);
                         break;
                     case DIR_DOWN:
                         digdat[n].bob.y += 7;
                         pix = 0;
                         for (i = 0; i < 7; i++)
-                            pix |= ddap.GetPixel(digdat[n].bob.x, digdat[n].bob.y + i);
+                            pix |= gfx.GetPixel(digdat[n].bob.x, digdat[n].bob.y + i);
                         pix &= 0x3;
                         break;
                 }
@@ -268,7 +268,7 @@ namespace Digger.Net
                 while (i != -1)
                 {
                     monsters.killmon(i - FIRSTMONSTER);
-                    scores.scorekill(ddap, n);
+                    scores.scorekill(n);
                     digdat[n].bob.explode();
                     i = clcoll[i];
                 }
@@ -398,7 +398,7 @@ namespace Digger.Net
             }
         }
 
-        private static void updatedigger(SdlGraphics ddap, int n)
+        private static void updatedigger(SdlGraphics gfx, int n)
         {
             int dir, ddir, diggerox, diggeroy, nmon;
             bool push = true, bagf;
@@ -452,7 +452,7 @@ namespace Digger.Net
             {
                 if (digdat[n].emocttime == 0)
                     digdat[n].emn = 0;
-                scores.scoreemerald(ddap, n);
+                scores.scoreemerald(n);
                 sound.soundem();
                 sound.soundemerald(digdat[n].emn);
 
@@ -460,7 +460,7 @@ namespace Digger.Net
                 if (digdat[n].emn == 8)
                 {
                     digdat[n].emn = 0;
-                    scores.scoreoctave(ddap, n);
+                    scores.scoreoctave(n);
                 }
                 digdat[n].emocttime = 9;
             }
@@ -475,7 +475,7 @@ namespace Digger.Net
             bagf = false;
             while (j != -1)
             {
-                if (bagexist(j - FIRSTBAG))
+                if (bags.BagExists(j - FIRSTBAG))
                 {
                     bagf = true;
                     break;
@@ -487,11 +487,11 @@ namespace Digger.Net
             {
                 if (digdat[n].mdir == DIR_RIGHT || digdat[n].mdir == DIR_LEFT)
                 {
-                    push = pushbags(ddap, digdat[n].mdir, clfirst, clcoll);
+                    push = bags.PushBags(digdat[n].mdir, clfirst, clcoll);
                     digdat[n].bagtime++;
                 }
                 else
-                  if (!pushudbags(ddap, clfirst, clcoll))
+                  if (!bags.PushBagsUp(clfirst, clcoll))
                     push = false;
                 if (!push)
                 { /* Strange, push not completely defined */
@@ -504,15 +504,15 @@ namespace Digger.Net
                 }
             }
             if (clfirst[2] != -1 && bonusmode && digdat[n].dob.alive)
-                for (nmon = monsters.killmonsters(clfirst, clcoll); nmon != 0; nmon--)
+                for (nmon = monsters.KillMonsters(clfirst, clcoll); nmon != 0; nmon--)
                 {
                     sound.soundeatm();
-                    sceatm(ddap, n);
+                    sceatm(n);
                 }
             if (clfirst[0] != -1)
             {
-                scores.scorebonus(ddap, n);
-                initbonusmode(ddap);
+                scores.scorebonus(n);
+                initbonusmode();
             }
             digdat[n].h = (digdat[n].dob.x - 12) / 20;
             digdat[n].rx = (digdat[n].dob.x - 12) % 20;
@@ -520,15 +520,15 @@ namespace Digger.Net
             digdat[n].ry = (digdat[n].dob.y - 18) % 18;
         }
 
-        public static void sceatm(SdlGraphics ddap, int n)
+        public static void sceatm(int n)
         {
-            scores.scoreeatm(ddap, n, digdat[n].msc);
+            scores.scoreeatm(n, digdat[n].msc);
             digdat[n].msc <<= 1;
         }
 
         public static int[] deatharc = { 3, 5, 6, 6, 5, 3, 0 };
 
-        private static void diggerdie(SdlGraphics ddap, int n)
+        private static void diggerdie(SdlGraphics gfx, int n)
         {
             int[] clfirst = new int[TYPES];
             int[] clcoll = new int[SPRITES];
@@ -536,11 +536,11 @@ namespace Digger.Net
             switch (digdat[n].deathstage)
             {
                 case 1:
-                    if (bagy(digdat[n].deathbag) + 6 > digdat[n].dob.y)
-                        digdat[n].dob.y = bagy(digdat[n].deathbag) + 6;
+                    if (bags.BagY(digdat[n].deathbag) + 6 > digdat[n].dob.y)
+                        digdat[n].dob.y = bags.BagY(digdat[n].deathbag) + 6;
                     drawApi.drawdigger(n - g_CurrentPlayer, 15, digdat[n].dob.x, digdat[n].dob.y, false);
                     incpenalty();
-                    if (getbagdir(digdat[n].deathbag) + 1 == 0)
+                    if (bags.GetBagDir(digdat[n].deathbag) + 1 == 0)
                     {
                         sound.soundddie();
                         digdat[n].deathtime = 5;
@@ -565,7 +565,7 @@ namespace Digger.Net
                         clcoll[i] = sprites.coll[i];
                     incpenalty();
                     if (digdat[n].deathani == 0 && clfirst[2] != -1)
-                        monsters.killmonsters(clfirst, clcoll);
+                        monsters.KillMonsters(clfirst, clcoll);
                     if (digdat[n].deathani < 4)
                     {
                         digdat[n].deathani++;
@@ -623,7 +623,7 @@ namespace Digger.Net
                         {
                             if (!g_isGauntletMode)
                                 digdat[n].lives--;
-                            drawApi.drawlives(ddap);
+                            drawApi.drawlives();
                             if (digdat[n].lives > 0)
                             {
                                 digdat[n].v = 9;
@@ -667,32 +667,32 @@ namespace Digger.Net
             drawApi.drawbonus(292, 18);
         }
 
-        private static void initbonusmode(SdlGraphics ddap)
+        private static void initbonusmode()
         {
             int i;
             bonusmode = true;
-            erasebonus(ddap);
-            ddap.SetIntensity(1);
+            erasebonus();
+            gfx.SetIntensity(1);
             bonustimeleft = 250 - level.levof10() * 20;
             startbonustimeleft = 20;
             for (i = 0; i < g_Diggers; i++)
                 digdat[i].msc = 1;
         }
 
-        private static void endbonusmode(SdlGraphics ddap)
+        private static void endbonusmode()
         {
             bonusmode = false;
-            ddap.SetIntensity(0);
+            gfx.SetIntensity(0);
         }
 
-        public static void erasebonus(SdlGraphics ddap)
+        public static void erasebonus()
         {
             if (bonusvisible)
             {
                 bonusvisible = false;
                 sprites.erasespr(FIRSTBONUS);
             }
-            ddap.SetIntensity(0);
+            gfx.SetIntensity(0);
         }
 
         public static int reversedir(int dir)
