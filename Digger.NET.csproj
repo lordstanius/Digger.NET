@@ -51,7 +51,7 @@
     <Compile Include="Engine\ISoundDevice.cs" />
     <Compile Include="Engine\SdlGraphicsCga.cs" />
     <Compile Include="Game\Level.cs" />
-    <Compile Include="Game\Monster.cs" />
+    <Compile Include="Game\Monsters.cs" />
     <Compile Include="Graphics\Alpha.cs" />
     <Compile Include="Engine\DrawApi.cs" />
     <Compile Include="Program.cs" />

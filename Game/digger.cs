@@ -267,7 +267,7 @@ namespace Digger.Net
                 i = clfirst[2];
                 while (i != -1)
                 {
-                    killmon(i - FIRSTMONSTER);
+                    monsters.killmon(i - FIRSTMONSTER);
                     scores.scorekill(ddap, n);
                     digdat[n].bob.explode();
                     i = clcoll[i];
@@ -504,7 +504,7 @@ namespace Digger.Net
                 }
             }
             if (clfirst[2] != -1 && bonusmode && digdat[n].dob.alive)
-                for (nmon = killmonsters(clfirst, clcoll); nmon != 0; nmon--)
+                for (nmon = monsters.killmonsters(clfirst, clcoll); nmon != 0; nmon--)
                 {
                     sound.soundeatm();
                     sceatm(ddap, n);
@@ -565,7 +565,7 @@ namespace Digger.Net
                         clcoll[i] = sprites.coll[i];
                     incpenalty();
                     if (digdat[n].deathani == 0 && clfirst[2] != -1)
-                        killmonsters(clfirst, clcoll);
+                        monsters.killmonsters(clfirst, clcoll);
                     if (digdat[n].deathani < 4)
                     {
                         digdat[n].deathani++;
@@ -661,7 +661,7 @@ namespace Digger.Net
             }
         }
 
-        private static void createbonus()
+        public static void createbonus()
         {
             bonusvisible = true;
             drawApi.drawbonus(292, 18);

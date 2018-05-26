@@ -90,7 +90,7 @@ namespace Digger.Net
                             }
                         }
                         else
-                          if ((getfield(h, v + 1) & 0xfdf) != 0xfdf)
+                          if ((monsters.getfield(h, v + 1) & 0xfdf) != 0xfdf)
                             if (!checkdiggerunderbag(h, v + 1))
                                 bagdat[bag].wobbling = true;
                     }
@@ -104,7 +104,7 @@ namespace Digger.Net
                 case DIR_LEFT:
                     if (xr == 0)
                     {
-                        if (y < 180 && (getfield(h, v + 1) & 0xfdf) != 0xfdf)
+                        if (y < 180 && (monsters.getfield(h, v + 1) & 0xfdf) != 0xfdf)
                         {
                             bagdat[bag].dir = DIR_DOWN;
                             bagdat[bag].wt = 0;
@@ -120,10 +120,10 @@ namespace Digger.Net
                     if (y >= 180)
                         baghitground(bag);
                     else
-                      if ((getfield(h, v + 1) & 0xfdf) == 0xfdf)
+                      if ((monsters.getfield(h, v + 1) & 0xfdf) == 0xfdf)
                         if (yr == 0)
                             baghitground(bag);
-                    checkmonscared(bagdat[bag].h);
+                    monsters.checkmonscared(bagdat[bag].h);
                     break;
             }
             if (bagdat[bag].dir != DIR_NONE)
@@ -200,7 +200,7 @@ namespace Digger.Net
                             removebag(bag);
                         else
                           if (bagdat[bag].v < MHEIGHT - 1 && bagdat[bag].gt < goldtime - 10)
-                            if ((getfield(bagdat[bag].h, bagdat[bag].v + 1) & 0x2000) == 0)
+                            if ((monsters.getfield(bagdat[bag].h, bagdat[bag].v + 1) & 0x2000) == 0)
                                 bagdat[bag].gt = goldtime - 10;
                     }
                     else
@@ -256,7 +256,7 @@ namespace Digger.Net
                             }
                         }
                         else
-                          if ((getfield(h, v + 1) & 0xfdf) != 0xfdf)
+                          if ((monsters.getfield(h, v + 1) & 0xfdf) != 0xfdf)
                             if (!checkdiggerunderbag(h, v + 1))
                                 bagdat[bag].wobbling = true;
                     }
@@ -270,7 +270,7 @@ namespace Digger.Net
                 case DIR_LEFT:
                     if (xr == 0)
                     {
-                        if (y < 180 && (getfield(h, v + 1) & 0xfdf) != 0xfdf)
+                        if (y < 180 && (monsters.getfield(h, v + 1) & 0xfdf) != 0xfdf)
                         {
                             bagdat[bag].dir = DIR_DOWN;
                             bagdat[bag].wt = 0;
@@ -286,10 +286,10 @@ namespace Digger.Net
                     if (y >= 180)
                         baghitground(bag);
                     else
-                      if ((getfield(h, v + 1) & 0xfdf) == 0xfdf)
+                      if ((monsters.getfield(h, v + 1) & 0xfdf) == 0xfdf)
                         if (yr == 0)
                             baghitground(bag);
-                    checkmonscared(bagdat[bag].h);
+                    monsters.checkmonscared(bagdat[bag].h);
                     break;
             }
             if (bagdat[bag].dir != DIR_NONE)
@@ -359,7 +359,7 @@ namespace Digger.Net
                     i = clcoll[i];
                 }
                 if (clfirst[2] != -1)
-                    squashmonsters(bag, clfirst, clcoll);
+                    monsters.squashmonsters(bag, clfirst, clcoll);
                 return true;
             }
             if ((x == 292 && dir == DIR_RIGHT) || (x == 12 && dir == DIR_LEFT) ||
@@ -406,7 +406,7 @@ namespace Digger.Net
                             i = clcoll[i];
                         }
                         if (clfirst[2] != -1)
-                            squashmonsters(bag, clfirst, clcoll);
+                            monsters.squashmonsters(bag, clfirst, clcoll);
                         break;
                     case DIR_RIGHT:
                     case DIR_LEFT:
@@ -553,7 +553,7 @@ namespace Digger.Net
                 i = sprites.coll[i];
             }
             if (f)
-                mongold();
+                monsters.mongold();
             removebag(bag);
         }
 

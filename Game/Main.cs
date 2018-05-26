@@ -74,6 +74,7 @@ namespace Digger.Net
         /// </summary>
         public const string DIGGER_VERSION = "MS SDL 20180419";
 
+        public static SdlGraphics gfx;
         public static Level level;
         public static DrawApi drawApi;
         public static Sprites sprites;
@@ -81,8 +82,8 @@ namespace Digger.Net
         public static Scores scores;
         public static Record record;
         public static Input input;
-        public static SdlGraphics gfx;
         public static Sound sound;
+        public static Monsters monsters;
 
         /* global variables */
         public static string g_playerName;
@@ -106,8 +107,9 @@ namespace Digger.Net
             timer = new SdlTimer();
             scores = new Scores();
             record = new Record();
-            sound = new Sound();
             input = new Input();
+            sound = new Sound();
+            monsters = new Monsters(level, sprites, sound, drawApi, record, scores);
         }
 
         public static void maininit()
@@ -201,10 +203,10 @@ namespace Digger.Net
                     {
                         g_Penalty = 0;
                         dodigger(gfx);
-                        domonsters(gfx);
+                        monsters.domonsters(gfx);
                         dobags(gfx);
                         if (g_Penalty > 8)
-                            incmont(g_Penalty - 8);
+                            monsters.incmont(g_Penalty - 8);
                         testpause();
                         checklevdone();
                     }
@@ -218,7 +220,7 @@ namespace Digger.Net
                         g_Penalty = 0;
                         dobags(gfx);
                         dodigger(gfx);
-                        domonsters(gfx);
+                        monsters.domonsters(gfx);
                         if (g_Penalty < 8)
                             t = 0;
                     }
@@ -228,7 +230,7 @@ namespace Digger.Net
                     erasebonus(gfx);
                     cleanupbags();
                     drawApi.SaveField();
-                    erasemonsters();
+                    monsters.erasemonsters();
                     record.recputeol();
                     if (record.playing)
                         record.playskipeol();
@@ -529,19 +531,19 @@ namespace Digger.Net
             drawbags();
             drawemeralds();
             initdigger();
-            initmonsters();
+            monsters.initmonsters();
         }
 
         public static void initchars()
         {
             drawApi.initmbspr();
             initdigger();
-            initmonsters();
+            monsters.initmonsters();
         }
 
         public static void checklevdone()
         {
-            if ((countem() == 0 || monleft() == 0) && isalive())
+            if ((countem() == 0 || monsters.monleft() == 0) && isalive())
                 gamedat[g_CurrentPlayer].levdone = true;
             else
                 gamedat[g_CurrentPlayer].levdone = false;
@@ -807,13 +809,6 @@ namespace Digger.Net
                 }
             }
             return (-1);
-        }
-
-        public static int randno(int n)
-        {
-            Random r = new Random((int)DateTime.Now.Ticks);
-            int randv = r.Next() * 0x15a4e35 + 1;
-            return (int)((randv & 0x7fffffff) % n);
         }
 
         public static bool g_bWindowed, use_640x480_fullscreen, use_async_screen_updates;

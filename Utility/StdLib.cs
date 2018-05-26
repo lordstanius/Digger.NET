@@ -71,4 +71,11 @@ public static class StdLib
             _memcpyDelegate.Invoke(destination, new IntPtr(pSource), source.Length * sizeof(uint));
         }
     }
+
+    public static int randno(int n)
+    {
+        Random r = new Random((int)DateTime.Now.Ticks);
+        int randv = r.Next() * 0x15a4e35 + 1;
+        return (randv & 0x7fffffff) % n;
+    }
 }
