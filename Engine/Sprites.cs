@@ -7,22 +7,24 @@ namespace Digger.Net
 {
     public class Sprites
     {
-        public bool[] sprrdrwf = new bool[DiggerC.SPRITES + 1];
-        public bool[] sprrecf = new bool[DiggerC.SPRITES + 1];
-        public bool[] sprenf = new bool[DiggerC.SPRITES];
-        public Surface[] sprmov = new Surface[DiggerC.SPRITES];
-        public int[] sprch = new int[DiggerC.SPRITES + 1];
-        public int[] sprx = new int[DiggerC.SPRITES + 1];
-        public int[] spry = new int[DiggerC.SPRITES + 1];
-        public int[] sprwid = new int[DiggerC.SPRITES + 1];
-        public int[] sprhei = new int[DiggerC.SPRITES + 1];
-        public int[] sprbwid = new int[DiggerC.SPRITES];
-        public int[] sprbhei = new int[DiggerC.SPRITES];
-        public int[] sprnch = new int[DiggerC.SPRITES];
-        public int[] sprnwid = new int[DiggerC.SPRITES];
-        public int[] sprnhei = new int[DiggerC.SPRITES];
-        public int[] sprnbwid = new int[DiggerC.SPRITES];
-        public int[] sprnbhei = new int[DiggerC.SPRITES];
+        public const int SPRITES = Const.SPRITES;
+
+        public bool[] sprrdrwf = new bool[SPRITES + 1];
+        public bool[] sprrecf = new bool[SPRITES + 1];
+        public bool[] sprenf = new bool[SPRITES];
+        public Surface[] sprmov = new Surface[SPRITES];
+        public int[] sprch = new int[SPRITES + 1];
+        public int[] sprx = new int[SPRITES + 1];
+        public int[] spry = new int[SPRITES + 1];
+        public int[] sprwid = new int[SPRITES + 1];
+        public int[] sprhei = new int[SPRITES + 1];
+        public int[] sprbwid = new int[SPRITES];
+        public int[] sprbhei = new int[SPRITES];
+        public int[] sprnch = new int[SPRITES];
+        public int[] sprnwid = new int[SPRITES];
+        public int[] sprnhei = new int[SPRITES];
+        public int[] sprnbwid = new int[SPRITES];
+        public int[] sprnbhei = new int[SPRITES];
 
         private SdlGraphics ddap;
 
@@ -42,7 +44,7 @@ namespace Digger.Net
             sprenf[n] = false;
         }
 
-        public void movedrawspr(int n, int x, int y)
+        public void MoveDrawSprite(int n, int x, int y)
         {
             sprx[n] = (short)(x & -4);
             spry[n] = y;
@@ -60,7 +62,7 @@ namespace Digger.Net
             putims();
         }
 
-        public void erasespr(int n)
+        public void EraseSprite(int n)
         {
             if (!sprenf[n])
                 return;
@@ -117,18 +119,18 @@ namespace Digger.Net
 
         public void initmiscspr(int x, int y, int wid, int hei)
         {
-            sprx[DiggerC.SPRITES] = x;
-            spry[DiggerC.SPRITES] = y;
-            sprwid[DiggerC.SPRITES] = wid;
-            sprhei[DiggerC.SPRITES] = hei;
+            sprx[SPRITES] = x;
+            spry[SPRITES] = y;
+            sprwid[SPRITES] = wid;
+            sprhei[SPRITES] = hei;
             clearrdrwf();
-            setrdrwflgs(DiggerC.SPRITES);
+            setrdrwflgs(SPRITES);
             putis();
         }
 
         public void getis()
         {
-            for (int i = 0; i < DiggerC.SPRITES; i++)
+            for (int i = 0; i < SPRITES; i++)
                 if (sprrdrwf[i])
                     ddap.GetImage(sprx[i], spry[i], ref sprmov[i], sprwid[i], sprhei[i]);
             putims();
@@ -136,26 +138,26 @@ namespace Digger.Net
 
         public void drawmiscspr(int x, int y, int ch, short wid, short hei)
         {
-            sprx[DiggerC.SPRITES] = x & -4;
-            spry[DiggerC.SPRITES] = y;
-            sprch[DiggerC.SPRITES] = ch;
-            sprwid[DiggerC.SPRITES] = wid;
-            sprhei[DiggerC.SPRITES] = hei;
-            ddap.PutImage(sprx[DiggerC.SPRITES], spry[DiggerC.SPRITES], sprch[DiggerC.SPRITES], sprwid[DiggerC.SPRITES], sprhei[DiggerC.SPRITES]);
+            sprx[SPRITES] = x & -4;
+            spry[SPRITES] = y;
+            sprch[SPRITES] = ch;
+            sprwid[SPRITES] = wid;
+            sprhei[SPRITES] = hei;
+            ddap.PutImage(sprx[SPRITES], spry[SPRITES], sprch[SPRITES], sprwid[SPRITES], sprhei[SPRITES]);
         }
 
         public void clearrdrwf()
         {
             short i;
             clearrecf();
-            for (i = 0; i < DiggerC.SPRITES + 1; i++)
+            for (i = 0; i < SPRITES + 1; i++)
                 sprrdrwf[i] = false;
         }
 
         public void clearrecf()
         {
             short i;
-            for (i = 0; i < DiggerC.SPRITES + 1; i++)
+            for (i = 0; i < SPRITES + 1; i++)
                 sprrecf[i] = false;
         }
 
@@ -164,7 +166,7 @@ namespace Digger.Net
             if (!sprrecf[n])
             {
                 sprrecf[n] = true;
-                for (int i = 0; i < DiggerC.SPRITES; i++)
+                for (int i = 0; i < SPRITES; i++)
                     if (sprenf[i] && i != n)
                     {
                         if (collide(i, n))
@@ -220,31 +222,31 @@ namespace Digger.Net
 
         public void putims()
         {
-            for (int i = 0; i < DiggerC.SPRITES; i++)
+            for (int i = 0; i < SPRITES; i++)
                 if (sprrdrwf[i])
                     ddap.PutImage(sprx[i], spry[i], sprch[i], sprwid[i], sprhei[i]);
         }
 
         public void putis()
         {
-            for (int i = 0; i < DiggerC.SPRITES; i++)
+            for (int i = 0; i < SPRITES; i++)
                 if (sprrdrwf[i])
                     ddap.PutImage(sprx[i], spry[i], sprmov[i], sprwid[i], sprhei[i]);
         }
 
-        public int[] first = new int[DiggerC.TYPES];
-        public int[] coll = new int[DiggerC.SPRITES];
-        public int[] firstt = { DiggerC.FIRSTBONUS, DiggerC.FIRSTBAG, DiggerC.FIRSTMONSTER, DiggerC.FIRSTFIREBALL, DiggerC.FIRSTDIGGER };
-        public int[] lastt = { DiggerC.LASTBONUS, DiggerC.LASTBAG, DiggerC.LASTMONSTER, DiggerC.LASTFIREBALL, DiggerC.LASTDIGGER };
+        public int[] first = new int[Const.TYPES];
+        public int[] coll = new int[SPRITES];
+        public int[] firstt = { Const.FIRSTBONUS, Const.FIRSTBAG, Const.FIRSTMONSTER, Const.FIRSTFIREBALL, Const.FIRSTDIGGER };
+        public int[] lastt = { Const.LASTBONUS, Const.LASTBAG, Const.LASTMONSTER, Const.LASTFIREBALL, Const.LASTDIGGER };
 
         public void bcollides(int spr)
         {
             int spc, next, i;
-            for (next = 0; next < DiggerC.TYPES; next++)
+            for (next = 0; next < Const.TYPES; next++)
                 first[next] = -1;
-            for (next = 0; next < DiggerC.SPRITES; next++)
+            for (next = 0; next < SPRITES; next++)
                 coll[next] = -1;
-            for (i = 0; i < DiggerC.TYPES; i++)
+            for (i = 0; i < Const.TYPES; i++)
             {
                 next = -1;
                 for (spc = firstt[i]; spc < lastt[i]; spc++)
@@ -259,10 +261,10 @@ namespace Digger.Net
             }
         }
 
-        void gwrite_debug(int x, int y, char ch, short c)
+        private void WriteDebug(int x, int y, char ch, short c)
         {
-            System.Diagnostics.Debug.Assert(x + DiggerC.CHR_W <= DiggerC.MAX_W);
-            System.Diagnostics.Debug.Assert(y + DiggerC.CHR_H <= DiggerC.MAX_H);
+            System.Diagnostics.Debug.Assert(x + Const.CHR_W <= Const.MAX_W);
+            System.Diagnostics.Debug.Assert(y + Const.CHR_H <= Const.MAX_H);
             ddap.WriteChar(x, y, ch, c);
         }
     }

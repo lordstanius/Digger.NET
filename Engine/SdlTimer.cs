@@ -1,5 +1,4 @@
 using SDL2;
-using System;
 
 namespace Digger.Net
 {
@@ -9,21 +8,22 @@ namespace Digger.Net
         public recfilter loop_error;
 
         private double cum_error = 0.0;
+        public uint FrameTime;
 
         public SdlTimer()
         {
-            double tfreq = 1000000.0 / DiggerC.g_FrameTime;
+            double tfreq = 1000000.0 / FrameTime;
             loop_error = Math.recfilter_init(tfreq, 0.1);
             Math.PFD_init(ref phase_detector, 0.0);
-            DebugLog.Write($"inittimer: ftime = {DiggerC.g_FrameTime}");
+            DebugLog.Write($"inittimer: ftime = {FrameTime}");
         }
 
         public void SyncFrame()
         {
-            if (DiggerC.g_FrameTime <= 1)
+            if (FrameTime <= 1)
                 return;
 
-            double tfreq = 1000000.0 / DiggerC.g_FrameTime;
+            double tfreq = 1000000.0 / FrameTime;
             double clk_rl = SDL.SDL_GetTicks() * tfreq / 1000.0;
             double eval = Math.PFD_get_error(ref phase_detector, clk_rl);
             double filterval;

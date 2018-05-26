@@ -5,22 +5,22 @@ namespace Digger.Net
 {
     public class Input
     {
-        public SdlKeyboard keyboard = new SdlKeyboard();
-
+        public SdlKeyboard keyboard;
         public const int NKEYS = 19;
-        public const int DKEY_CHT = 10; /* Cheat */
-        public const int DKEY_SUP = 11; /* Increase speed */
-        public const int DKEY_SDN = 12; /* Decrease speed */
-        public const int DKEY_MTG = 13; /* Toggle music */
-        public const int DKEY_STG = 14; /* Toggle sound */
-        public const int DKEY_EXT = 15; /* Exit */
-        public const int DKEY_PUS = 16; /* Pause */
-        public const int DKEY_MCH = 17; /* Mode change */
-        public const int DKEY_SDR = 18; /* Save DRF */
+
+        private const int DKEY_CHT = 10; /* Cheat */
+        private const int DKEY_SUP = 11; /* Increase speed */
+        private const int DKEY_SDN = 12; /* Decrease speed */
+        private const int DKEY_MTG = 13; /* Toggle music */
+        private const int DKEY_STG = 14; /* Toggle sound */
+        private const int DKEY_EXT = 15; /* Exit */
+        private const int DKEY_PUS = 16; /* Pause */
+        private const int DKEY_MCH = 17; /* Mode change */
+        private const int DKEY_SDR = 18; /* Save DRF */
 
         public bool[] krdf = new bool[NKEYS];
 
-        public bool escape;
+        public bool IsGameCycleEnded;
         public bool firepflag;
         public bool fire2pflag;
         public bool pausef;
@@ -46,7 +46,15 @@ namespace Digger.Net
 
         private int keydir, keydir2, jleftthresh, jupthresh, jrightthresh, jdownthresh, joyanax, joyanay;
 
-        public int prockey(int kn)
+        private readonly Game game;
+
+        public Input(Game game)
+        {
+            this.game = game;
+            this.keyboard = new SdlKeyboard(game.gfx, game.timer);
+        }
+
+        public int ProcessKey(int kn)
         {
             int key = keyboard.GetKey(true);
             if (kn != DKEY_EXT && key == keyboard.keycodes[DKEY_EXT][0])
@@ -103,18 +111,18 @@ namespace Digger.Net
                 switch (k)
                 {
                     case DKEY_CHT: /* Cheat! */
-                        if (!DiggerC.g_isGauntletMode)
+                        if (!game.IsGauntletMode)
                         {
-                            DiggerC.record.playing = false;
-                            DiggerC.record.drfvalid = false;
+                            game.record.IsPlaying = false;
+                            game.record.IsDrfValid = false;
                         }
                         break;
                     case DKEY_SUP: /* Increase speed */
-                        if (DiggerC.g_FrameTime > 10000)
-                            DiggerC.g_FrameTime -= 10000;
+                        if (game.timer.FrameTime > 10000)
+                            game.timer.FrameTime -= 10000;
                         break;
                     case DKEY_SDN: /* Decrease speed */
-                        DiggerC.g_FrameTime += 10000;
+                        game.timer.FrameTime += 10000;
                         break;
                     case DKEY_MTG: /* Toggle music */
                         sound.musicflag = !sound.musicflag;
@@ -123,7 +131,7 @@ namespace Digger.Net
                         sound.soundflag = !sound.soundflag;
                         break;
                     case DKEY_EXT: /* Exit */
-                        escape = true;
+                        IsGameCycleEnded = true;
                         break;
                     case DKEY_PUS: /* Pause */
                         pausef = true;
@@ -132,7 +140,7 @@ namespace Digger.Net
                         mode_change = true;
                         break;
                     case DKEY_SDR: /* Save DRF */
-                        DiggerC.record.savedrf = true;
+                        game.record.SaveDrf = true;
                         break;
                 }
                 if (!mode_change)
@@ -166,7 +174,7 @@ namespace Digger.Net
         public void detectjoy()
         {
             joyflag = false;
-            dir = dynamicdir = DiggerC.DIR_NONE;
+            dir = dynamicdir = Const.DIR_NONE;
         }
 
         /* Contrary to some beliefs, you don't need a separate OS call to flush the
@@ -211,19 +219,19 @@ namespace Digger.Net
                 else
                     firepflag = false;
                 if (u && !oupressed)
-                    dir = dynamicdir = DiggerC.DIR_UP;
+                    dir = dynamicdir = Const.DIR_UP;
                 if (d && !odpressed)
-                    dir = dynamicdir = DiggerC.DIR_DOWN;
+                    dir = dynamicdir = Const.DIR_DOWN;
                 if (l && !olpressed)
-                    dir = dynamicdir = DiggerC.DIR_LEFT;
+                    dir = dynamicdir = Const.DIR_LEFT;
                 if (r && !orpressed)
-                    dir = dynamicdir = DiggerC.DIR_RIGHT;
-                if ((oupressed && !u && dynamicdir == DiggerC.DIR_UP) ||
-                    (odpressed && !d && dynamicdir == DiggerC.DIR_DOWN) ||
-                    (olpressed && !l && dynamicdir == DiggerC.DIR_LEFT) ||
-                    (orpressed && !r && dynamicdir == DiggerC.DIR_RIGHT))
+                    dir = dynamicdir = Const.DIR_RIGHT;
+                if ((oupressed && !u && dynamicdir == Const.DIR_UP) ||
+                    (odpressed && !d && dynamicdir == Const.DIR_DOWN) ||
+                    (olpressed && !l && dynamicdir == Const.DIR_LEFT) ||
+                    (orpressed && !r && dynamicdir == Const.DIR_RIGHT))
                 {
-                    dynamicdir = DiggerC.DIR_NONE;
+                    dynamicdir = Const.DIR_NONE;
                     if (u) dynamicdir = dir = 2;
                     if (d) dynamicdir = dir = 6;
                     if (l) dynamicdir = dir = 4;
@@ -234,9 +242,9 @@ namespace Digger.Net
                 olpressed = l;
                 orpressed = r;
                 keydir = dir;
-                if (dynamicdir != DiggerC.DIR_NONE)
+                if (dynamicdir != Const.DIR_NONE)
                     keydir = dynamicdir;
-                dir = DiggerC.DIR_NONE;
+                dir = Const.DIR_NONE;
             }
             else
             {
@@ -252,19 +260,19 @@ namespace Digger.Net
                 else
                     fire2pflag = false;
                 if (u2 && !ou2pressed)
-                    dir2 = dynamicdir2 = DiggerC.DIR_UP;
+                    dir2 = dynamicdir2 = Const.DIR_UP;
                 if (d2 && !od2pressed)
-                    dir2 = dynamicdir2 = DiggerC.DIR_DOWN;
+                    dir2 = dynamicdir2 = Const.DIR_DOWN;
                 if (l2 && !ol2pressed)
-                    dir2 = dynamicdir2 = DiggerC.DIR_LEFT;
+                    dir2 = dynamicdir2 = Const.DIR_LEFT;
                 if (r2 && !or2pressed)
-                    dir2 = dynamicdir2 = DiggerC.DIR_RIGHT;
-                if ((ou2pressed && !u2 && dynamicdir2 == DiggerC.DIR_UP) ||
-                    (od2pressed && !d2 && dynamicdir2 == DiggerC.DIR_DOWN) ||
-                    (ol2pressed && !l2 && dynamicdir2 == DiggerC.DIR_LEFT) ||
-                    (or2pressed && !r2 && dynamicdir2 == DiggerC.DIR_RIGHT))
+                    dir2 = dynamicdir2 = Const.DIR_RIGHT;
+                if ((ou2pressed && !u2 && dynamicdir2 == Const.DIR_UP) ||
+                    (od2pressed && !d2 && dynamicdir2 == Const.DIR_DOWN) ||
+                    (ol2pressed && !l2 && dynamicdir2 == Const.DIR_LEFT) ||
+                    (or2pressed && !r2 && dynamicdir2 == Const.DIR_RIGHT))
                 {
-                    dynamicdir2 = DiggerC.DIR_NONE;
+                    dynamicdir2 = Const.DIR_NONE;
                     if (u2) dynamicdir2 = dir2 = 2;
                     if (d2) dynamicdir2 = dir2 = 6;
                     if (l2) dynamicdir2 = dir2 = 4;
@@ -275,15 +283,15 @@ namespace Digger.Net
                 ol2pressed = l2;
                 or2pressed = r2;
                 keydir2 = dir2;
-                if (dynamicdir2 != DiggerC.DIR_NONE)
+                if (dynamicdir2 != Const.DIR_NONE)
                     keydir2 = dynamicdir2;
-                dir2 = DiggerC.DIR_NONE;
+                dir2 = Const.DIR_NONE;
             }
 
             if (joyflag)
             {
-                DiggerC.incpenalty();
-                DiggerC.incpenalty();
+                game.IncreasePenalty();
+                game.IncreasePenalty();
                 joyanay = 0;
                 joyanax = 0;
                 for (j = 0; j < 4; j++)
@@ -362,30 +370,32 @@ namespace Digger.Net
             int dir = ((n == 0) ? keydir : keydir2);
             if (joyflag)
             {
-                dir = DiggerC.DIR_NONE;
+                dir = Const.DIR_NONE;
                 if (joyx < jleftthresh)
-                    dir = DiggerC.DIR_LEFT;
+                    dir = Const.DIR_LEFT;
                 if (joyx > jrightthresh)
-                    dir = DiggerC.DIR_RIGHT;
+                    dir = Const.DIR_RIGHT;
                 if (joyx >= jleftthresh && joyx <= jrightthresh)
                 {
                     if (joyy < jupthresh)
-                        dir = DiggerC.DIR_UP;
+                        dir = Const.DIR_UP;
                     if (joyy > jdownthresh)
-                        dir = DiggerC.DIR_DOWN;
+                        dir = Const.DIR_DOWN;
                 }
             }
             if (n == 0)
             {
-                if (DiggerC.record.playing)
-                    DiggerC.record.playgetdir(ref dir, ref firepflag);
-                DiggerC.record.recputdir(dir, firepflag);
+                if (game.record.IsPlaying)
+                    game.record.PlayGetDirection(ref dir, ref firepflag);
+
+                game.record.PutDirection(dir, firepflag);
             }
             else
             {
-                if (DiggerC.record.playing)
-                    DiggerC.record.playgetdir(ref dir, ref fire2pflag);
-                DiggerC.record.recputdir(dir, fire2pflag);
+                if (game.record.IsPlaying)
+                    game.record.PlayGetDirection(ref dir, ref fire2pflag);
+
+                game.record.PutDirection(dir, fire2pflag);
             }
 
             return dir;

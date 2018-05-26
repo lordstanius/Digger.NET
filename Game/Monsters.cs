@@ -1,61 +1,56 @@
 /* Digger Remastered
    Copyright (c) Andrew Jenner 1998-2004 */
+
 namespace Digger.Net
 {
     public class Monsters
     {
         private struct monster
         {
-            public int h, v, xr, yr, dir, t, hnt, death, bag, dtime, stime, chase;
-            public bool flag;
-            public monster_obj mop;
+            public int h, v, xr, yr, dir, time, hnt, death, bag, dtime, stime, chase;
+            public bool Exists;
+            public Monster monstrObj;
         }
 
-        private const int MONSTERS = DiggerC.MONSTERS;
-        private const int DIR_NONE = DiggerC.DIR_NONE;
-        private const int DIR_RIGHT = DiggerC.DIR_RIGHT;
-        private const int DIR_UP = DiggerC.DIR_UP;
-        private const int DIR_LEFT = DiggerC.DIR_LEFT;
-        private const int DIR_DOWN = DiggerC.DIR_DOWN;
-        private const int TYPES = DiggerC.TYPES;
-        private const int SPRITES = DiggerC.SPRITES;
-        private const int FIRSTMONSTER = DiggerC.FIRSTMONSTER;
-        private const int FIRSTDIGGER = DiggerC.FIRSTDIGGER;
-        private const int FIRSTBAG = DiggerC.FIRSTBAG;
-        // TODO: Refactor
-        private const bool MON_NOBBIN = DiggerC.MON_NOBBIN;
+        private const int MONSTERS = Const.MONSTERS;
+        private const int DIR_NONE = Const.DIR_NONE;
+        private const int DIR_RIGHT = Const.DIR_RIGHT;
+        private const int DIR_UP = Const.DIR_UP;
+        private const int DIR_LEFT = Const.DIR_LEFT;
+        private const int DIR_DOWN = Const.DIR_DOWN;
+        private const int TYPES = Const.TYPES;
+        private const int SPRITES = Const.SPRITES;
+        private const int FIRSTMONSTER = Const.FIRSTMONSTER;
+        private const int FIRSTDIGGER = Const.FIRSTDIGGER;
+        private const int FIRSTBAG = Const.FIRSTBAG;
 
-        private monster[] mondat = new monster[MONSTERS];
+        private monster[] mondat;
 
-        private int nextmonster = 0, totalmonsters = 0, maxmononscr = 0, nextmontime = 0, mongaptime = 0;
+        private int nextmonster = 0;
+        private int totalmonsters = 0;
+        private int maxmononscr = 0;
+        private int nextmontime = 0;
+        private int mongaptime = 0;
         private int chase = 0;
-
+        private bool mongotgold = false;
         private bool unbonusflag = false;
-        private Level level;
-        private Sprites sprites;
-        private Sound sound;
-        private DrawApi drawApi;
-        private Record record;
-        private Scores scores;
 
-        public Monsters(Level level, Sprites sprites, Sound sound, DrawApi drawApi, Record record, Scores scores)
+        private readonly Game game;
+        private readonly DrawApi drawApi;
+
+        public Monsters(Game game)
         {
-            this.level = level;
-            this.sprites = sprites;
-            this.sound = sound;
-            this.drawApi = drawApi;
-            this.record = record;
-            this.scores = scores;
+            this.game = game;
+            this.drawApi = game.drawApi;
         }
 
         public void Initialize()
         {
-            for (int i = 0; i < MONSTERS; i++)
-                mondat[i].flag = false;
+            mondat = new monster[MONSTERS];
             nextmonster = 0;
-            mongaptime = 45 - (level.levof10() << 1);
-            totalmonsters = level.levof10() + 5;
-            switch (level.levof10())
+            mongaptime = 45 - (game.level.LevelOf10() << 1);
+            totalmonsters = game.level.LevelOf10() + 5;
+            switch (game.level.LevelOf10())
             {
                 case 1:
                     maxmononscr = 3;
@@ -80,96 +75,103 @@ namespace Digger.Net
 
         public void EraseMonsters()
         {
-            short i;
-            for (i = 0; i < MONSTERS; i++)
-                if (mondat[i].flag)
-                    sprites.erasespr(i + FIRSTMONSTER);
+            for (int i = 0; i < MONSTERS; i++)
+                if (mondat[i].Exists)
+                    game.sprites.EraseSprite(i + FIRSTMONSTER);
         }
 
-        public void domonsters(Bags bags, Digger digger)
+        public void DoMonsters()
         {
-            short i;
             if (nextmontime > 0)
+            {
                 nextmontime--;
+            }
             else
             {
-                if (nextmonster < totalmonsters && nmononscr() < maxmononscr && digger.isalive() && !digger.bonusmode)
+                if (nextmonster < totalmonsters && MonstersOnScreenCount() < maxmononscr && game.diggers.IsAlive() && !game.diggers.bonusmode)
                     CreateMonster();
 
-                if (unbonusflag && nextmonster == totalmonsters && nextmontime == 0 && digger.isalive())
+                if (unbonusflag && nextmonster == totalmonsters && nextmontime == 0 && game.diggers.IsAlive())
                 {
                     unbonusflag = false;
-                    digger.createbonus();
+                    game.diggers.createbonus();
                 }
             }
 
-            for (i = 0; i < MONSTERS; i++)
-                if (mondat[i].flag)
+            for (int i = 0; i < MONSTERS; i++)
+            {
+                if (!mondat[i].Exists)
+                    continue;
+
+                if (mondat[i].hnt > 10 - game.level.LevelOf10())
                 {
-                    if (mondat[i].hnt > 10 - level.levof10())
+                    if (mondat[i].monstrObj.IsNobbin)
                     {
-                        if (mondat[i].mop.isnobbin())
-                        {
-                            mondat[i].mop.mutate();
-                            mondat[i].hnt = 0;
-                        }
+                        mondat[i].monstrObj.Mutate();
+                        mondat[i].hnt = 0;
                     }
-                    if (mondat[i].mop.isalive())
-                        if (mondat[i].t == 0)
-                        {
-                            monai(i, bags, digger);
-                            if (StdLib.RandFrom0To(15 - level.levof10()) == 0) /* Need to split for determinism */
-                                if (!mondat[i].mop.isnobbin() && mondat[i].mop.isalive())
-                                    monai(i, bags, digger);
-                        }
-                        else
-                            mondat[i].t--;
-                    else
-                        mondie(i, bags, digger);
                 }
+
+                if (mondat[i].monstrObj.IsAlive)
+                {
+                    if (mondat[i].time == 0)
+                    {
+                        MonsterAI(i);
+                        if (StdLib.RandFrom0To(15 - game.level.LevelOf10()) == 0) /* Need to split for determinism */
+                            if (!mondat[i].monstrObj.IsNobbin && mondat[i].monstrObj.IsAlive)
+                                MonsterAI(i);
+                    }
+                    else
+                        mondat[i].time--;
+                }
+                else
+                {
+                    MonsterDie(i);
+                }
+            }
         }
 
         private void CreateMonster()
         {
             for (int i = 0; i < MONSTERS; i++)
-                if (!mondat[i].flag)
+            {
+                if (!mondat[i].Exists)
                 {
-                    mondat[i].flag = true;
-                    mondat[i].t = 0;
+                    mondat[i].Exists = true;
+                    mondat[i].time = 0;
                     mondat[i].hnt = 0;
                     mondat[i].h = 14;
                     mondat[i].v = 0;
                     mondat[i].xr = 0;
                     mondat[i].yr = 0;
                     mondat[i].dir = DIR_LEFT;
-                    mondat[i].chase = chase + DiggerC.g_CurrentPlayer;
-                    mondat[i].mop = new monster_obj(i, MON_NOBBIN, DIR_LEFT, 292, 18);
-                    chase = (chase + 1) % DiggerC.g_Diggers;
+                    mondat[i].chase = chase + game.CurrentPlayer;
+                    mondat[i].monstrObj = new Monster(game, i, DIR_LEFT, 292, 18);
+                    chase = (chase + 1) % game.DiggerCount;
                     nextmonster++;
                     nextmontime = mongaptime;
                     mondat[i].stime = 5;
-                    mondat[i].mop.put();
+                    mondat[i].monstrObj.Put();
                     break;
                 }
+            }
         }
 
-        public bool mongotgold = false;
-
-        public void mongold()
+        public void MonsterGotGold()
         {
             mongotgold = true;
         }
 
-        private void monai(int mon, Bags bags, Digger digger)
+        private void MonsterAI(int mon)
         {
             int[] clcoll = new int[SPRITES];
             int[] clfirst = new int[TYPES];
 
             bool push, bagf, mopos_changed;
 
-            obj_position mopos = mondat[mon].mop.getpos();
-            int monox = mopos.x;
-            int monoy = mopos.y;
+            Position mopos = mondat[mon].monstrObj.Position;
+            short monox = mopos.x;
+            short monoy = mopos.y;
             int dir, mdirp1, mdirp2, mdirp3, mdirp4, t, i;
 
             if (mondat[mon].xr == 0 && mondat[mon].yr == 0)
@@ -178,42 +180,42 @@ namespace Digger.Net
 
                 /* Turn hobbin back into nobbin if it's had its time */
 
-                if (mondat[mon].hnt > 30 + (level.levof10() << 1))
-                    if (!mondat[mon].mop.isnobbin())
+                if (mondat[mon].hnt > 30 + (game.level.LevelOf10() << 1))
+                    if (!mondat[mon].monstrObj.IsNobbin)
                     {
                         mondat[mon].hnt = 0;
-                        mondat[mon].mop.mutate();
+                        mondat[mon].monstrObj.Mutate();
                     }
 
                 /* Set up monster direction properties to chase Digger */
 
                 int dig = mondat[mon].chase;
-                if (!digger.digalive(dig))
-                    dig = (DiggerC.g_Diggers - 1) - dig;
+                if (!game.diggers.IsDiggerAlive(dig))
+                    dig = (game.DiggerCount - 1) - dig;
 
-                if (System.Math.Abs(digger.diggery(dig) - mopos.y) > System.Math.Abs(digger.diggerx(dig) - mopos.x))
+                if (System.Math.Abs(game.diggers.DiggerY(dig) - mopos.y) > System.Math.Abs(game.diggers.DiggerX(dig) - mopos.x))
                 {
                     mdirp1 = 0;
-                    if (digger.diggery(dig) < mopos.y)
+                    if (game.diggers.DiggerY(dig) < mopos.y)
                     {
                         mdirp1 = DIR_UP;
                         mdirp4 = DIR_DOWN;
                     }
                     else { mdirp1 = DIR_DOWN; mdirp4 = DIR_UP; }
-                    if (digger.diggerx(dig) < mopos.x) { mdirp2 = DIR_LEFT; mdirp3 = DIR_RIGHT; }
+                    if (game.diggers.DiggerX(dig) < mopos.x) { mdirp2 = DIR_LEFT; mdirp3 = DIR_RIGHT; }
                     else { mdirp2 = DIR_RIGHT; mdirp3 = DIR_LEFT; }
                 }
                 else
                 {
-                    if (digger.diggerx(dig) < mopos.x) { mdirp1 = DIR_LEFT; mdirp4 = DIR_RIGHT; }
+                    if (game.diggers.DiggerX(dig) < mopos.x) { mdirp1 = DIR_LEFT; mdirp4 = DIR_RIGHT; }
                     else { mdirp1 = DIR_RIGHT; mdirp4 = DIR_LEFT; }
-                    if (digger.diggery(dig) < mopos.y) { mdirp2 = DIR_UP; mdirp3 = DIR_DOWN; }
+                    if (game.diggers.DiggerY(dig) < mopos.y) { mdirp2 = DIR_UP; mdirp3 = DIR_DOWN; }
                     else { mdirp2 = DIR_DOWN; mdirp3 = DIR_UP; }
                 }
 
                 /* In bonus mode, run away from Digger */
 
-                if (digger.bonusmode)
+                if (game.diggers.bonusmode)
                 {
                     t = mdirp1; mdirp1 = mdirp4; mdirp4 = t;
                     t = mdirp2; mdirp2 = mdirp3; mdirp3 = t;
@@ -222,7 +224,7 @@ namespace Digger.Net
                 /* Adjust priorities so that monsters don't reverse direction unless they
                    really have to */
 
-                dir = digger.reversedir(mondat[mon].dir);
+                dir = game.diggers.reversedir(mondat[mon].dir);
                 if (dir == mdirp1)
                 {
                     mdirp1 = mdirp2;
@@ -244,8 +246,8 @@ namespace Digger.Net
 
                 /* Introduce a random element on levels <6 : occasionally swap p1 and p3 */
 
-                if (StdLib.RandFrom0To(level.levof10() + 5) == 1) /* Need to split for determinism */
-                    if (level.levof10() < 6)
+                if (StdLib.RandFrom0To(game.level.LevelOf10() + 5) == 1) /* Need to split for determinism */
+                    if (game.level.LevelOf10() < 6)
                     {
                         t = mdirp1;
                         mdirp1 = mdirp3;
@@ -254,26 +256,26 @@ namespace Digger.Net
 
                 /* Check field and find direction */
 
-                if (fieldclear(mdirp1, mondat[mon].h, mondat[mon].v))
+                if (ClearField(mdirp1, mondat[mon].h, mondat[mon].v))
                     dir = mdirp1;
                 else
-                  if (fieldclear(mdirp2, mondat[mon].h, mondat[mon].v))
+                  if (ClearField(mdirp2, mondat[mon].h, mondat[mon].v))
                     dir = mdirp2;
                 else
-                    if (fieldclear(mdirp3, mondat[mon].h, mondat[mon].v))
+                    if (ClearField(mdirp3, mondat[mon].h, mondat[mon].v))
                     dir = mdirp3;
                 else
-                      if (fieldclear(mdirp4, mondat[mon].h, mondat[mon].v))
+                      if (ClearField(mdirp4, mondat[mon].h, mondat[mon].v))
                     dir = mdirp4;
 
                 /* Hobbins don't care about the field: they go where they want. */
-                if (!mondat[mon].mop.isnobbin())
+                if (!mondat[mon].monstrObj.IsNobbin)
                     dir = mdirp1;
 
                 /* Monsters take a time penalty for changing direction */
 
                 if (mondat[mon].dir != dir)
-                    mondat[mon].t++;
+                    mondat[mon].time++;
 
                 /* Save the new direction */
 
@@ -293,12 +295,12 @@ namespace Digger.Net
             if (mondat[mon].dir == DIR_LEFT || mondat[mon].dir == DIR_RIGHT)
             {
                 mopos.dir = mondat[mon].dir;
-                mondat[mon].mop.setpos(mopos);
+                mondat[mon].monstrObj.Position = mopos;
             }
 
             /* Hobbins dig */
 
-            if (!mondat[mon].mop.isnobbin())
+            if (!mondat[mon].monstrObj.IsNobbin)
                 drawApi.EatField(mopos.x, mopos.y, mondat[mon].dir);
 
             /* (Draw new tunnels) and move monster */
@@ -306,23 +308,23 @@ namespace Digger.Net
             switch (mondat[mon].dir)
             {
                 case DIR_RIGHT:
-                    if (!mondat[mon].mop.isnobbin())
-                        drawApi.drawrightblob(mopos.x, mopos.y);
+                    if (!mondat[mon].monstrObj.IsNobbin)
+                        drawApi.DrawRightBlob(mopos.x, mopos.y);
                     mopos.x += 4;
                     break;
                 case DIR_UP:
-                    if (!mondat[mon].mop.isnobbin())
-                        drawApi.drawtopblob(mopos.x, mopos.y);
+                    if (!mondat[mon].monstrObj.IsNobbin)
+                        drawApi.DrawTopBlob(mopos.x, mopos.y);
                     mopos.y -= 3;
                     break;
                 case DIR_LEFT:
-                    if (!mondat[mon].mop.isnobbin())
-                        drawApi.drawleftblob(mopos.x, mopos.y);
+                    if (!mondat[mon].monstrObj.IsNobbin)
+                        drawApi.DrawLeftBlob(mopos.x, mopos.y);
                     mopos.x -= 4;
                     break;
                 case DIR_DOWN:
-                    if (!mondat[mon].mop.isnobbin())
-                        drawApi.drawbottomblob(mopos.x, mopos.y);
+                    if (!mondat[mon].monstrObj.IsNobbin)
+                        drawApi.DrawBottomBlob(mopos.x, mopos.y);
                     mopos.y += 3;
                     break;
                 default:
@@ -331,13 +333,13 @@ namespace Digger.Net
             }
 
             /* Hobbins can eat emeralds */
-            if (!mondat[mon].mop.isnobbin())
-                DiggerC.hitemerald((mopos.x - 12) / 20, (mopos.y - 18) / 18,
+            if (!mondat[mon].monstrObj.IsNobbin)
+                game.emeralds.HitEmerald((mopos.x - 12) / 20, (mopos.y - 18) / 18,
                            (mopos.x - 12) % 20, (mopos.y - 18) % 18,
                            mondat[mon].dir);
 
             /* If Digger's gone, don't bother */
-            if (!digger.isalive() && mopos_changed)
+            if (!game.diggers.IsAlive() && mopos_changed)
             {
                 mopos.x = monox;
                 mopos.y = monoy;
@@ -358,49 +360,49 @@ namespace Digger.Net
             }
 
             /* Increase time counter for hobbin */
-            if (!mondat[mon].mop.isnobbin() && mondat[mon].hnt < 100)
+            if (!mondat[mon].monstrObj.IsNobbin && mondat[mon].hnt < 100)
 
                 mondat[mon].hnt++;
 
             if (mopos_changed)
             {
-                mondat[mon].mop.setpos(mopos);
+                mondat[mon].monstrObj.Position = mopos;
             }
 
             /* Draw monster */
             push = true;
-            mondat[mon].mop.animate();
+            mondat[mon].monstrObj.Animate();
             for (i = 0; i < TYPES; i++)
-                clfirst[i] = sprites.first[i];
+                clfirst[i] = game.sprites.first[i];
             for (i = 0; i < SPRITES; i++)
-                clcoll[i] = sprites.coll[i];
-            DiggerC.incpenalty();
+                clcoll[i] = game.sprites.coll[i];
+            game.IncreasePenalty();
 
             /* Collision with another monster */
 
             if (clfirst[2] != -1)
             {
-                mondat[mon].t++; /* Time penalty */
-                                 /* Ensure both aren't moving in the same dir. */
+                mondat[mon].time++; /* Time penalty */
+                                      /* Ensure both aren't moving in the same dir. */
                 i = clfirst[2];
                 do
                 {
                     int m = i - FIRSTMONSTER;
                     if (mondat[mon].dir == mondat[m].dir && mondat[m].stime == 0 &&
                         mondat[mon].stime == 0)
-                        mondat[m].dir = digger.reversedir(mondat[m].dir);
+                        mondat[m].dir = game.diggers.reversedir(mondat[m].dir);
                     /* The kludge here is to preserve playback for a bug in previous
                        versions. */
-                    if (!record.kludge)
-                        DiggerC.incpenalty();
+                    if (!game.record.Kludge)
+                        game.IncreasePenalty();
                     else
                       if ((m & 1) == 0)
-                        DiggerC.incpenalty();
+                        game.IncreasePenalty();
                     i = clcoll[i];
                 } while (i != -1);
-                if (record.kludge)
+                if (game.record.Kludge)
                     if (clfirst[0] != -1)
-                        DiggerC.incpenalty();
+                        game.IncreasePenalty();
             }
 
             /* Check for collision with bag */
@@ -409,7 +411,7 @@ namespace Digger.Net
             bagf = false;
             while (i != -1)
             {
-                if (bags.BagExists(i - FIRSTBAG))
+                if (game.bags.BagExists(i - FIRSTBAG))
                 {
                     bagf = true;
                     break;
@@ -419,25 +421,25 @@ namespace Digger.Net
 
             if (bagf)
             {
-                mondat[mon].t++; /* Time penalty */
+                mondat[mon].time++; /* Time penalty */
                 mongotgold = false;
                 if (mondat[mon].dir == DIR_RIGHT || mondat[mon].dir == DIR_LEFT)
                 {
-                    push = bags.PushBags(mondat[mon].dir, clfirst, clcoll);      /* Horizontal push */
-                    mondat[mon].t++; /* Time penalty */
+                    push = game.bags.PushBags(mondat[mon].dir, clfirst, clcoll);      /* Horizontal push */
+                    mondat[mon].time++; /* Time penalty */
                 }
                 else
-                  if (!bags.PushBagsUp(clfirst, clcoll)) /* Vertical push */
+                  if (!game.bags.PushBagsUp(clfirst, clcoll)) /* Vertical push */
                     push = false;
                 if (mongotgold) /* No time penalty if monster eats gold */
-                    mondat[mon].t = 0;
-                if (!mondat[mon].mop.isnobbin() && mondat[mon].hnt > 1)
-                    bags.RemoveBags(clfirst, clcoll); /* Hobbins eat bags */
+                    mondat[mon].time = 0;
+                if (!mondat[mon].monstrObj.IsNobbin && mondat[mon].hnt > 1)
+                    game.bags.RemoveBags(clfirst, clcoll); /* Hobbins eat bags */
             }
 
             /* Increase hobbin cross counter */
 
-            if (mondat[mon].mop.isnobbin() && clfirst[2] != -1 && digger.isalive())
+            if (mondat[mon].monstrObj.IsNobbin && clfirst[2] != -1 && game.diggers.IsAlive())
                 mondat[mon].hnt++;
 
             /* See if bags push monster back */
@@ -448,70 +450,69 @@ namespace Digger.Net
                 {
                     mopos.x = monox;
                     mopos.y = monoy;
-                    mondat[mon].mop.setpos(mopos);
+                    mondat[mon].monstrObj.Position = mopos;
                     mopos_changed = false;
                 }
-                mondat[mon].mop.animate();
-                DiggerC.incpenalty();
-                if (mondat[mon].mop.isnobbin()) /* The other way to create hobbin: stuck on h-bag */
+                mondat[mon].monstrObj.Animate();
+                game.IncreasePenalty();
+                if (mondat[mon].monstrObj.IsNobbin) /* The other way to create hobbin: stuck on h-bag */
                     mondat[mon].hnt++;
                 if ((mondat[mon].dir == DIR_UP || mondat[mon].dir == DIR_DOWN) &&
-                    mondat[mon].mop.isnobbin())
-                    mondat[mon].dir = digger.reversedir(mondat[mon].dir); /* If vertical, give up */
+                    mondat[mon].monstrObj.IsNobbin)
+                    mondat[mon].dir = game.diggers.reversedir(mondat[mon].dir); /* If vertical, give up */
             }
 
             /* Collision with Digger */
 
-            if (clfirst[4] != -1 && digger.isalive())
+            if (clfirst[4] != -1 && game.diggers.IsAlive())
             {
-                if (digger.bonusmode)
+                if (game.diggers.bonusmode)
                 {
-                    killmon(mon, digger);
+                    KillMonster(mon);
                     i = clfirst[4];
                     while (i != -1)
                     {
-                        if (digger.digalive(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer))
-                            digger.sceatm(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer, scores);
+                        if (game.diggers.IsDiggerAlive(i - FIRSTDIGGER + game.CurrentPlayer))
+                            game.diggers.sceatm(i - FIRSTDIGGER + game.CurrentPlayer, game.scores);
                         i = clcoll[i];
                     }
-                    sound.soundeatm(); /* Collision in bonus mode */
+                    game.sound.soundeatm(); /* Collision in bonus mode */
                 }
                 else
                 {
                     i = clfirst[4];
                     while (i != -1)
                     {
-                        if (digger.digalive(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer))
-                            digger.killdigger(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer, 3, 0); /* Kill Digger */
+                        if (game.diggers.IsDiggerAlive(i - FIRSTDIGGER + game.CurrentPlayer))
+                            game.diggers.KillDigger(i - FIRSTDIGGER + game.CurrentPlayer, 3, 0); /* Kill Digger */
                         i = clcoll[i];
                     }
                 }
             }
 
-            /* Update co-ordinates */
-
+            /* Update coordinates */
             mondat[mon].h = (mopos.x - 12) / 20;
             mondat[mon].v = (mopos.y - 18) / 18;
             mondat[mon].xr = (mopos.x - 12) % 20;
             mondat[mon].yr = (mopos.y - 18) % 18;
         }
 
-        private void mondie(int mon, Bags bags, Digger digger)
+        private void MonsterDie(int mon)
         {
-            obj_position monpos;
+            Position monpos;
 
             switch (mondat[mon].death)
             {
                 case 1:
-                    monpos = mondat[mon].mop.getpos();
-                    if (bags.BagY(mondat[mon].bag) + 6 > monpos.y)
+                    monpos = mondat[mon].monstrObj.Position;
+                    if (game.bags.GetBagY(mondat[mon].bag) + 6 > monpos.y)
                     {
-                        monpos.y = bags.BagY(mondat[mon].bag);
-                        mondat[mon].mop.setpos(monpos);
+                        monpos.y = (short)game.bags.GetBagY(mondat[mon].bag);
+                        mondat[mon].monstrObj.Position = monpos;
                     }
-                    mondat[mon].mop.animate();
-                    DiggerC.incpenalty();
-                    if (bags.GetBagDir(mondat[mon].bag) == -1)
+                    mondat[mon].monstrObj.Animate();
+                    game.IncreasePenalty();
+                    if (game.bags.GetBagDirection(mondat[mon].bag) == -1)
                     {
                         mondat[mon].dtime = 1;
                         mondat[mon].death = 4;
@@ -522,88 +523,87 @@ namespace Digger.Net
                         mondat[mon].dtime--;
                     else
                     {
-                        killmon(mon, digger);
-                        if (DiggerC.g_Diggers == 2)
-                            scores.scorekill2();
+                        KillMonster(mon);
+                        if (game.DiggerCount == 2)
+                            game.scores.scorekill2();
                         else
-                            scores.scorekill(DiggerC.g_CurrentPlayer);
+                            game.scores.scorekill(game.CurrentPlayer);
                     }
                     break;
             }
         }
 
-        private bool fieldclear(int dir, int x, int y)
+        private bool ClearField(int dir, int x, int y)
         {
             switch (dir)
             {
                 case DIR_RIGHT:
                     if (x < 14)
-                        if ((getfield(x + 1, y) & 0x2000) == 0)
-                            if ((getfield(x + 1, y) & 1) == 0 || (getfield(x, y) & 0x10) == 0)
+                        if ((GetField(x + 1, y) & 0x2000) == 0)
+                            if ((GetField(x + 1, y) & 1) == 0 || (GetField(x, y) & 0x10) == 0)
                                 return true;
                     break;
                 case DIR_UP:
                     if (y > 0)
-                        if ((getfield(x, y - 1) & 0x2000) == 0)
-                            if ((getfield(x, y - 1) & 0x800) == 0 || (getfield(x, y) & 0x40) == 0)
+                        if ((GetField(x, y - 1) & 0x2000) == 0)
+                            if ((GetField(x, y - 1) & 0x800) == 0 || (GetField(x, y) & 0x40) == 0)
                                 return true;
                     break;
                 case DIR_LEFT:
                     if (x > 0)
-                        if ((getfield(x - 1, y) & 0x2000) == 0)
-                            if ((getfield(x - 1, y) & 0x10) == 0 || (getfield(x, y) & 1) == 0)
+                        if ((GetField(x - 1, y) & 0x2000) == 0)
+                            if ((GetField(x - 1, y) & 0x10) == 0 || (GetField(x, y) & 1) == 0)
                                 return true;
                     break;
                 case DIR_DOWN:
                     if (y < 9)
-                        if ((getfield(x, y + 1) & 0x2000) == 0)
-                            if ((getfield(x, y + 1) & 0x40) == 0 || (getfield(x, y) & 0x800) == 0)
+                        if ((GetField(x, y + 1) & 0x2000) == 0)
+                            if ((GetField(x, y + 1) & 0x40) == 0 || (GetField(x, y) & 0x800) == 0)
                                 return true;
                     break;
             }
             return false;
         }
 
-        public void checkmonscared(int h)
+        public void CheckIsMonsterScared(int h)
         {
-            short m;
-            for (m = 0; m < MONSTERS; m++)
-                if (h == mondat[m].h && mondat[m].dir == DIR_UP)
-                    mondat[m].dir = DIR_DOWN;
+            for (int i = 0; i < MONSTERS; i++)
+                if (h == mondat[i].h && mondat[i].dir == DIR_UP)
+                    mondat[i].dir = DIR_DOWN;
         }
 
-        public void killmon(int mon, Digger digger)
+        public void KillMonster(int mon)
         {
-            if (mondat[mon].flag)
-            {
-                mondat[mon].flag = false;
-                mondat[mon].mop.kill();
-                if (digger.bonusmode)
-                    totalmonsters++;
-            }
+            if (!mondat[mon].Exists)
+                return;
+
+            mondat[mon].Exists = false;
+            mondat[mon].monstrObj.Kill();
+            if (game.diggers.bonusmode)
+                totalmonsters++;
         }
 
-        public void SquashMonsters(Bags bags, int[] clfirst, int[] clcoll)
+        public void SquashMonsters(int bag, int[] clfirst, int[] clcoll)
         {
             int next = clfirst[2];
 
             while (next != -1)
             {
-                int m = next - DiggerC.FIRSTMONSTER;
-                obj_position monpos = mondat[m].mop.getpos();
-                if (monpos.y >= bags.Current.y)
-                    SquashMonster(m, 1, bags.Current.id);
+                int m = next - Const.FIRSTMONSTER;
+                Position monpos = mondat[m].monstrObj.Position;
+                if (monpos.y >= game.bags.GetBagY(bag))
+                    SquashMonster(m, 1, bag);
                 next = clcoll[next];
             }
         }
 
-        public int KillMonsters(int[] clfirst, int[] clcoll, Digger digger)
+        public int KillMonsters(int[] clfirst, int[] clcoll)
         {
             int next = clfirst[2], m, n = 0;
             while (next != -1)
             {
                 m = next - FIRSTMONSTER;
-                killmon(m, digger);
+                KillMonster(m);
                 n++;
                 next = clcoll[next];
             }
@@ -612,34 +612,36 @@ namespace Digger.Net
 
         public void SquashMonster(int mon, int death, int bag)
         {
-            mondat[mon].mop.damage();
+            mondat[mon].monstrObj.Damage();
             mondat[mon].death = death;
             mondat[mon].bag = bag;
         }
 
-        public int monleft()
+        public int MonstersLeftCount()
         {
-            return nmononscr() + totalmonsters - nextmonster;
+            return MonstersOnScreenCount() + totalmonsters - nextmonster;
         }
 
-        private int nmononscr()
+        private int MonstersOnScreenCount()
         {
             int n = 0;
             for (int i = 0; i < MONSTERS; i++)
-                if (mondat[i].flag)
+                if (mondat[i].Exists)
                     n++;
+
             return n;
         }
 
-        public void incmont(int n)
+        public void IncreaseMonstersTime(int n)
         {
             if (n > MONSTERS)
                 n = MONSTERS;
+
             for (int m = 1; m < n; m++)
-                mondat[m].t++;
+                mondat[m].time++;
         }
 
-        public int getfield(int x, int y)
+        public int GetField(int x, int y)
         {
             return drawApi.field[y * 15 + x];
         }

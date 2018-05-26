@@ -6,8 +6,8 @@ namespace Digger.Net
 {
     public class Level
     {
-        public string levfname;
-        public bool levfflag = false;
+        public string LevelFileName;
+        public bool IsUsingLevelFile = false;
 
         public readonly string[,] leveldat = {
             { "S   B     HHHHS",
@@ -92,104 +92,66 @@ namespace Digger.Net
               "HHHHHHHHHHHHHHH" }
         };
 
-        private game_data[] gameData;
+        private readonly Game game;
 
-        public Level(game_data[] gameData)
+        public Level(Game game)
         {
-            this.gameData = gameData;
+            this.game = game;
         }
 
-        public char getlevch(int x, int y, int l)
+        public char GetLevelChar(int x, int y, int l)
         {
-            if ((l == 3 || l == 4) && !levfflag && DiggerC.g_Diggers == 2 && y == 9 && (x == 6 || x == 8))
+            if ((l == 3 || l == 4) && !IsUsingLevelFile && game.DiggerCount == 2 && y == 9 && (x == 6 || x == 8))
                 return 'H';
             return leveldat[l - 1, y][x];
         }
 
-        public int levplan()
+        public int LevelPlan()
         {
-            int l = levno();
+            int l = LevelNo();
             if (l > 8)
                 l = (l & 3) + 5; /* Level plan: 12345678, 678, (5678) 247 times, 5 forever */
             return l;
         }
 
-        public int levof10()
+        public int LevelOf10()
         {
-            if (gameData[DiggerC.g_CurrentPlayer].level > 10)
+            if (game.gamedat[game.CurrentPlayer].level > 10)
                 return 10;
-            return gameData[DiggerC.g_CurrentPlayer].level;
+            return game.gamedat[game.CurrentPlayer].level;
         }
 
-        public int levno()
+        public int LevelNo()
         {
-            return gameData[DiggerC.g_CurrentPlayer].level;
+            return game.gamedat[game.CurrentPlayer].level;
         }
 
-        public int read_levf()
+        public void ReadLevelFile()
         {
-            FileStream levf = null;
-            try
+            if (!File.Exists(LevelFileName))
             {
-                try
-                {
-                    levf = File.OpenRead(levfname);
-                }
-                catch (FileNotFoundException)
-                {
-                    levfname += ".DLF";
-                    try
-                    {
-                        levf = File.OpenRead(levfname);
-                    }
-                    catch (Exception ex)
-                    {
-                        DebugLog.Write(ex);
-                        DebugLog.Write("read_levf: levels file open error:");
-                        return (-1);
-                    }
-                }
-
-                using (var br = new BinaryReader(levf))
-                {
-                    try
-                    {
-                        DiggerC.scores.bonusscore = br.ReadInt32();
-                    }
-                    catch (Exception ex)
-                    {
-                        DebugLog.Write("read_levf: levels load error 1");
-                        DebugLog.Write(ex);
-                        return -1;
-                    }
-                }
-
-                try
-                {
-                    byte[] buff = new byte[15];
-                    for (int i = 0; i < 8; i++)
-                    {
-                        for (int j = 0; j < 10; j++)
-                        {
-                            levf.Read(buff, 0, 15);
-                            leveldat[i, j] = Encoding.ASCII.GetString(buff);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    DebugLog.Write("read_levf: levels load error 2");
-                    DebugLog.Write(ex);
-                    return -1;
-                }
-            }
-            finally
-            {
-                if (levf != null)
-                    levf.Close();
+                LevelFileName += ".DLF";
+                if (!File.Exists(LevelFileName))
+                    throw new FileNotFoundException($"File '{LevelFileName}' cannot be found.");
             }
 
-            return 0;
+            using (var levf = File.OpenRead(LevelFileName))
+            {
+                using (var br = new BinaryReader(levf, Encoding.ASCII, true))
+                {
+                    game.scores.bonusscore = br.ReadInt32();
+                }
+
+                byte[] buff = new byte[15];
+                for (int i = 0; i < 8; i++)
+                {
+                    for (int j = 0; j < 10; j++)
+                    {
+                        levf.Read(buff, 0, 15);
+                        leveldat[i, j] = Encoding.ASCII.GetString(buff);
+                    }
+                }
+            }
         }
     }
 }

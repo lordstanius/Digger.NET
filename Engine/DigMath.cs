@@ -24,6 +24,7 @@
  * SUCH DAMAGE.
  *
  */
+ // C# port by Mladen Stanisic
 
 using System;
 
@@ -91,15 +92,6 @@ namespace Digger.Net
             return x / (1 + System.Math.Abs(x));
         }
 
-        public static void _recfilter_peak_detect(ref recfilter f)
-        {
-            if (f.lastval > f.maxval)
-                f.maxval = f.lastval;
-
-            if (f.lastval < f.minval)
-                f.minval = f.maxval;
-        }
-
         public static double recfilter_apply(ref recfilter f, double x)
         {
             f.lastval = f.a * x + f.b * f.lastval;
@@ -123,10 +115,7 @@ namespace Digger.Net
             recfilter f = new recfilter();
 
             if (Fs < Fc * 2.0)
-            {
-                DebugLog.Write($"recfilter_init: cutoff frequency ({Fc:N1}) should be less than half of the sampling rate ({Fs:N1})");
-                Environment.Exit(0);
-            }
+                throw new InvalidOperationException($"recfilter_init: cutoff frequency ({Fc:N1}) should be less than half of the sampling rate ({Fs:N1})");
 
             f.b = System.Math.Exp(-2.0 * System.Math.PI * Fc / Fs);
             f.a = 1.0 - f.b;
@@ -163,10 +152,8 @@ namespace Digger.Net
             double n, w;
 
             if (Fs < Fc * 2.0)
-            {
-                DebugLog.Write($"fo_init: cutoff frequency ({Fc:N1}) should be less than half of the sampling rate ({Fs:N2})");
-                Environment.Exit(0);
-            }
+                throw new InvalidOperationException($"fo_init: cutoff frequency ({Fc:N1}) should be less than half of the sampling rate ({Fs:N2})");
+            
             w = System.Math.Tan(System.Math.PI * Fc / Fs);
             n = 1.0 / (1.0 + w);
             fp.a1 = n * (w - 1);
@@ -199,6 +186,15 @@ namespace Digger.Net
             fp.z1 = (x * fp.b0) + (fp.z0 * fp.b1) - (fp.z1 * fp.a1);
             fp.z0 = x;
             return (fp.z1);
+        }
+
+        private static void _recfilter_peak_detect(ref recfilter f)
+        {
+            if (f.lastval > f.maxval)
+                f.maxval = f.lastval;
+
+            if (f.lastval < f.minval)
+                f.minval = f.maxval;
         }
     }
 }

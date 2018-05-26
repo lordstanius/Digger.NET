@@ -34,8 +34,8 @@ namespace Digger.Net
             npalettes = new[] { pal1, pal2 };
             ipalettes = new[] { pal1i, pal2i };
 
-            alphas = new ch2bmap_plane(Alpha.ascii2vga);
-            sprites = new ch2bmap_plane(VgaGrafx.SpriteTable);
+            alphas = new Char2Surface(Alpha.ascii2vga);
+            sprites = new Char2Surface(VgaGrafx.SpriteTable);
         }
 
         public override void PutImage(int x, int y, Surface surface, int w, int h)
@@ -172,7 +172,7 @@ namespace Digger.Net
             DrawBackground(Properties.Resource.vtitle);
         }
 
-        private Surface ch2bmap(ref ch2bmap_plane planep, int sprite, int w, int h)
+        private Surface ch2bmap(ref Char2Surface planep, int sprite, int w, int h)
         {
             if (planep.caches[sprite] != null)
                 return (planep.caches[sprite]);

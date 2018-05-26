@@ -8,9 +8,9 @@ namespace Digger.Net
 {
     public abstract class SdlGraphics
     {
-        protected struct ch2bmap_plane
+        protected struct Char2Surface
         {
-            public ch2bmap_plane(byte[][] table)
+            public Char2Surface(byte[][] table)
             {
                 caches = new Surface[256];
                 sprites = table;
@@ -31,8 +31,8 @@ namespace Digger.Net
         protected SDL.SDL_Color[] pal2;
         protected SDL.SDL_Color[] pal2i;
 
-        protected ch2bmap_plane sprites;
-        protected ch2bmap_plane alphas;
+        protected Char2Surface sprites;
+        protected Char2Surface alphas;
         protected SDL.SDL_Color[][] npalettes;
         protected SDL.SDL_Color[][] ipalettes;
 
@@ -49,50 +49,30 @@ namespace Digger.Net
         public void Initialize()
         {
             if (SDL.SDL_InitSubSystem(SDL.SDL_INIT_VIDEO) < 0)
-            {
-                DebugLog.Write($"Couldn't initialize SDL: {SDL.SDL_GetError()}");
-                Environment.Exit(1);
-            }
+                throw new SystemException($"Couldn't initialize SDL: {SDL.SDL_GetError()}");
 
             window = SDL.SDL_CreateWindow("Digger", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, 640, 400, 0);
             if (window == null)
-            {
-                DebugLog.Write($"SDL_CreateWindow() failed: {SDL.SDL_GetError()}");
-                Environment.Exit(1);
-            }
+                throw new SystemException($"SDL_CreateWindow() failed: {SDL.SDL_GetError()}");
 
             renderer = SDL.SDL_CreateRenderer(window, -1, 0);
             if (renderer == null)
-            {
-                DebugLog.Write($"SDL_CreateRenderer() failed: {SDL.SDL_GetError()}");
-                Environment.Exit(1);
-            }
+                throw new SystemException($"SDL_CreateRenderer() failed: {SDL.SDL_GetError()}");
 
             roottxt = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_ARGB8888, (int)SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, 640, 400);
             if (roottxt == null)
-            {
-                DebugLog.Write($"SDL_CreateTexture() failed: {SDL.SDL_GetError()}");
-                Environment.Exit(1);
-            }
-            screen = Surface.CreateRGBSurface(0, 640, 400, 32,
-                0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+                throw new SystemException($"SDL_CreateTexture() failed: {SDL.SDL_GetError()}");
+
+            screen = Surface.CreateRGBSurface(0, 640, 400, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
             if (screen == null)
-            {
-                DebugLog.Write($"SDL_CreateRGBSurface() failed: {SDL.SDL_GetError()}");
-                Environment.Exit(1);
-            }
+                throw new SystemException($"SDL_CreateRGBSurface() failed: {SDL.SDL_GetError()}");
+
             screen16 = Surface.CreateRGBSurface(0, 640, 400, 8, 0, 0, 0, 0);
             if (screen16 == null)
-            {
-                DebugLog.Write($"SDL_CreateRGBSurface() failed: {SDL.SDL_GetError()}");
-                Environment.Exit(1);
-            }
+                throw new SystemException($"SDL_CreateRGBSurface() failed: {SDL.SDL_GetError()}");
 
             if (!SetMode())
-            {
-                DebugLog.Write($"Couldn't set 640x400x8 video mode: {SDL.SDL_GetError()}");
-                Environment.Exit(1);
-            }
+                throw new SystemException($"Couldn't set 640x400x8 video mode: {SDL.SDL_GetError()}");
 
             SDL.SDL_ShowCursor(1);
         }

@@ -28,7 +28,7 @@
  */
 namespace Digger.Net
 {
-    public class bullet_obj
+    public class Bullet
     {
         public int f_id;
         public int expsn;
@@ -36,29 +36,32 @@ namespace Digger.Net
         public int x;
         public int y;
 
-        public bullet_obj(int f_id, int dir, int x, int y)
+        private readonly Game game;
+
+        public Bullet(Game game, int f_id, int dir, int x, int y)
         {
             this.dir = dir;
             this.x = x;
             this.y = y;
             this.f_id = f_id;
             this.expsn = 0;
+            this.game = game;
         }
 
         public void put()
         {
-            DiggerC.sprites.movedrawspr(DiggerC.FIRSTFIREBALL + f_id, x, y);
+            game.sprites.MoveDrawSprite(Const.FIRSTFIREBALL + f_id, x, y);
         }
 
         public void animate()
         {
             System.Diagnostics.Debug.Assert(expsn < 4);
-            DiggerC.drawApi.drawfire(f_id, x, y, expsn);
+            game.drawApi.DrawFire(f_id, x, y, expsn);
             if (expsn > 0)
             {
                 if (expsn == 1)
                 {
-                    DiggerC.sound.soundexplode(f_id);
+                    game.sound.soundexplode(f_id);
                 }
                 ++expsn;
             }
@@ -66,10 +69,10 @@ namespace Digger.Net
 
         public void remove()
         {
-            DiggerC.sprites.erasespr(DiggerC.FIRSTFIREBALL + f_id);
+            game.sprites.EraseSprite(Const.FIRSTFIREBALL + f_id);
             if (expsn > 1)
             {
-                DiggerC.sound.soundfireoff(f_id);
+                game.sound.soundfireoff(f_id);
             }
             expsn = 0;
         }

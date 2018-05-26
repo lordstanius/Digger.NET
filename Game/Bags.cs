@@ -3,14 +3,14 @@
 
 namespace Digger.Net
 {
+    public struct Bag
+    {
+        public int x, y, h, v, xr, yr, dir, wt, gt, fallh;
+        public bool wobbling, unfallen, Exists;
+    }
+
     public class Bags
     {
-        public struct Bag
-        {
-            public int x, y, h, v, xr, yr, dir, wt, gt, fallh, id;
-            public bool wobbling, unfallen, exist;
-        }
-
         public Bag[] bagdat = new Bag[BAGS];
         public Bag[] bagdat1 = new Bag[BAGS];
         public Bag[] bagdat2 = new Bag[BAGS];
@@ -18,60 +18,59 @@ namespace Digger.Net
         public int pushcount;
         public int goldtime;
 
-        public Bag Current;
+        private const int BAGS = Const.BAGS;
+        private const int MWIDTH = Const.MWIDTH;
+        private const int MHEIGHT = Const.MHEIGHT;
+        private const int DIR_NONE = Const.DIR_NONE;
+        private const int DIR_RIGHT = Const.DIR_RIGHT;
+        private const int DIR_UP = Const.DIR_UP;
+        private const int DIR_LEFT = Const.DIR_LEFT;
+        private const int DIR_DOWN = Const.DIR_DOWN;
+        private const int FIRSTBAG = Const.FIRSTBAG;
+        private const int MAX_W = Const.MAX_W;
+        private const int MAX_H = Const.MAX_H;
+        private const int CHR_W = Const.CHR_W;
+        private const int CHR_H = Const.CHR_H;
+        private const int TYPES = Const.TYPES;
+        private const int SPRITES = Const.SPRITES;
+        private const int FIRSTDIGGER = Const.FIRSTDIGGER;
 
-        private const int BAGS = DiggerC.BAGS;
-        private const int MWIDTH = DiggerC.MWIDTH;
-        private const int MHEIGHT = DiggerC.MHEIGHT;
-        private const int DIR_NONE = DiggerC.DIR_NONE;
-        private const int DIR_RIGHT = DiggerC.DIR_RIGHT;
-        private const int DIR_UP = DiggerC.DIR_UP;
-        private const int DIR_LEFT = DiggerC.DIR_LEFT;
-        private const int DIR_DOWN = DiggerC.DIR_DOWN;
-        private const int FIRSTBAG = DiggerC.FIRSTBAG;
-        private const int MAX_W = DiggerC.MAX_W;
-        private const int MAX_H = DiggerC.MAX_H;
-        private const int CHR_W = DiggerC.CHR_W;
-        private const int CHR_H = DiggerC.CHR_H;
-        private const int TYPES = DiggerC.TYPES;
-        private const int SPRITES = DiggerC.SPRITES;
-        private const int FIRSTDIGGER = DiggerC.FIRSTDIGGER;
+        private readonly Game game;
+        private readonly Level level;
+        private readonly Sound sound;
+        private readonly DrawApi drawApi;
+        private readonly Monsters monsters;
+        private readonly Sprites sprites;
+        private readonly Scores scores;
+        private readonly Diggers diggers;
 
-        private Level level;
-        private Sound sound;
-        private DrawApi drawApi;
-        private Monsters monsters;
-        private Sprites sprites;
-        private Scores scores;
-        private Digger digger;
-
-        public Bags(Level level, Sound sound, DrawApi drawApi, Monsters monsters, Sprites sprites, Scores scores, Digger digger)
+        public Bags(Game game)
         {
-            this.level = level;
-            this.sound = sound;
-            this.drawApi = drawApi;
-            this.monsters = monsters;
-            this.sprites = sprites;
-            this.scores = scores;
-            this.digger = digger;
+            this.game = game;
+            this.level = game.level;
+            this.sound = game.sound;
+            this.drawApi = game.drawApi;
+            this.monsters = game.monsters;
+            this.sprites = game.sprites;
+            this.scores = game.scores;
+            this.diggers = game.diggers;
         }
 
         public void Initialize()
         {
             short bag, x, y;
             pushcount = 0;
-            goldtime = 150 - level.levof10() * 10;
+            goldtime = 150 - level.LevelOf10() * 10;
             bagdat = new Bag[BAGS];
             for (bag = 0; bag < BAGS; bag++)
-                bagdat[bag].exist = false;
+                bagdat[bag].Exists = false;
             bag = 0;
             for (x = 0; x < MWIDTH; x++)
                 for (y = 0; y < MHEIGHT; y++)
-                    if (level.getlevch(x, y, level.levplan()) == 'B')
+                    if (level.GetLevelChar(x, y, level.LevelPlan()) == 'B')
                         if (bag < BAGS)
                         {
-                            bagdat[bag].id = bag;
-                            bagdat[bag].exist = true;
+                            bagdat[bag].Exists = true;
                             bagdat[bag].gt = 0;
                             bagdat[bag].fallh = 0;
                             bagdat[bag].dir = DIR_NONE;
@@ -85,7 +84,7 @@ namespace Digger.Net
                             bagdat[bag].xr = 0;
                             bagdat[bag++].yr = 0;
                         }
-            if (DiggerC.g_CurrentPlayer == 0)
+            if (game.CurrentPlayer == 0)
                 bagdat.CopyTo(bagdat1, 0);
             else
                 bagdat.CopyTo(bagdat2, 0);
@@ -96,13 +95,13 @@ namespace Digger.Net
             short bag;
             for (bag = 0; bag < BAGS; bag++)
             {
-                if (DiggerC.g_CurrentPlayer == 0)
+                if (game.CurrentPlayer == 0)
                     bagdat[bag] = bagdat1[bag];
                 else
                     bagdat[bag] = bagdat2[bag];
 
-                if (bagdat[bag].exist)
-                    sprites.movedrawspr(bag + FIRSTBAG, bagdat[bag].x, bagdat[bag].y);
+                if (bagdat[bag].Exists)
+                    sprites.MoveDrawSprite(bag + FIRSTBAG, bagdat[bag].x, bagdat[bag].y);
             }
         }
 
@@ -112,14 +111,14 @@ namespace Digger.Net
             sound.soundfalloff();
             for (bag = 0; bag < BAGS; bag++)
             {
-                if (bagdat[bag].exist && ((bagdat[bag].h == 7 && bagdat[bag].v == 9) ||
+                if (bagdat[bag].Exists && ((bagdat[bag].h == 7 && bagdat[bag].v == 9) ||
                     bagdat[bag].xr != 0 || bagdat[bag].yr != 0 || bagdat[bag].gt != 0 ||
                     bagdat[bag].fallh != 0 || bagdat[bag].wobbling))
                 {
-                    bagdat[bag].exist = false;
-                    sprites.erasespr(bag + FIRSTBAG);
+                    bagdat[bag].Exists = false;
+                    sprites.EraseSprite(bag + FIRSTBAG);
                 }
-                if (DiggerC.g_CurrentPlayer == 0)
+                if (game.CurrentPlayer == 0)
                     bagdat1[bag] = bagdat[bag];
                 else
                     bagdat2[bag] = bagdat[bag];
@@ -131,45 +130,44 @@ namespace Digger.Net
             bool soundfalloffflag = true, soundwobbleoffflag = true;
             for (int bag = 0; bag < BAGS; ++bag)
             {
-                Current = bagdat[bag];
-                if (bagdat[bag].exist)
+                if (!bagdat[bag].Exists)
+                    continue;
+
+                if (bagdat[bag].gt != 0)
                 {
-                    if (bagdat[bag].gt != 0)
+                    if (bagdat[bag].gt == 1)
                     {
-                        if (bagdat[bag].gt == 1)
-                        {
-                            sound.soundbreak();
-                            drawApi.DrawGold(bag, 4, bagdat[bag].x, bagdat[bag].y);
-                            DiggerC.incpenalty();
-                        }
-                        if (bagdat[bag].gt == 3)
-                        {
-                            drawApi.DrawGold(bag, 5, bagdat[bag].x, bagdat[bag].y);
-                            DiggerC.incpenalty();
-                        }
-                        if (bagdat[bag].gt == 5)
-                        {
-                            drawApi.DrawGold(bag, 6, bagdat[bag].x, bagdat[bag].y);
-                            DiggerC.incpenalty();
-                        }
-                        bagdat[bag].gt++;
-                        if (bagdat[bag].gt == goldtime)
-                            RemoveBag(bag);
-                        else
-                          if (bagdat[bag].v < MHEIGHT - 1 && bagdat[bag].gt < goldtime - 10)
-                            if ((monsters.getfield(bagdat[bag].h, bagdat[bag].v + 1) & 0x2000) == 0)
-                                bagdat[bag].gt = goldtime - 10;
+                        sound.soundbreak();
+                        drawApi.DrawGold(bag, 4, bagdat[bag].x, bagdat[bag].y);
+                        game.IncreasePenalty();
                     }
+                    if (bagdat[bag].gt == 3)
+                    {
+                        drawApi.DrawGold(bag, 5, bagdat[bag].x, bagdat[bag].y);
+                        game.IncreasePenalty();
+                    }
+                    if (bagdat[bag].gt == 5)
+                    {
+                        drawApi.DrawGold(bag, 6, bagdat[bag].x, bagdat[bag].y);
+                        game.IncreasePenalty();
+                    }
+                    bagdat[bag].gt++;
+                    if (bagdat[bag].gt == goldtime)
+                        RemoveBag(bag);
                     else
-                        UpdateBag(bag);
+                      if (bagdat[bag].v < MHEIGHT - 1 && bagdat[bag].gt < goldtime - 10)
+                        if ((monsters.GetField(bagdat[bag].h, bagdat[bag].v + 1) & 0x2000) == 0)
+                            bagdat[bag].gt = goldtime - 10;
                 }
+                else
+                    UpdateBag(bag);
             }
 
             for (int bag = 0; bag < BAGS; bag++)
             {
-                if (bagdat[bag].dir == DIR_DOWN && bagdat[bag].exist)
+                if (bagdat[bag].dir == DIR_DOWN && bagdat[bag].Exists)
                     soundfalloffflag = false;
-                if (bagdat[bag].dir != DIR_DOWN && bagdat[bag].wobbling && bagdat[bag].exist)
+                if (bagdat[bag].dir != DIR_DOWN && bagdat[bag].wobbling && bagdat[bag].Exists)
                     soundwobbleoffflag = false;
             }
 
@@ -208,13 +206,13 @@ namespace Digger.Net
                             if ((wbl & 1) == 0)
                             {
                                 drawApi.DrawGold(bag, wblanim[wbl >> 1], x, y);
-                                DiggerC.incpenalty();
+                                game.IncreasePenalty();
                                 sound.soundwobble();
                             }
                         }
                         else
-                          if ((monsters.getfield(h, v + 1) & 0xfdf) != 0xfdf)
-                            if (!digger.checkdiggerunderbag(h, v + 1))
+                          if ((monsters.GetField(h, v + 1) & 0xfdf) != 0xfdf)
+                            if (!diggers.checkdiggerunderbag(h, v + 1))
                                 bagdat[bag].wobbling = true;
                     }
                     else
@@ -227,7 +225,7 @@ namespace Digger.Net
                 case DIR_LEFT:
                     if (xr == 0)
                     {
-                        if (y < 180 && (monsters.getfield(h, v + 1) & 0xfdf) != 0xfdf)
+                        if (y < 180 && (monsters.GetField(h, v + 1) & 0xfdf) != 0xfdf)
                         {
                             bagdat[bag].dir = DIR_DOWN;
                             bagdat[bag].wt = 0;
@@ -243,10 +241,10 @@ namespace Digger.Net
                     if (y >= 180)
                         OnBagHitsTheGround(bag);
                     else
-                      if ((monsters.getfield(h, v + 1) & 0xfdf) == 0xfdf)
+                      if ((monsters.GetField(h, v + 1) & 0xfdf) == 0xfdf)
                         if (yr == 0)
                             OnBagHitsTheGround(bag);
-                    monsters.checkmonscared(bagdat[bag].h);
+                    monsters.CheckIsMonsterScared(bagdat[bag].h);
                     break;
             }
             if (bagdat[bag].dir != DIR_NONE)
@@ -274,7 +272,7 @@ namespace Digger.Net
                 clfirst[i] = sprites.first[i];
             for (int i = 0; i < SPRITES; i++)
                 clcoll[i] = sprites.coll[i];
-            DiggerC.incpenalty();
+            game.IncreasePenalty();
             int j = clfirst[1];
             while (j != -1)
             {
@@ -307,16 +305,16 @@ namespace Digger.Net
                     clfirst[i] = sprites.first[i];
                 for (i = 0; i < SPRITES; i++)
                     clcoll[i] = sprites.coll[i];
-                DiggerC.incpenalty();
+                game.IncreasePenalty();
                 i = clfirst[4];
                 while (i != -1)
                 {
-                    if (digger.diggery(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer) >= y)
-                        digger.killdigger(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer, 1, bag);
+                    if (diggers.DiggerY(i - FIRSTDIGGER + game.CurrentPlayer) >= y)
+                        diggers.KillDigger(i - FIRSTDIGGER + game.CurrentPlayer, 1, bag);
                     i = clcoll[i];
                 }
                 if (clfirst[2] != -1)
-                    monsters.SquashMonsters(this, clfirst, clcoll);
+                    monsters.SquashMonsters(bag, clfirst, clcoll);
                 return true;
             }
             if ((x == 292 && dir == DIR_RIGHT) || (x == 12 && dir == DIR_LEFT) ||
@@ -336,13 +334,13 @@ namespace Digger.Net
                         if (bagdat[bag].unfallen)
                         {
                             bagdat[bag].unfallen = false;
-                            drawApi.drawsquareblob(x, y);
-                            drawApi.drawtopblob(x, y + 21);
+                            drawApi.DrawSquareBlob(x, y);
+                            drawApi.DrawTopBlob(x, y + 21);
                         }
                         else
-                            drawApi.drawfurryblob(x, y);
+                            drawApi.DrawFurryBlob(x, y);
                         drawApi.EatField(x, y, dir);
-                        DiggerC.killemerald(h, v);
+                        game.emeralds.KillEmerald(h, v);
                         y += 6;
                         break;
                 }
@@ -354,16 +352,16 @@ namespace Digger.Net
                             clfirst[i] = sprites.first[i];
                         for (i = 0; i < SPRITES; i++)
                             clcoll[i] = sprites.coll[i];
-                        DiggerC.incpenalty();
+                        game.IncreasePenalty();
                         i = clfirst[4];
                         while (i != -1)
                         {
-                            if (digger.diggery(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer) >= y)
-                                digger.killdigger(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer, 1, bag);
+                            if (diggers.DiggerY(i - FIRSTDIGGER + game.CurrentPlayer) >= y)
+                                diggers.KillDigger(i - FIRSTDIGGER + game.CurrentPlayer, 1, bag);
                             i = clcoll[i];
                         }
                         if (clfirst[2] != -1)
-                            monsters.SquashMonsters(this, clfirst, clcoll);
+                            monsters.SquashMonsters(bag, clfirst, clcoll);
                         break;
                     case DIR_RIGHT:
                     case DIR_LEFT:
@@ -374,7 +372,7 @@ namespace Digger.Net
                             clfirst[i] = sprites.first[i];
                         for (i = 0; i < SPRITES; i++)
                             clcoll[i] = sprites.coll[i];
-                        DiggerC.incpenalty();
+                        game.IncreasePenalty();
                         pushcount = 1;
                         if (clfirst[1] != -1)
                             if (!PushBags(dir, clfirst, clcoll))
@@ -382,14 +380,14 @@ namespace Digger.Net
                                 x = ox;
                                 y = oy;
                                 drawApi.DrawGold(bag, 0, ox, oy);
-                                DiggerC.incpenalty();
+                                game.IncreasePenalty();
                                 push = false;
                             }
                         i = clfirst[4];
                         digf = false;
                         while (i != -1)
                         {
-                            if (digger.digalive(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer))
+                            if (diggers.IsDiggerAlive(i - FIRSTDIGGER + game.CurrentPlayer))
                                 digf = true;
                             i = clcoll[i];
                         }
@@ -398,7 +396,7 @@ namespace Digger.Net
                             x = ox;
                             y = oy;
                             drawApi.DrawGold(bag, 0, ox, oy);
-                            DiggerC.incpenalty();
+                            game.IncreasePenalty();
                             push = false;
                         }
                         break;
@@ -406,7 +404,7 @@ namespace Digger.Net
                 if (push)
                     bagdat[bag].dir = dir;
                 else
-                    bagdat[bag].dir = digger.reversedir(dir);
+                    bagdat[bag].dir = diggers.reversedir(dir);
                 bagdat[bag].x = x;
                 bagdat[bag].y = y;
                 bagdat[bag].h = (x - 12) / 20;
@@ -447,26 +445,26 @@ namespace Digger.Net
 
         private void RemoveBag(int bag)
         {
-            if (bagdat[bag].exist)
+            if (bagdat[bag].Exists)
             {
-                bagdat[bag].exist = false;
-                sprites.erasespr(bag + FIRSTBAG);
+                bagdat[bag].Exists = false;
+                sprites.EraseSprite(bag + FIRSTBAG);
             }
         }
 
         public bool BagExists(int bag)
         {
-            return bagdat[bag].exist;
+            return bagdat[bag].Exists;
         }
 
-        public int BagY(int bag)
+        public int GetBagY(int bag)
         {
             return bagdat[bag].y;
         }
 
-        public int GetBagDir(int bag)
+        public int GetBagDirection(int bag)
         {
-            if (bagdat[bag].exist)
+            if (bagdat[bag].Exists)
                 return bagdat[bag].dir;
             return -1;
         }
@@ -485,7 +483,7 @@ namespace Digger.Net
         {
             short bag, n = 0;
             for (bag = 0; bag < BAGS; bag++)
-                if (bagdat[bag].exist && bagdat[bag].gt < 10 &&
+                if (bagdat[bag].Exists && bagdat[bag].gt < 10 &&
                     (bagdat[bag].gt != 0 || bagdat[bag].wobbling))
                     n++;
             return n;
@@ -496,21 +494,21 @@ namespace Digger.Net
             bool f = true;
             int i;
             drawApi.DrawGold(bag, 6, bagdat[bag].x, bagdat[bag].y);
-            DiggerC.incpenalty();
+            game.IncreasePenalty();
             i = sprites.first[4];
             while (i != -1)
             {
-                if (digger.digalive(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer))
+                if (diggers.IsDiggerAlive(i - FIRSTDIGGER + game.CurrentPlayer))
                 {
-                    scores.scoregold(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer);
+                    scores.scoregold(i - FIRSTDIGGER + game.CurrentPlayer);
                     sound.soundgold();
-                    digger.digresettime(i - FIRSTDIGGER + DiggerC.g_CurrentPlayer);
+                    diggers.ResetDiggerTime(i - FIRSTDIGGER + game.CurrentPlayer);
                     f = false;
                 }
                 i = sprites.coll[i];
             }
             if (f)
-                monsters.mongold();
+                monsters.MonsterGotGold();
 
             RemoveBag(bag);
         }

@@ -15,8 +15,8 @@ namespace Digger.Net
             npalettes = new[] { pal1, pal2 };
             ipalettes = new[] { pal1i, pal2i };
 
-            alphas = new ch2bmap_plane(Alpha.ascii2cga);
-            sprites = new ch2bmap_plane(CgaGrafx.SpriteTable);
+            alphas = new Char2Surface(Alpha.ascii2cga);
+            sprites = new Char2Surface(CgaGrafx.SpriteTable);
         }
 
         public override void GetImage(int x, int y, ref Surface tmp, int w, int h)

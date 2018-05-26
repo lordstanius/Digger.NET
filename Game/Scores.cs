@@ -14,7 +14,7 @@ namespace Digger.Net
             public int score, nextbs;
         }
 
-        static scdat_struct[] scdat = new scdat_struct[DiggerC.DIGGERS];
+        static scdat_struct[] scdat = new scdat_struct[Const.DIGGERS];
 
         public string highbuf;
 
@@ -34,20 +34,20 @@ namespace Digger.Net
 
         public const string SFNAME = "DIGGER.SCO";
 
-        private SdlGraphics gfx;
-        private Level level;
-        private Digger digger;
+        private readonly Game game;
+        private readonly SdlGraphics gfx;
+        private readonly DrawApi drawApi;
 
-        public Scores(SdlGraphics gfx, Level level, Digger digger)
+        public Scores(Game game)
         {
-            this.gfx = gfx;
-            this.level = level;
-            this.digger = digger;
+            this.game = game;
+            this.gfx = game.gfx;
+            this.drawApi = game.drawApi;
         }
 
         private void readscores()
         {
-            if (!level.levfflag)
+            if (!game.level.IsUsingLevelFile)
             {
                 if (File.Exists(SFNAME))
                 {
@@ -60,7 +60,7 @@ namespace Digger.Net
             }
             else
             {
-                using (var inFile = File.OpenRead(level.levfname))
+                using (var inFile = File.OpenRead(game.level.LevelFileName))
                 {
                     inFile.Seek(1202, SeekOrigin.Begin);
                     if (inFile.Read(scorebuf, 0, 512) == 0)
@@ -71,7 +71,7 @@ namespace Digger.Net
 
         private void writescores()
         {
-            if (!level.levfflag)
+            if (!game.level.IsUsingLevelFile)
             {
                 using (var inFile = File.OpenWrite(SFNAME))
                 {
@@ -80,7 +80,7 @@ namespace Digger.Net
             }
             else
             {
-                using (var inFile = File.OpenRead(level.levfname))
+                using (var inFile = File.OpenRead(game.level.LevelFileName))
                 {
                     inFile.Seek(1202, SeekOrigin.Begin);
                     inFile.Write(scorebuf, 0, 512);
@@ -91,7 +91,7 @@ namespace Digger.Net
         public void initscores()
         {
             int i;
-            for (i = 0; i < DiggerC.g_Diggers; i++)
+            for (i = 0; i < game.DiggerCount; i++)
                 addscore(i, 0);
         }
 
@@ -99,9 +99,9 @@ namespace Digger.Net
         {
             int p = 0;
             readscores();
-            if (DiggerC.g_isGauntletMode)
+            if (game.IsGauntletMode)
                 p = 111;
-            if (DiggerC.g_Diggers == 2)
+            if (game.DiggerCount == 2)
                 p += 222;
             if (scorebuf[p++] != 's')
             {
@@ -134,7 +134,7 @@ namespace Digger.Net
 
         public void writecurscore(int col)
         {
-            if (DiggerC.g_CurrentPlayer == 0)
+            if (game.CurrentPlayer == 0)
                 writenum(scdat[0].score, 0, 0, 6, col);
             else
               if (scdat[1].score < 100000)
@@ -146,7 +146,7 @@ namespace Digger.Net
         public void drawscores()
         {
             writenum(scdat[0].score, 0, 0, 6, 3);
-            if (DiggerC.g_playerCount == 2 || DiggerC.g_Diggers == 2)
+            if (game.PlayerCount == 2 || game.DiggerCount == 2)
             {
                 if (scdat[1].score < 100000)
                     writenum(scdat[1].score, 236, 0, 6, 3);
@@ -169,73 +169,73 @@ namespace Digger.Net
                 writenum(scdat[n].score, 248, 0, 6, 1);
             if (scdat[n].score >= scdat[n].nextbs + n)
             { /* +n to reproduce original bug */
-                if (digger.getlives(n) < 5 || DiggerC.g_hasUnlimitedLives)
+                if (game.diggers.getlives(n) < 5 || game.HasUnlimitedLives)
                 {
-                    if (DiggerC.g_isGauntletMode)
-                        digger.cgtime += 17897715; /* 15 second time bonus instead of the life */
+                    if (game.IsGauntletMode)
+                        game.diggers.cgtime += 17897715; /* 15 second time bonus instead of the life */
                     else
-                        digger.addlife(n);
-                    digger.drawlives();
+                        game.diggers.addlife(n);
+                    game.diggers.DrawLives();
                 }
                 scdat[n].nextbs += bonusscore;
             }
-            DiggerC.incpenalty();
-            DiggerC.incpenalty();
-            DiggerC.incpenalty();
+            game.IncreasePenalty();
+            game.IncreasePenalty();
+            game.IncreasePenalty();
         }
 
         public void endofgame()
         {
             bool initflag = false;
-            for (int i = 0; i < DiggerC.g_Diggers; i++)
+            for (int i = 0; i < game.DiggerCount; i++)
                 addscore(i, 0);
-            if (DiggerC.record.playing || !DiggerC.record.drfvalid)
+            if (game.record.IsPlaying || !game.record.IsDrfValid)
                 return;
 
-            if (DiggerC.g_isGauntletMode)
+            if (game.IsGauntletMode)
             {
-                DiggerC.cleartopline();
-                DiggerC.drawApi.TextOut("TIME UP", 120, 0, 3);
-                for (int i = 0; i < 50 && !DiggerC.input.escape; i++)
-                    DiggerC.newframe();
-                DiggerC.drawApi.EraseText(7, 120, 0, 3);
+                game.ClearTopLine();
+                game.drawApi.TextOut("TIME UP", 120, 0, 3);
+                for (int i = 0; i < 50 && !game.input.IsGameCycleEnded; i++)
+                    game.newframe();
+                drawApi.EraseText(7, 120, 0, 3);
             }
-            for (int i = DiggerC.g_CurrentPlayer; i < DiggerC.g_CurrentPlayer + DiggerC.g_Diggers; i++)
+            for (int i = game.CurrentPlayer; i < game.CurrentPlayer + game.DiggerCount; i++)
             {
                 scoret = scdat[i].score;
                 if (scoret > scorehigh[11])
                 {
                     gfx.Clear();
                     drawscores();
-                    DiggerC.g_playerName = $"PLAYER {(i == 0 ? 1 : 2)}";
-                    DiggerC.drawApi.TextOut(DiggerC.g_playerName, 108, 0, 2);
-                    DiggerC.drawApi.TextOut(" NEW HIGH SCORE ", 64, 40, 2);
+                    game.PlayerName = $"PLAYER {(i == 0 ? 1 : 2)}";
+                    drawApi.TextOut(game.PlayerName, 108, 0, 2);
+                    drawApi.TextOut(" NEW HIGH SCORE ", 64, 40, 2);
                     getinitials();
-                    shufflehigh();
+                    ShuffleHigh();
                     savescores();
                     initflag = true;
                 }
             }
-            if (!initflag && !DiggerC.g_isGauntletMode)
+            if (!initflag && !game.IsGauntletMode)
             {
-                DiggerC.cleartopline();
-                DiggerC.drawApi.TextOut("GAME OVER", 104, 0, 3);
-                for (int i = 0; i < 50 && !DiggerC.input.escape; i++)
-                    DiggerC.newframe();
-                DiggerC.drawApi.EraseText(9, 104, 0, 3);
+                game.ClearTopLine();
+                drawApi.TextOut("GAME OVER", 104, 0, 3);
+                for (int i = 0; i < 50 && !game.input.IsGameCycleEnded; i++)
+                    game.newframe();
+                drawApi.EraseText(9, 104, 0, 3);
             }
         }
 
         public void showtable(SdlGraphics ddap)
         {
             int i, col;
-            DiggerC.drawApi.TextOut("HIGH SCORES", 16, 25, 3);
+            drawApi.TextOut("HIGH SCORES", 16, 25, 3);
             col = 2;
             for (i = 1; i < 11; i++)
             {
                 highbuf = numtostring(scorehigh[i + 1]);
                 hsbuf = $"{scoreinit[i]}  {highbuf}";
-                DiggerC.drawApi.TextOut(hsbuf, 16, 31 + 13 * i, col);
+                drawApi.TextOut(hsbuf, 16, 31 + 13 * i, col);
                 col = 1;
             }
         }
@@ -243,9 +243,9 @@ namespace Digger.Net
         private void savescores()
         {
             int i, p = 0, j;
-            if (DiggerC.g_isGauntletMode)
+            if (game.IsGauntletMode)
                 p = 111;
-            if (DiggerC.g_Diggers == 2)
+            if (game.DiggerCount == 2)
                 p += 222;
             scorebuf[p] = (byte)'s';
             for (i = 1; i < 11; i++)
@@ -261,19 +261,19 @@ namespace Digger.Net
         public void getinitials()
         {
             int k, i;
-            DiggerC.newframe();
-            DiggerC.drawApi.TextOut("ENTER YOUR", 100, 70, 3);
-            DiggerC.drawApi.TextOut(" INITIALS", 100, 90, 3);
-            DiggerC.drawApi.TextOut("_ _ _", 128, 130, 3);
+            game.newframe();
+            drawApi.TextOut("ENTER YOUR", 100, 70, 3);
+            drawApi.TextOut(" INITIALS", 100, 90, 3);
+            drawApi.TextOut("_ _ _", 128, 130, 3);
             scoreinit[0] = "...";
-            DiggerC.sound.KillSound();
+            game.sound.KillSound();
             var initials = new char[3];
             for (i = 0; i < 3; i++)
             {
                 k = 0;
                 while (k == 0)
                 {
-                    k = getinitial(i * 24 + 128, 130);
+                    k = GetInitial(i * 24 + 128, 130);
                     if (k == 8 || k == 127)
                     {
                         if (i > 0)
@@ -289,34 +289,37 @@ namespace Digger.Net
             }
             scoreinit[0] = new string(initials);
             for (i = 0; i < 20; i++)
-                flashywait(15);
+                FlashyWait(15);
 
-            DiggerC.sound.SetupSound();
+            game.sound.SetupSound();
             gfx.Clear();
             gfx.SetPalette(0);
             gfx.SetIntensity(0);
-            DiggerC.record.recputinit(scoreinit[0]);
+            game.record.PutInitials(scoreinit[0]);
         }
 
-        public void flashywait(int n)
+        public void FlashyWait(int n)
         {
-            int i, gt, cx;
             int p = 0;
-            byte gap = 19;
+            int gap = 19;
 
-            DiggerC.timer.SyncFrame();
-            DiggerC.gfx.UpdateScreen();
+            game.timer.SyncFrame();
 
-            for (i = 0; i < (n << 1); i++)
-                for (cx = 0; cx < DiggerC.sound.volume; cx++)
+            for (int i = 0; i < 2 * n; i++)
+            {
+                for (int cx = 0; cx < game.sound.volume; cx++)
                 {
                     p = 1 - p;
                     gfx.SetPalette(p);
-                    for (gt = 0; gt < gap; gt++) ;
+                    for (int gt = 0; gt < gap; gt++)
+                        ;
                 }
+
+                gfx.UpdateScreen();
+            }
         }
 
-        public int getinitial(int x, int y)
+        public int GetInitial(int x, int y)
         {
             int i;
             gfx.WriteChar(x, y, '_', 3);
@@ -324,28 +327,28 @@ namespace Digger.Net
             {
                 for (i = 0; i < 40; i++)
                 {
-                    if (DiggerC.input.keyboard.IsKeyboardHit())
+                    if (game.input.keyboard.IsKeyboardHit())
                     {
-                        int key = DiggerC.input.keyboard.GetKey(false);
+                        int key = game.input.keyboard.GetKey(false);
                         if (!char.IsLetterOrDigit((char)key))
                             continue;
                         return key;
                     }
-                    flashywait(15);
+                    FlashyWait(15);
                 }
                 for (i = 0; i < 40; i++)
                 {
-                    if (DiggerC.input.keyboard.IsKeyboardHit())
+                    if (game.input.keyboard.IsKeyboardHit())
                     {
                         gfx.WriteChar(x, y, '_', 3);
-                        return DiggerC.input.keyboard.GetKey(false);
+                        return game.input.keyboard.GetKey(false);
                     }
-                    flashywait(15);
+                    FlashyWait(15);
                 }
             } while (true);
         }
 
-        private void shufflehigh()
+        private void ShuffleHigh()
         {
             int i, j;
             for (j = 10; j > 1; j--)

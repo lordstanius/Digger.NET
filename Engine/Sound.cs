@@ -18,6 +18,13 @@ namespace Digger.Net
 
         public uint randvs = 0;
 
+        private Game game;
+
+        public Sound(Game game)
+        {
+            this.game = game;
+        }
+
         public uint randnos(int n)
         {
             randvs = randvs * 0x15a4e35 + 1;
@@ -76,11 +83,11 @@ namespace Digger.Net
             int i;
             soundfalloff();
             soundwobbleoff();
-            for (i = 0; i < DiggerC.FIREBALLS; i++)
+            for (i = 0; i < Const.FIREBALLS; i++)
                 soundfireoff(i);
             musicoff();
             soundbonusoff();
-            for (i = 0; i < DiggerC.FIREBALLS; i++)
+            for (i = 0; i < Const.FIREBALLS; i++)
                 soundexplodeoff(i);
             soundbreakoff();
             soundemoff();
@@ -102,13 +109,13 @@ namespace Digger.Net
             nljpointer = 0;
             nljnoteduration = 20;
             soundlevdoneflag = soundpausedflag = true;
-            DiggerC.g_FrameTime /= 5;
-            while (soundlevdoneflag && !input.escape)
+            game.timer.FrameTime /= 5;
+            while (soundlevdoneflag && !input.IsGameCycleEnded)
             {
                 if (!device.IsWaveDeviceAvailable)
                     soundlevdoneflag = false;
 
-                DiggerC.timer.SyncFrame();	/* Let some CPU time go away */
+                game.timer.SyncFrame();	/* Let some CPU time go away */
                 soundint();
 
                 if (timerclock == timer)
@@ -117,7 +124,7 @@ namespace Digger.Net
                 input.checkkeyb(this);
                 timer = timerclock;
             }
-            DiggerC.g_FrameTime *= 5;
+            game.timer.FrameTime *= 5;
             soundlevdoneoff();
         }
 
@@ -262,10 +269,10 @@ namespace Digger.Net
             }
         }
 
-        public bool[] soundfireflag = new bool[DiggerC.FIREBALLS];
-        public bool[] sff = new bool[DiggerC.FIREBALLS];
-        public ushort[] soundfirevalue = new ushort[DiggerC.FIREBALLS];
-        public ushort[] soundfiren = new ushort[DiggerC.FIREBALLS];
+        public bool[] soundfireflag = new bool[Const.FIREBALLS];
+        public bool[] sff = new bool[Const.FIREBALLS];
+        public ushort[] soundfirevalue = new ushort[Const.FIREBALLS];
+        public ushort[] soundfiren = new ushort[Const.FIREBALLS];
         public int soundfirew = 0;
 
         public void soundfire(int n)
@@ -284,7 +291,7 @@ namespace Digger.Net
         {
             int n;
             bool f = false;
-            for (n = 0; n < DiggerC.FIREBALLS; n++)
+            for (n = 0; n < Const.FIREBALLS; n++)
             {
                 sff[n] = false;
                 if (soundfireflag[n])
@@ -307,17 +314,17 @@ namespace Digger.Net
                 do
                 {
                     n = soundfirew++;
-                    if (soundfirew == DiggerC.FIREBALLS)
+                    if (soundfirew == Const.FIREBALLS)
                         soundfirew = 0;
                 } while (!sff[n]);
                 t2val = (ushort)(soundfirevalue[n] + randnos(soundfirevalue[n] >> 3));
             }
         }
 
-        public bool[] soundexplodeflag = new bool[DiggerC.FIREBALLS];
-        public bool[] sef = new bool[DiggerC.FIREBALLS];
-        public ushort[] soundexplodevalue = new ushort[DiggerC.FIREBALLS];
-        public ushort[] soundexplodeduration = new ushort[DiggerC.FIREBALLS];
+        public bool[] soundexplodeflag = new bool[Const.FIREBALLS];
+        public bool[] sef = new bool[Const.FIREBALLS];
+        public ushort[] soundexplodevalue = new ushort[Const.FIREBALLS];
+        public ushort[] soundexplodeduration = new ushort[Const.FIREBALLS];
         public int soundexplodew = 0;
 
         public void soundexplode(int n)
@@ -337,7 +344,7 @@ namespace Digger.Net
         {
             int n;
             bool f = false;
-            for (n = 0; n < DiggerC.FIREBALLS; n++)
+            for (n = 0; n < Const.FIREBALLS; n++)
             {
                 sef[n] = false;
                 if (soundexplodeflag[n])
@@ -358,7 +365,7 @@ namespace Digger.Net
                 do
                 {
                     n = soundexplodew++;
-                    if (soundexplodew == DiggerC.FIREBALLS)
+                    if (soundexplodew == Const.FIREBALLS)
                         soundexplodew = 0;
                 } while (!sef[n]);
                 t2val = soundexplodevalue[n];
@@ -875,7 +882,7 @@ namespace Digger.Net
 
         public void SetupSound()
         {
-            DiggerC.g_CurrentTime = 0;
+            game.CurrentTime = 0;
             startint8();
         }
 
