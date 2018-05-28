@@ -17,19 +17,19 @@ namespace Digger.Net
             "Cheat","Accel","Brake","Music","Sound","Exit","Pause",
             "Mode Change","Save DRF"};
 
-        public static void Redefine(Game game, Input input, DrawApi drawApi, bool allf)
+        public static void Redefine(Game game, Input input, Video video, bool allf)
         {
             int i, j, k, l, z, y = 0, x, savey;
             bool f;
 
             game.Initialize();
 
-            drawApi.TextOut("PRESS NEW KEY FOR", 0, y, 3);
+            video.TextOut("PRESS NEW KEY FOR", 0, y, 3);
             y += CHR_H;
 
             if (game.DiggerCount == 2)
             {
-                drawApi.TextOut("PLAYER 1:", 0, y, 3);
+                video.TextOut("PLAYER 1:", 0, y, 3);
                 y += CHR_H;
             }
 
@@ -38,9 +38,9 @@ namespace Digger.Net
             savey = y;
             for (i = 0; i < 5; i++)
             {
-                drawApi.TextOut(KeyNames[i], 0, y, 2); /* Red first */
+                video.TextOut(KeyNames[i], 0, y, 2); /* Red first */
                 if (input.ProcessKey(i) == -1) return;
-                drawApi.TextOut(KeyNames[i], 0, y, 1); /* Green once got */
+                video.TextOut(KeyNames[i], 0, y, 1); /* Green once got */
                 y += CHR_H;
                 for (j = 0; j < i; j++)
                 { /* Note: only check keys just pressed (I hate it when
@@ -66,13 +66,13 @@ namespace Digger.Net
 
             if (game.DiggerCount == 2)
             {
-                drawApi.TextOut("PLAYER 2:", 0, y, 3);
+                video.TextOut("PLAYER 2:", 0, y, 3);
                 y += CHR_H;
                 for (i = 5; i < 10; i++)
                 {
-                    drawApi.TextOut(KeyNames[i], 0, y, 2); /* Red first */
+                    video.TextOut(KeyNames[i], 0, y, 2); /* Red first */
                     if (input.ProcessKey(i) == -1) return;
-                    drawApi.TextOut(KeyNames[i], 0, y, 1); /* Green once got */
+                    video.TextOut(KeyNames[i], 0, y, 1); /* Green once got */
                     y += CHR_H;
                     for (j = 0; j < i; j++)
                     { /* Note: only check keys just pressed (I hate it when
@@ -101,7 +101,7 @@ namespace Digger.Net
 
             if (allf)
             {
-                drawApi.TextOut("OTHER:", 0, y, 3);
+                video.TextOut("OTHER:", 0, y, 3);
                 y += CHR_H;
             }
 
@@ -130,9 +130,9 @@ namespace Digger.Net
                         y = savey;
                         x = (MAX_TEXT_LEN / 2) * CHR_W;
                     }
-                    drawApi.TextOut(KeyNames[i], x, y, 2); /* Red first */
+                    video.TextOut(KeyNames[i], x, y, 2); /* Red first */
                     if (input.ProcessKey(i) == -1) return;
-                    drawApi.TextOut(KeyNames[i], x, y, 1); /* Green once got */
+                    video.TextOut(KeyNames[i], x, y, 1); /* Green once got */
                     z = i;
                     i--;
                 }

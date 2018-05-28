@@ -49,13 +49,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Engine\ISoundDevice.cs" />
+    <Compile Include="Engine\ITimer.cs" />
     <Compile Include="Engine\SdlGraphicsCga.cs" />
     <Compile Include="Game\Const.cs" />
     <Compile Include="Game\Emeralds.cs" />
     <Compile Include="Game\Level.cs" />
     <Compile Include="Game\Monsters.cs" />
     <Compile Include="Graphics\Alpha.cs" />
-    <Compile Include="Engine\DrawApi.cs" />
+    <Compile Include="Engine\Video.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1632,7 +1632,7 @@ namespace Digger.Net
             vgaletO,vgaletP,vgaletQ,vgaletR,vgaletS,vgaletT,vgaletU,        /* opqrstu */
             vgaletV,vgaletW,vgaletX,vgaletY,vgaletZ,null,null,null,null };             /* vwxyz{|}~ */
 
-        public static bool isvalchar(int ch)
+        public static bool IsValidChar(int ch)
         {
             return ch - 32 < 0x5f && ch >= 32 && ascii2vga[ch - 32] != null;
         }

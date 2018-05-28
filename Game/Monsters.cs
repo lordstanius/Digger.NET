@@ -36,12 +36,12 @@ namespace Digger.Net
         private bool unbonusflag = false;
 
         private readonly Game game;
-        private readonly DrawApi drawApi;
+        private readonly Video video;
 
         public Monsters(Game game)
         {
             this.game = game;
-            this.drawApi = game.drawApi;
+            this.video = game.video;
         }
 
         public void Initialize()
@@ -301,7 +301,7 @@ namespace Digger.Net
             /* Hobbins dig */
 
             if (!mondat[mon].monstrObj.IsNobbin)
-                drawApi.EatField(mopos.x, mopos.y, mondat[mon].dir);
+                video.EatField(mopos.x, mopos.y, mondat[mon].dir);
 
             /* (Draw new tunnels) and move monster */
             mopos_changed = true;
@@ -309,22 +309,22 @@ namespace Digger.Net
             {
                 case DIR_RIGHT:
                     if (!mondat[mon].monstrObj.IsNobbin)
-                        drawApi.DrawRightBlob(mopos.x, mopos.y);
+                        video.DrawRightBlob(mopos.x, mopos.y);
                     mopos.x += 4;
                     break;
                 case DIR_UP:
                     if (!mondat[mon].monstrObj.IsNobbin)
-                        drawApi.DrawTopBlob(mopos.x, mopos.y);
+                        video.DrawTopBlob(mopos.x, mopos.y);
                     mopos.y -= 3;
                     break;
                 case DIR_LEFT:
                     if (!mondat[mon].monstrObj.IsNobbin)
-                        drawApi.DrawLeftBlob(mopos.x, mopos.y);
+                        video.DrawLeftBlob(mopos.x, mopos.y);
                     mopos.x -= 4;
                     break;
                 case DIR_DOWN:
                     if (!mondat[mon].monstrObj.IsNobbin)
-                        drawApi.DrawBottomBlob(mopos.x, mopos.y);
+                        video.DrawBottomBlob(mopos.x, mopos.y);
                     mopos.y += 3;
                     break;
                 default:
@@ -525,9 +525,9 @@ namespace Digger.Net
                     {
                         KillMonster(mon);
                         if (game.DiggerCount == 2)
-                            game.scores.scorekill2();
+                            game.scores.ScoreKill();
                         else
-                            game.scores.scorekill(game.CurrentPlayer);
+                            game.scores.ScoreKill(game.CurrentPlayer);
                     }
                     break;
             }
@@ -643,7 +643,7 @@ namespace Digger.Net
 
         public int GetField(int x, int y)
         {
-            return drawApi.field[y * 15 + x];
+            return video.field[y * 15 + x];
         }
     }
 }

@@ -62,7 +62,7 @@ namespace Digger.Net
 
         public void animate()
         {
-            game.drawApi.DrawDigger(d_id, dir, x, y, can_fire);
+            game.video.DrawDigger(d_id, dir, x, y, can_fire);
         }
 
         public void discharge()

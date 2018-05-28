@@ -71,7 +71,7 @@ namespace Digger.Net
             if (screen16 == null)
                 throw new SystemException($"SDL_CreateRGBSurface() failed: {SDL.SDL_GetError()}");
 
-            if (!SetMode())
+            if (!SetDisplayMode())
                 throw new SystemException($"Couldn't set 640x400x8 video mode: {SDL.SDL_GetError()}");
 
             SDL.SDL_ShowCursor(1);
@@ -87,12 +87,14 @@ namespace Digger.Net
             tmp.Free();
         }
 
-        public void SetIntensity(int intensity)
+        public void SetHighIntensity()
         {
-            if (intensity == 1)
-                SetPallete(ipalettes[curPalette]);
-            else
-                SetPallete(npalettes[curPalette]);
+            SetPallete(ipalettes[curPalette]);
+        }
+
+        public void SetNormalIntensity()
+        {
+            SetPallete(npalettes[curPalette]);
         }
 
         public void SetPalette(int palette)
@@ -101,10 +103,10 @@ namespace Digger.Net
             curPalette = palette;
         }
 
-        public virtual void SwitchMode()
+        public virtual void SwitchDisplayMode()
         {
             isFullScreen = !isFullScreen;
-            if (!SetMode())
+            if (!SetDisplayMode())
             {
                 isFullScreen = !isFullScreen;
                 DebugLog.Write($"Fatal: failed to change videomode: {SDL.SDL_GetError()}");
@@ -125,7 +127,7 @@ namespace Digger.Net
             SDL.SDL_RenderPresent(renderer);
         }
 
-        public virtual bool SetMode()
+        public virtual bool SetDisplayMode()
         {
             if (isFullScreen)
                 return SDL.SDL_SetWindowFullscreen(window, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) == 0;

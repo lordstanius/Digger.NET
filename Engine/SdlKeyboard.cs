@@ -22,13 +22,11 @@ namespace Digger.Net
     {
         private static SDL.SDL_EventFilter pHandler;
 
-        private readonly SdlGraphics gfx;
-        private readonly SdlTimer timer;
+        private Game game;
 
-        public SdlKeyboard(SdlGraphics gfx, SdlTimer timer)
+        public SdlKeyboard(Game game)
         {
-            this.gfx = gfx;
-            this.timer = timer;
+            this.game = game;
 
             SDL.SDL_EventState(SDL.SDL_EventType.SDL_MOUSEMOTION, SDL.SDL_IGNORE);
             SDL.SDL_EventState(SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN, SDL.SDL_IGNORE);
@@ -101,7 +99,7 @@ namespace Digger.Net
                     sdlEvent.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) &&
                     ((sdlEvent.key.keysym.mod & SDL.SDL_Keymod.KMOD_ALT) != 0))
                 {
-                    gfx.SwitchMode();
+                    game.video.SwitchDisplayMode();
                 }
             }
 
@@ -125,8 +123,8 @@ namespace Digger.Net
 
             while (!IsKeyboardHit())
             {
-                timer.SyncFrame();
-                gfx.UpdateScreen();
+                game.timer.SyncFrame();
+                game.video.UpdateScreen();
             }
 
             if (scancode)

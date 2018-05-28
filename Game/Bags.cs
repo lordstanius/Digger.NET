@@ -38,7 +38,7 @@ namespace Digger.Net
         private readonly Game game;
         private readonly Level level;
         private readonly Sound sound;
-        private readonly DrawApi drawApi;
+        private readonly Video video;
         private readonly Monsters monsters;
         private readonly Sprites sprites;
         private readonly Scores scores;
@@ -49,7 +49,7 @@ namespace Digger.Net
             this.game = game;
             this.level = game.level;
             this.sound = game.sound;
-            this.drawApi = game.drawApi;
+            this.video = game.video;
             this.monsters = game.monsters;
             this.sprites = game.sprites;
             this.scores = game.scores;
@@ -138,17 +138,17 @@ namespace Digger.Net
                     if (bagdat[bag].gt == 1)
                     {
                         sound.soundbreak();
-                        drawApi.DrawGold(bag, 4, bagdat[bag].x, bagdat[bag].y);
+                        video.DrawGold(bag, 4, bagdat[bag].x, bagdat[bag].y);
                         game.IncreasePenalty();
                     }
                     if (bagdat[bag].gt == 3)
                     {
-                        drawApi.DrawGold(bag, 5, bagdat[bag].x, bagdat[bag].y);
+                        video.DrawGold(bag, 5, bagdat[bag].x, bagdat[bag].y);
                         game.IncreasePenalty();
                     }
                     if (bagdat[bag].gt == 5)
                     {
-                        drawApi.DrawGold(bag, 6, bagdat[bag].x, bagdat[bag].y);
+                        video.DrawGold(bag, 6, bagdat[bag].x, bagdat[bag].y);
                         game.IncreasePenalty();
                     }
                     bagdat[bag].gt++;
@@ -198,14 +198,14 @@ namespace Digger.Net
                             if (bagdat[bag].wt == 0)
                             {
                                 bagdat[bag].dir = DIR_DOWN;
-                                sound.soundfall();
+                                sound.SoundFall();
                                 break;
                             }
                             bagdat[bag].wt--;
                             wbl = bagdat[bag].wt % 8;
                             if ((wbl & 1) == 0)
                             {
-                                drawApi.DrawGold(bag, wblanim[wbl >> 1], x, y);
+                                video.DrawGold(bag, wblanim[wbl >> 1], x, y);
                                 game.IncreasePenalty();
                                 sound.soundwobble();
                             }
@@ -229,7 +229,7 @@ namespace Digger.Net
                         {
                             bagdat[bag].dir = DIR_DOWN;
                             bagdat[bag].wt = 0;
-                            sound.soundfall();
+                            sound.SoundFall();
                         }
                         else
                             OnBagHitsTheGround(bag);
@@ -267,7 +267,7 @@ namespace Digger.Net
             bagdat[bag].dir = DIR_NONE;
             bagdat[bag].wt = 15;
             bagdat[bag].wobbling = false;
-            drawApi.DrawGold(bag, 0, bagdat[bag].x, bagdat[bag].y);
+            video.DrawGold(bag, 0, bagdat[bag].x, bagdat[bag].y);
             for (int i = 0; i < TYPES; i++)
                 clfirst[i] = sprites.first[i];
             for (int i = 0; i < SPRITES; i++)
@@ -300,7 +300,7 @@ namespace Digger.Net
             }
             if (bagdat[bag].dir == DIR_DOWN && (dir == DIR_RIGHT || dir == DIR_LEFT))
             {
-                drawApi.DrawGold(bag, 3, x, y);
+                video.DrawGold(bag, 3, x, y);
                 for (i = 0; i < TYPES; i++)
                     clfirst[i] = sprites.first[i];
                 for (i = 0; i < SPRITES; i++)
@@ -334,12 +334,12 @@ namespace Digger.Net
                         if (bagdat[bag].unfallen)
                         {
                             bagdat[bag].unfallen = false;
-                            drawApi.DrawSquareBlob(x, y);
-                            drawApi.DrawTopBlob(x, y + 21);
+                            video.DrawSquareBlob(x, y);
+                            video.DrawTopBlob(x, y + 21);
                         }
                         else
-                            drawApi.DrawFurryBlob(x, y);
-                        drawApi.EatField(x, y, dir);
+                            video.DrawFurryBlob(x, y);
+                        video.EatField(x, y, dir);
                         game.emeralds.KillEmerald(h, v);
                         y += 6;
                         break;
@@ -347,7 +347,7 @@ namespace Digger.Net
                 switch (dir)
                 {
                     case DIR_DOWN:
-                        drawApi.DrawGold(bag, 3, x, y);
+                        video.DrawGold(bag, 3, x, y);
                         for (i = 0; i < TYPES; i++)
                             clfirst[i] = sprites.first[i];
                         for (i = 0; i < SPRITES; i++)
@@ -367,7 +367,7 @@ namespace Digger.Net
                     case DIR_LEFT:
                         bagdat[bag].wt = 15;
                         bagdat[bag].wobbling = false;
-                        drawApi.DrawGold(bag, 0, x, y);
+                        video.DrawGold(bag, 0, x, y);
                         for (i = 0; i < TYPES; i++)
                             clfirst[i] = sprites.first[i];
                         for (i = 0; i < SPRITES; i++)
@@ -379,7 +379,7 @@ namespace Digger.Net
                             {
                                 x = ox;
                                 y = oy;
-                                drawApi.DrawGold(bag, 0, ox, oy);
+                                video.DrawGold(bag, 0, ox, oy);
                                 game.IncreasePenalty();
                                 push = false;
                             }
@@ -395,7 +395,7 @@ namespace Digger.Net
                         {
                             x = ox;
                             y = oy;
-                            drawApi.DrawGold(bag, 0, ox, oy);
+                            video.DrawGold(bag, 0, ox, oy);
                             game.IncreasePenalty();
                             push = false;
                         }
@@ -493,7 +493,7 @@ namespace Digger.Net
         {
             bool f = true;
             int i;
-            drawApi.DrawGold(bag, 6, bagdat[bag].x, bagdat[bag].y);
+            video.DrawGold(bag, 6, bagdat[bag].x, bagdat[bag].y);
             game.IncreasePenalty();
             i = sprites.first[4];
             while (i != -1)

@@ -17,12 +17,12 @@
         private byte[] emeraldField = new byte[MSIZE];
 
         private Game game;
-        private DrawApi drawApi;
+        private Video video;
 
         public Emeralds(Game game)
         {
             this.game = game;
-            this.drawApi = game.drawApi;
+            this.video = game.video;
         }
 
         public void DrawEmeralds()
@@ -31,7 +31,7 @@
             for (int x = 0; x < MWIDTH; x++)
                 for (int y = 0; y < MHEIGHT; y++)
                     if ((emeraldField[y * MWIDTH + x] & emmask) != 0)
-                        drawApi.DrawEmerald(x * 20 + 12, y * 18 + 21);
+                        video.DrawEmerald(x * 20 + 12, y * 18 + 21);
         }
 
         public void MakeEmeraldField()
@@ -63,12 +63,12 @@
             {
                 if (r == emeraldBox[dir])
                 {
-                    drawApi.DrawEmerald(x * 20 + 12, y * 18 + 21);
+                    video.DrawEmerald(x * 20 + 12, y * 18 + 21);
                     game.IncreasePenalty();
                 }
                 if (r == emeraldBox[dir + 1])
                 {
-                    drawApi.EraseEmerald(x * 20 + 12, y * 18 + 21);
+                    video.EraseEmerald(x * 20 + 12, y * 18 + 21);
                     game.IncreasePenalty();
                     hit = true;
                     emeraldField[y * MWIDTH + x] &= (byte)~emmask;
@@ -92,7 +92,7 @@
             if ((emeraldField[(y + 1) * MWIDTH + x] & emmask) != 0)
             {
                 emeraldField[(y + 1) * MWIDTH + x] &= (byte)~emmask;
-                drawApi.EraseEmerald(x * 20 + 12, (y + 1) * 18 + 21);
+                video.EraseEmerald(x * 20 + 12, (y + 1) * 18 + 21);
             }
         }
     }

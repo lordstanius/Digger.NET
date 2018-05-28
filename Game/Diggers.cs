@@ -42,7 +42,7 @@ namespace Digger.Net
         public uint cgtime;
 
         private readonly Game game;
-        private readonly DrawApi drawApi;
+        private readonly Video video;
         private readonly Input input;
         private readonly Sound sound;
         private readonly Sprites sprites;
@@ -52,7 +52,7 @@ namespace Digger.Net
         {
             this.game = game;
             this.input = game.input;
-            this.drawApi = game.drawApi;
+            this.video = game.video;
             this.sound = game.sound;
             this.sprites = game.sprites;
             this.level = game.level;
@@ -110,7 +110,7 @@ namespace Digger.Net
 
         public void DoDiggers(Bags bags, Monsters monsters, Scores scores)
         {
-            game.newframe();
+            game.NewFrame();
             if (game.IsGauntletMode)
             {
                 DrawLives();
@@ -154,19 +154,19 @@ namespace Digger.Net
                         startbonustimeleft--;
                         if ((bonustimeleft & 1) != 0)
                         {
-                            drawApi.gfx.SetIntensity(0);
+                            video.SetIntensity(VideoIntensity.Normal);
                             sound.soundbonus();
                         }
                         else
                         {
-                            drawApi.gfx.SetIntensity(1);
+                            video.SetIntensity(VideoIntensity.High);
                             sound.soundbonus();
                         }
                         if (startbonustimeleft == 0)
                         {
                             sound.music(0);
                             sound.soundbonusoff();
-                            drawApi.gfx.SetIntensity(1);
+                            video.SetIntensity(VideoIntensity.High);
                         }
                     }
                 }
@@ -247,26 +247,26 @@ namespace Digger.Net
                 {
                     case DIR_RIGHT:
                         digdat[n].bob.x += 8;
-                        pix = drawApi.gfx.GetPixel(digdat[n].bob.x, digdat[n].bob.y + 4) |
-                            drawApi.gfx.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + 4);
+                        pix = video.GetPixel(digdat[n].bob.x, digdat[n].bob.y + 4) |
+                            video.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + 4);
                         break;
                     case DIR_UP:
                         digdat[n].bob.y -= 7;
                         pix = 0;
                         for (i = 0; i < 7; i++)
-                            pix |= drawApi.gfx.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + i);
+                            pix |= video.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + i);
                         pix &= 0xc0;
                         break;
                     case DIR_LEFT:
                         digdat[n].bob.x -= 8;
-                        pix = drawApi.gfx.GetPixel(digdat[n].bob.x, digdat[n].bob.y + 4) |
-                            drawApi.gfx.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + 4);
+                        pix = video.GetPixel(digdat[n].bob.x, digdat[n].bob.y + 4) |
+                            video.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + 4);
                         break;
                     case DIR_DOWN:
                         digdat[n].bob.y += 7;
                         pix = 0;
                         for (i = 0; i < 7; i++)
-                            pix |= drawApi.gfx.GetPixel(digdat[n].bob.x, digdat[n].bob.y + i);
+                            pix |= video.GetPixel(digdat[n].bob.x, digdat[n].bob.y + i);
                         pix &= 0x3;
                         break;
                 }
@@ -280,7 +280,7 @@ namespace Digger.Net
                 while (i != -1)
                 {
                     monsters.KillMonster(i - FIRSTMONSTER);
-                    scores.scorekill(n);
+                    scores.ScoreKill(n);
                     digdat[n].bob.explode();
                     i = clcoll[i];
                 }
@@ -438,23 +438,23 @@ namespace Digger.Net
             diggerox = digdat[n].dob.x;
             diggeroy = digdat[n].dob.y;
             if (digdat[n].mdir != DIR_NONE)
-                drawApi.EatField(diggerox, diggeroy, digdat[n].mdir);
+                video.EatField(diggerox, diggeroy, digdat[n].mdir);
             switch (digdat[n].mdir)
             {
                 case DIR_RIGHT:
-                    drawApi.DrawRightBlob(digdat[n].dob.x, digdat[n].dob.y);
+                    video.DrawRightBlob(digdat[n].dob.x, digdat[n].dob.y);
                     digdat[n].dob.x += 4;
                     break;
                 case DIR_UP:
-                    drawApi.DrawTopBlob(digdat[n].dob.x, digdat[n].dob.y);
+                    video.DrawTopBlob(digdat[n].dob.x, digdat[n].dob.y);
                     digdat[n].dob.y -= 3;
                     break;
                 case DIR_LEFT:
-                    drawApi.DrawLeftBlob(digdat[n].dob.x, digdat[n].dob.y);
+                    video.DrawLeftBlob(digdat[n].dob.x, digdat[n].dob.y);
                     digdat[n].dob.x -= 4;
                     break;
                 case DIR_DOWN:
-                    drawApi.DrawBottomBlob(digdat[n].dob.x, digdat[n].dob.y);
+                    video.DrawBottomBlob(digdat[n].dob.x, digdat[n].dob.y);
                     digdat[n].dob.y += 3;
                     break;
             }
@@ -464,7 +464,7 @@ namespace Digger.Net
             {
                 if (digdat[n].emocttime == 0)
                     digdat[n].emn = 0;
-                scores.scoreemerald(n);
+                scores.ScoreEmerald(n);
                 sound.soundem();
                 sound.soundemerald(digdat[n].emn);
 
@@ -472,7 +472,7 @@ namespace Digger.Net
                 if (digdat[n].emn == 8)
                 {
                     digdat[n].emn = 0;
-                    scores.scoreoctave(n);
+                    scores.ScoreOctave(n);
                 }
                 digdat[n].emocttime = 9;
             }
@@ -523,7 +523,7 @@ namespace Digger.Net
                 }
             if (clfirst[0] != -1)
             {
-                scores.scorebonus(n);
+                scores.ScoreBonus(n);
                 initbonusmode();
             }
             digdat[n].h = (digdat[n].dob.x - 12) / 20;
@@ -534,7 +534,7 @@ namespace Digger.Net
 
         public void sceatm(int n, Scores scores)
         {
-            scores.scoreeatm(n, digdat[n].msc);
+            scores.ScoreEatMonster(n, digdat[n].msc);
             digdat[n].msc <<= 1;
         }
 
@@ -550,7 +550,7 @@ namespace Digger.Net
                 case 1:
                     if (bags.GetBagY(digdat[n].deathbag) + 6 > digdat[n].dob.y)
                         digdat[n].dob.y = bags.GetBagY(digdat[n].deathbag) + 6;
-                    drawApi.DrawDigger(n - game.CurrentPlayer, 15, digdat[n].dob.x, digdat[n].dob.y, false);
+                    video.DrawDigger(n - game.CurrentPlayer, 15, digdat[n].dob.x, digdat[n].dob.y, false);
                     game.IncreasePenalty();
                     if (bags.GetBagDirection(digdat[n].deathbag) + 1 == 0)
                     {
@@ -569,7 +569,7 @@ namespace Digger.Net
                     }
                     if (digdat[n].deathani == 0)
                         sound.music(2);
-                    drawApi.DrawDigger(n - game.CurrentPlayer, 14 - digdat[n].deathani, digdat[n].dob.x, digdat[n].dob.y,
+                    video.DrawDigger(n - game.CurrentPlayer, 14 - digdat[n].deathani, digdat[n].dob.x, digdat[n].dob.y,
                                false);
                     for (int i = 0; i < TYPES; i++)
                         clfirst[i] = sprites.first[i];
@@ -600,7 +600,7 @@ namespace Digger.Net
                 case 5:
                     if (digdat[n].deathani >= 0 && digdat[n].deathani <= 6)
                     {
-                        drawApi.DrawDigger(n - game.CurrentPlayer, 15, digdat[n].dob.x,
+                        video.DrawDigger(n - game.CurrentPlayer, 15, digdat[n].dob.x,
                                    digdat[n].dob.y - deatharc[digdat[n].deathani], false);
                         if (digdat[n].deathani == 6 && !IsAlive())
                             sound.musicoff();
@@ -676,7 +676,7 @@ namespace Digger.Net
         public void createbonus()
         {
             bonusvisible = true;
-            drawApi.DrawBonus(292, 18);
+            video.DrawBonus(292, 18);
         }
 
         private void initbonusmode()
@@ -684,7 +684,7 @@ namespace Digger.Net
             int i;
             bonusmode = true;
             erasebonus();
-            drawApi.gfx.SetIntensity(1);
+            video.SetIntensity(VideoIntensity.High);
             bonustimeleft = 250 - level.LevelOf10() * 20;
             startbonustimeleft = 20;
             for (i = 0; i < game.DiggerCount; i++)
@@ -694,7 +694,7 @@ namespace Digger.Net
         private void endbonusmode()
         {
             bonusmode = false;
-            drawApi.gfx.SetIntensity(0);
+            video.SetIntensity(0);
         }
 
         public void erasebonus()
@@ -704,7 +704,7 @@ namespace Digger.Net
                 bonusvisible = false;
                 sprites.EraseSprite(Const.FIRSTBONUS);
             }
-            drawApi.gfx.SetIntensity(0);
+            video.SetIntensity(VideoIntensity.Normal);
         }
 
         public int reversedir(int dir)
@@ -777,7 +777,7 @@ namespace Digger.Net
             return false;
         }
 
-        public int getlives(int pl)
+        public int GetLives(int pl)
         {
             return digdat[pl].lives;
         }
@@ -808,41 +808,41 @@ namespace Digger.Net
             {
                 g = (int)(cgtime / 1193181);
                 string buf = string.Format("{0:D3}:{1:D2}", g / 60, g % 60);
-                drawApi.TextOut(buf, 124, 0, 3);
+                video.TextOut(buf, 124, 0, 3);
                 return;
             }
-            n = getlives(0) - 1;
-            drawApi.EraseText(5, 96, 0, 2);
+            n = GetLives(0) - 1;
+            video.EraseText(5, 96, 0, 2);
             if (n > 4)
             {
-                drawApi.DrawLife(0, 80, 0);
+                video.DrawLife(0, 80, 0);
                 string buf = string.Format("0x{0:X4}", n);
-                drawApi.TextOut(buf, 100, 0, 2);
+                video.TextOut(buf, 100, 0, 2);
             }
             else
             {
                 for (l = 1; l < 5; l++)
                 {
-                    drawApi.DrawLife(n > 0 ? 0 : 2, l * 20 + 60, 0);
+                    video.DrawLife(n > 0 ? 0 : 2, l * 20 + 60, 0);
                     n--;
                 }
             }
 
             if (game.PlayerCount == 2)
             {
-                drawApi.EraseText(5, 164, 0, 2);
-                n = getlives(1) - 1;
+                video.EraseText(5, 164, 0, 2);
+                n = GetLives(1) - 1;
                 if (n > 4)
                 {
                     string buf = string.Format("0x{0:X4}", n);
-                    drawApi.TextOut(buf, 220 - buf.Length * Const.CHR_W, 0, 2);
-                    drawApi.DrawLife(1, 224, 0);
+                    video.TextOut(buf, 220 - buf.Length * Const.CHR_W, 0, 2);
+                    video.DrawLife(1, 224, 0);
                 }
                 else
                 {
                     for (l = 1; l < 5; l++)
                     {
-                        drawApi.DrawLife(n > 0 ? 1 : 2, 244 - l * 20, 0);
+                        video.DrawLife(n > 0 ? 1 : 2, 244 - l * 20, 0);
                         n--;
                     }
                 }
@@ -850,19 +850,19 @@ namespace Digger.Net
 
             if (game.DiggerCount == 2)
             {
-                drawApi.EraseText(5, 164, 0, 1);
-                n = getlives(1) - 1;
+                video.EraseText(5, 164, 0, 1);
+                n = GetLives(1) - 1;
                 if (n > 4)
                 {
                     string buf = string.Format("0x{0:X4}", n);
-                    drawApi.TextOut(buf, 220 - buf.Length * Const.CHR_W, 0, 1);
-                    drawApi.DrawLife(3, 224, 0);
+                    video.TextOut(buf, 220 - buf.Length * Const.CHR_W, 0, 1);
+                    video.DrawLife(3, 224, 0);
                 }
                 else
                 {
                     for (l = 1; l < 5; l++)
                     {
-                        drawApi.DrawLife(n > 0 ? 3 : 2, 244 - l * 20, 0);
+                        video.DrawLife(n > 0 ? 3 : 2, 244 - l * 20, 0);
                         n--;
                     }
                 }

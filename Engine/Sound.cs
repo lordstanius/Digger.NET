@@ -102,7 +102,7 @@ namespace Digger.Net
         public bool soundlevdoneflag = false;
         public short nljpointer = 0, nljnoteduration = 0;
 
-        public void soundlevdone(Input input)
+        public void SoundLevelDone(Input input)
         {
             short timer = 0;
             soundstop();
@@ -120,22 +120,22 @@ namespace Digger.Net
 
                 if (timerclock == timer)
                     continue;
-                soundlevdoneupdate();
+                SoundLevdoneUpdate();
                 input.checkkeyb(this);
                 timer = timerclock;
             }
             game.timer.FrameTime *= 5;
-            soundlevdoneoff();
+            SoundLevelDoneOff();
         }
 
-        public void soundlevdoneoff()
+        public void SoundLevelDoneOff()
         {
             soundlevdoneflag = soundpausedflag = false;
         }
 
         public ushort[] NewLevelJingle = { 0x8e8, 0x712, 0x5f2, 0x7f0, 0x6ac, 0x54c, 0x712, 0x5f2, 0x4b8, 0x474, 0x474 };
 
-        public void soundlevdoneupdate()
+        public void SoundLevdoneUpdate()
         {
             if (sndflag)
             {
@@ -153,7 +153,7 @@ namespace Digger.Net
                     nljnoteduration = 20;
                     nljpointer++;
                     if (nljpointer > 10)
-                        soundlevdoneoff();
+                        SoundLevelDoneOff();
                 }
             }
             else
@@ -164,7 +164,7 @@ namespace Digger.Net
         public bool soundfallflag = false, soundfallf = false;
         public ushort soundfallvalue, soundfalln = 0;
 
-        public void soundfall()
+        public void SoundFall()
         {
             soundfallvalue = 1000;
             soundfallflag = true;
@@ -851,7 +851,7 @@ namespace Digger.Net
             SetSpeakerT2();
         }
 
-        public void initsound()
+        public void Initialize()
         {
             SetTimer2(40);
             SetSpeakerT2();

@@ -55,14 +55,13 @@ namespace Digger.Net
         public uint gameTime = 0;
         public uint randv;
 
-        public bool levnotdrawn = false, alldead = false;
+        public bool levnotdrawn = false, IsEverybodyDead = false;
         public bool IsInitialized, started;
 
-        public SdlGraphics gfx;
         public Level level;
-        public DrawApi drawApi;
+        public Video video;
         public Sprites sprites;
-        public SdlTimer timer;
+        public ITimer timer;
         public Scores scores;
         public Recording record;
         public Input input;
@@ -76,13 +75,12 @@ namespace Digger.Net
 
         public Game()
         {
-            gfx = new SdlGraphicsVga();
             timer = new SdlTimer();
             sound = new Sound(this);
             input = new Input(this);
             level = new Level(this);
-            sprites = new Sprites(gfx);
-            drawApi = new DrawApi(this);
+            sprites = new Sprites(this);
+            video = new Video(this);
             emeralds = new Emeralds(this);
             diggers = new Diggers(this);
             scores = new Scores(this);
@@ -95,10 +93,17 @@ namespace Digger.Net
         {
             var game = new Game();
 
-            game.ReadIni();
-            game.ParseCmdLine(args);
-            game.Initialize();
-            game.GameLoop();
+            try
+            {
+                game.ReadIni();
+                game.ParseCmdLine(args);
+                game.Initialize();
+                game.GameLoop();
+            }
+            catch (Exception ex)
+            {
+                DebugLog.Write(ex);
+            }
         }
 
         public void Initialize()
@@ -107,10 +112,9 @@ namespace Digger.Net
                 return;
 
             calibrate();
-            gfx.Initialize();
-            gfx.SetPalette(0);
-            input.detectjoy();
-            sound.initsound();
+            video.Initialize();
+            input.DetectJoystick();
+            sound.Initialize();
 
             IsInitialized = true;
         }
@@ -125,8 +129,8 @@ namespace Digger.Net
             }
 
             diggers.InitializeLives();
-            alldead = false;
-            gfx.Clear();
+            IsEverybodyDead = false;
+            video.Clear();
             CurrentPlayer = 0;
             initlevel();
             CurrentPlayer = 1;
@@ -136,11 +140,11 @@ namespace Digger.Net
             if (PlayerCount == 2)
                 flashplayer = true;
             CurrentPlayer = 0;
-            while (getalllives() != 0 && !input.IsGameCycleEnded && !IsTimeOut)
+            while (GetAllLives() != 0 && !input.IsGameCycleEnded && !IsTimeOut)
             {
-                while (!alldead && !input.IsGameCycleEnded && !IsTimeOut)
+                while (!IsEverybodyDead && !input.IsGameCycleEnded && !IsTimeOut)
                 {
-                    drawApi.InitializeMBSprite();
+                    video.InitializeMBSprite();
 
                     if (record.IsPlaying)
                         randv = record.PlayGetRand();
@@ -161,22 +165,22 @@ namespace Digger.Net
                             {
                                 for (int c = 1; c <= 3; c++)
                                 {
-                                    drawApi.TextOut(PlayerName, 108, 0, c);
+                                    video.TextOut(PlayerName, 108, 0, c);
                                     scores.writecurscore(c);
-                                    newframe();
+                                    NewFrame();
                                     if (input.IsGameCycleEnded)
                                         return;
                                 }
                             }
                             scores.drawscores();
                             for (int i = 0; i < DiggerCount; i++)
-                                scores.addscore(i, 0);
+                                scores.AddScore(i, 0);
                         }
                     }
                     else
                         initchars();
 
-                    drawApi.EraseText(8, 108, 0, 3);
+                    video.EraseText(8, 108, 0, 3);
                     scores.initscores();
                     diggers.DrawLives();
                     sound.music(1);
@@ -185,7 +189,7 @@ namespace Digger.Net
                     for (int i = 0; i < DiggerCount; i++)
                         input.readdirect(i);
 
-                    while (!alldead && !gamedat[CurrentPlayer].levdone && !input.IsGameCycleEnded && !IsTimeOut)
+                    while (!IsEverybodyDead && !gamedat[CurrentPlayer].levdone && !input.IsGameCycleEnded && !IsTimeOut)
                     {
                         penalty = 0;
                         diggers.DoDiggers(bags, monsters, scores);
@@ -216,7 +220,7 @@ namespace Digger.Net
 
                     diggers.erasebonus();
                     bags.Cleanup();
-                    drawApi.SaveField();
+                    video.SaveField();
                     monsters.EraseMonsters();
                     record.PutEndOfLevel();
                     if (record.IsPlaying)
@@ -224,11 +228,11 @@ namespace Digger.Net
                     if (input.IsGameCycleEnded)
                         record.PutEndOfGame();
                     if (gamedat[CurrentPlayer].levdone)
-                        sound.soundlevdone(input);
+                        sound.SoundLevelDone(input);
                     if (emeralds.Count() == 0 || gamedat[CurrentPlayer].levdone)
                     {
                         for (int i = CurrentPlayer; i < DiggerCount + CurrentPlayer; i++)
-                            if (diggers.getlives(i) > 0 && !diggers.IsDiggerAlive(i))
+                            if (diggers.GetLives(i) > 0 && !diggers.IsDiggerAlive(i))
                                 diggers.DecreaseLife(i);
                         diggers.DrawLives();
                         gamedat[CurrentPlayer].level++;
@@ -236,18 +240,18 @@ namespace Digger.Net
                             gamedat[CurrentPlayer].level = 1000;
                         initlevel();
                     }
-                    else if (alldead)
+                    else if (IsEverybodyDead)
                     {
                         for (int i = CurrentPlayer; i < CurrentPlayer + DiggerCount; i++)
-                            if (diggers.getlives(i) > 0)
+                            if (diggers.GetLives(i) > 0)
                                 diggers.DecreaseLife(i);
                         diggers.DrawLives();
                     }
-                    if ((alldead && getalllives() == 0 && !IsGauntletMode && !input.IsGameCycleEnded) || IsTimeOut)
+                    if ((IsEverybodyDead && GetAllLives() == 0 && !IsGauntletMode && !input.IsGameCycleEnded) || IsTimeOut)
                         scores.endofgame();
                 }
-                alldead = false;
-                if (PlayerCount == 2 && diggers.getlives(1 - CurrentPlayer) != 0)
+                IsEverybodyDead = false;
+                if (PlayerCount == 2 && diggers.GetLives(1 - CurrentPlayer) != 0)
                 {
                     CurrentPlayer = 1 - CurrentPlayer;
                     flashplayer = levnotdrawn = true;
@@ -268,16 +272,16 @@ namespace Digger.Net
             do
             {
                 sound.soundstop();
-                drawApi.CreateMBSprite();
-                input.detectjoy();
-                gfx.Clear();
-                gfx.DrawTitleScreen();
-                drawApi.TextOut("D I G G E R", 100, 0, 3);
+                video.CreateMBSprite();
+                input.DetectJoystick();
+                video.Clear();
+                video.DrawTitleScreen();
+                video.TextOut("D I G G E R", 100, 0, 3);
                 shownplayers();
-                scores.showtable(gfx);
+                scores.ShowTable();
                 started = false;
                 frame = 0;
-                newframe();
+                NewFrame();
                 input.teststart();
                 while (!started)
                 {
@@ -290,7 +294,7 @@ namespace Digger.Net
                     }
                     if (frame == 0)
                         for (t = 54; t < 174; t += 12)
-                            drawApi.EraseText(12, 164, t, 0);
+                            video.EraseText(12, 164, t, 0);
                     if (frame == 50)
                     {
                         nobbin = new Monster(this, 0, DIR_LEFT, 292, 63);
@@ -311,7 +315,7 @@ namespace Digger.Net
                     }
 
                     if (frame == 83)
-                        drawApi.TextOut("NOBBIN", 216, 64, 2);
+                        video.TextOut("NOBBIN", 216, 64, 2);
                     if (frame == 90)
                     {
                         hobbin = new Monster(this, 1, DIR_LEFT, 292, 82);
@@ -336,7 +340,7 @@ namespace Digger.Net
                         hobbin.Animate();
                     }
                     if (frame == 123)
-                        drawApi.TextOut("HOBBIN", 216, 83, 2);
+                        video.TextOut("HOBBIN", 216, 83, 2);
                     if (frame == 130)
                     {
                         odigger = new Digger(this, 0, DIR_LEFT, 292, 101);
@@ -355,22 +359,22 @@ namespace Digger.Net
                         odigger.animate();
                     }
                     if (frame == 163)
-                        drawApi.TextOut("DIGGER", 216, 102, 2);
+                        video.TextOut("DIGGER", 216, 102, 2);
                     if (frame == 178)
                     {
                         sprites.MoveDrawSprite(FIRSTBAG, 184, 120);
-                        drawApi.DrawGold(0, 0, 184, 120);
+                        video.DrawGold(0, 0, 184, 120);
                     }
                     if (frame == 183)
-                        drawApi.TextOut("GOLD", 216, 121, 2);
+                        video.TextOut("GOLD", 216, 121, 2);
                     if (frame == 198)
-                        drawApi.DrawEmerald(184, 141);
+                        video.DrawEmerald(184, 141);
                     if (frame == 203)
-                        drawApi.TextOut("EMERALD", 216, 140, 2);
+                        video.TextOut("EMERALD", 216, 140, 2);
                     if (frame == 218)
-                        drawApi.DrawBonus(184, 158);
+                        video.DrawBonus(184, 158);
                     if (frame == 223)
-                        drawApi.TextOut("BONUS", 216, 159, 2);
+                        video.TextOut("BONUS", 216, 159, 2);
                     if (frame == 235)
                     {
                         nobbin.Damage();
@@ -387,7 +391,7 @@ namespace Digger.Net
                     {
                         hobbin.Kill();
                     }
-                    newframe();
+                    NewFrame();
                     frame++;
                     if (frame > 250)
                         frame = 0;
@@ -422,7 +426,7 @@ namespace Digger.Net
             return 0;
         }
 
-        public void newframe()
+        public void NewFrame()
         {
             if (IsVideoSync)
             {
@@ -436,7 +440,7 @@ namespace Digger.Net
             {
                 timer.SyncFrame();
                 input.checkkeyb(sound);
-                gfx.UpdateScreen();
+                video.UpdateScreen();
             }
         }
 
@@ -502,18 +506,18 @@ namespace Digger.Net
         {
             game_mode gmp;
 
-            drawApi.EraseText(10, 180, 25, 3);
-            drawApi.EraseText(12, 170, 39, 3);
+            video.EraseText(10, 180, 25, 3);
+            video.EraseText(12, 170, 39, 3);
             gmp = possible_modes[getnmode()];
-            drawApi.TextOut(gmp.title[0].text, gmp.title[0].xpos, 25, 3);
-            drawApi.TextOut(gmp.title[1].text, gmp.title[1].xpos, 39, 3);
+            video.TextOut(gmp.title[0].text, gmp.title[0].xpos, 25, 3);
+            video.TextOut(gmp.title[1].text, gmp.title[1].xpos, 39, 3);
         }
 
-        public int getalllives()
+        public int GetAllLives()
         {
-            int t = 0, i;
-            for (i = CurrentPlayer; i < DiggerCount + CurrentPlayer; i++)
-                t += diggers.getlives(i);
+            int t = 0;
+            for (int i = CurrentPlayer; i < DiggerCount + CurrentPlayer; i++)
+                t += diggers.GetLives(i);
             return t;
         }
 
@@ -529,7 +533,7 @@ namespace Digger.Net
         public void initlevel()
         {
             gamedat[CurrentPlayer].levdone = false;
-            drawApi.MakeField(level);
+            video.MakeField(level);
             emeralds.MakeEmeraldField();
             bags.Initialize();
             levnotdrawn = true;
@@ -537,8 +541,8 @@ namespace Digger.Net
 
         public void DrawScreen()
         {
-            drawApi.CreateMBSprite();
-            drawApi.DrawStatistics(level);
+            video.CreateMBSprite();
+            video.DrawStatistics(level);
             bags.DrawBags();
             emeralds.DrawEmeralds();
             diggers.InitializeDiggers();
@@ -547,7 +551,7 @@ namespace Digger.Net
 
         public void initchars()
         {
-            drawApi.InitializeMBSprite();
+            video.InitializeMBSprite();
             diggers.InitializeDiggers();
             monsters.Initialize();
         }
@@ -567,13 +571,13 @@ namespace Digger.Net
 
         public void ClearTopLine()
         {
-            drawApi.EraseText(26, 0, 0, 3);
-            drawApi.EraseText(1, 308, 0, 3);
+            video.EraseText(26, 0, 0, 3);
+            video.EraseText(1, 308, 0, 3);
         }
 
         public void SetDead(bool df)
         {
-            alldead = df;
+            IsEverybodyDead = df;
         }
 
         public void TestPause()
@@ -585,17 +589,17 @@ namespace Digger.Net
                 sound.sett2val(40);
                 sound.setsoundt2();
                 ClearTopLine();
-                drawApi.TextOut("PRESS ANY KEY", 80, 0, 1);
+                video.TextOut("PRESS ANY KEY", 80, 0, 1);
                 input.keyboard.GetKey(true);
                 ClearTopLine();
                 scores.drawscores();
                 for (i = 0; i < DiggerCount; i++)
-                    scores.addscore(i, 0);
+                    scores.AddScore(i, 0);
                 diggers.DrawLives();
                 if (!IsVideoSync)
                 {
                     timer.SyncFrame();
-                    gfx.UpdateScreen();
+                    video.UpdateScreen();
                 }
                 input.pausef = false;
             }
@@ -635,7 +639,7 @@ namespace Digger.Net
                     }
                     if (argch == 'F')
                     {
-                        gfx.EnableFullScreen();
+                        video.EnableFullScreen();
                     }
                     if (argch == 'R')
                         record.SetRecordName(word.Substring(i));
@@ -724,14 +728,14 @@ namespace Digger.Net
                         DiggerCount = 2;
                     if (argch == 'B' || argch == 'C')
                     {
-                        gfx = new SdlGraphicsCga();
+                        video.SetVideoMode(VideoMode.CGA);
                     }
                     if (argch == 'K')
                     {
                         if (word[2] == 'A' || word[2] == 'a')
-                            Keyboard.Redefine(this, input, drawApi, true);
+                            Keyboard.Redefine(this, input, video, true);
                         else
-                            Keyboard.Redefine(this, input, drawApi, false);
+                            Keyboard.Redefine(this, input, video, false);
                     }
                     if (argch == 'Q')
                         quiet = true;
@@ -887,7 +891,7 @@ namespace Digger.Net
             IsVideoSync = Ini.GetINIBool(INI_GRAPHICS_SETTINGS, "Synch", false, ININAME);
             cgaflag = Ini.GetINIBool(INI_GRAPHICS_SETTINGS, "CGA", false, ININAME);
             if (cgaflag)
-                gfx = new SdlGraphicsCga();
+                video.SetVideoMode(VideoMode.CGA);
 
             HasUnlimitedLives = Ini.GetINIBool(INI_GAME_SETTINGS, "UnlimitedLives", false, ININAME);
             StartingLevel = Ini.GetINIInt(INI_GAME_SETTINGS, "StartLevel", 1, ININAME);

@@ -2,11 +2,15 @@
    Copyright (c) Andrew Jenner 1998-2004 */
 // C# port by Mladen Stanisic
 
+using System;
 using SDL2;
 
 namespace Digger.Net
 {
-    public class DrawApi
+    public enum VideoMode { CGA, VGA };
+    public enum VideoIntensity { Normal, High }
+
+    public class Video
     {
         private const int DIR_NONE = Const.DIR_NONE;
         private const int DIR_RIGHT = Const.DIR_RIGHT;
@@ -46,6 +50,7 @@ namespace Digger.Net
         public int[] field = new int[MSIZE];
 
         public Surface[] monbufs = new Surface[MONSTERS];
+
         public Surface[] bagbufs = new Surface[BAGS];
         public Surface[] bonusbufs = new Surface[BONUSES];
         public Surface[] diggerbufs = new Surface[DIGGERS];
@@ -57,29 +62,87 @@ namespace Digger.Net
         public int[] digspd = new int[DIGGERS];
         public int[] firespr = new int[FIREBALLS];
 
-        private readonly Game game;
-        private readonly Sprites sprite;
-        public readonly SdlGraphics gfx;
+        public readonly string EmptyLine = new string(' ', MAX_TEXT_LEN);
 
-        public DrawApi(Game game)
+        private Game game;
+
+        private SdlGraphics gfx = new SdlGraphicsVga();
+
+        public Video(Game game)
         {
             this.game = game;
-            this.sprite = game.sprites;
-            this.gfx = game.gfx;
         }
 
-        public readonly string empty_line = new string(' ', MAX_TEXT_LEN + 1);
+        
+
+        public void Initialize()
+        {
+            gfx.Initialize();
+            gfx.SetPalette(0);
+        }
+
+        internal void ResetPalette()
+        {
+            gfx.SetPalette(0);
+            gfx.SetNormalIntensity();
+        }
+
+        public void UpdateScreen()
+        {
+            gfx.UpdateScreen();
+        }
+
+        public void EnableFullScreen()
+        {
+            gfx.EnableFullScreen();
+        }
+
+        public void SetVideoMode(VideoMode cGA)
+        {
+            this.gfx = new SdlGraphicsCga();
+            Initialize();
+        }
+
+        public void SwitchDisplayMode()
+        {
+            gfx.SwitchDisplayMode();
+        }
+
+        public void GetImage(int x, int y, ref Surface surface, int width, int heigth)
+        {
+            gfx.GetImage(x, y, ref surface, width, heigth);
+        }
+
+        public void PutImage(int x, int y, Surface surface, int width, int heigth)
+        {
+            gfx.PutImage(x, y, surface, width, heigth);
+        }
+
+        public void PutImage(int x, int y, int ch, int width, int heigth)
+        {
+            gfx.PutImage(x, y, ch, width, heigth);
+        }
+
+        public void WriteChar(int x, int y, char ch, int color)
+        {
+            gfx.WriteChar(x, y, ch, color);
+        }
 
         private void TextOut(string text, int x, int y, int c, int l)
         {
 #if DEBUG
-  System.Diagnostics.Debug.Assert(l > 0 && l <= MAX_TEXT_LEN);
+            System.Diagnostics.Debug.Assert(l > 0 && l <= MAX_TEXT_LEN);
 #endif
             for (int i = 0; i < l; i++)
             {
-                gfx.WriteChar(x, y, Alpha.isvalchar(text[i]) ? text[i] : ' ', c);
+                gfx.WriteChar(x, y, Alpha.IsValidChar(text[i]) ? text[i] : ' ', c);
                 x += CHR_W;
             }
+        }
+
+        public void Clear()
+        {
+            gfx.Clear();
         }
 
         public void TextOut(string text, int x, int y, int c)
@@ -89,7 +152,7 @@ namespace Digger.Net
 
         public void EraseText(short n, int x, int y, short c)
         {
-            TextOut(empty_line, x, y, c, n);
+            TextOut(EmptyLine, x, y, c, n);
         }
 
         public void MakeField(Level level)
@@ -121,9 +184,22 @@ namespace Digger.Net
                     else
                         field[y * MWIDTH + x] = field2[y * MWIDTH + x];
             gfx.SetPalette(0);
-            gfx.SetIntensity(0);
+            gfx.SetNormalIntensity();
             DrawBackground(level.LevelPlan());
             DrawField();
+        }
+
+        public void SetIntensity(VideoIntensity intensity)
+        {
+            if (intensity == VideoIntensity.High)
+                gfx.SetHighIntensity();
+            else
+                gfx.SetNormalIntensity();
+        }
+
+        public void SetPalette(int p)
+        {
+            gfx.SetPalette(p);
         }
 
         public void SaveField()
@@ -176,8 +252,13 @@ namespace Digger.Net
 
         public void EatField(int x, int y, int dir)
         {
-            int h = (x - 12) / 20, xr = ((x - 12) % 20) / 4, v = (y - 18) / 18, yr = ((y - 18) % 18) / 3;
+            int h = (x - 12) / 20;
+            int xr = ((x - 12) % 20) / 4;
+            int v = (y - 18) / 18;
+            int yr = ((y - 18) % 18) / 3;
+
             game.IncreasePenalty();
+
             switch (dir)
             {
                 case DIR_RIGHT:
@@ -221,13 +302,29 @@ namespace Digger.Net
             }
         }
 
+        public void FlashyWait(int n)
+        {
+            int p = 0;
+            for (int i = 0; i < n; i++)
+            {
+                p = 1 - p;
+                gfx.SetPalette(p);
+                gfx.UpdateScreen();
+            }
+        }
+
+        public byte GetPixel(int x, int y)
+        {
+            return gfx.GetPixel(x, y);
+        }
+
         public void CreateMBSprite()
         {
             for (int i = 0; i < BAGS; i++)
-                sprite.CreateSprite(FIRSTBAG + i, 62, bagbufs[i], 4, 15, 0, 0);
+                game.sprites.CreateSprite(FIRSTBAG + i, 62, bagbufs[i], 4, 15, 0, 0);
 
             for (int i = 0; i < MONSTERS; i++)
-                sprite.CreateSprite(FIRSTMONSTER + i, 71, monbufs[i], 4, 15, 0, 0);
+                game.sprites.CreateSprite(FIRSTMONSTER + i, 71, monbufs[i], 4, 15, 0, 0);
 
             CreateDBFSprite();
         }
@@ -235,37 +332,42 @@ namespace Digger.Net
         public void InitializeMBSprite()
         {
             for (int i = 0; i < BAGS; i++)
-                sprite.InitializeSprite(FIRSTBAG + i, 62, 4, 15, 0, 0);
+                game.sprites.InitializeSprite(FIRSTBAG + i, 62, 4, 15, 0, 0);
 
             for (int i = 0; i < MONSTERS; i++)
-                sprite.InitializeSprite(FIRSTMONSTER + i, 71, 4, 15, 0, 0);
+                game.sprites.InitializeSprite(FIRSTMONSTER + i, 71, 4, 15, 0, 0);
 
             InitDBFSprite();
         }
 
+        public void DrawTitleScreen()
+        {
+            gfx.DrawTitleScreen();
+        }
+
         public void DrawGold(int n, int t, int x, int y)
         {
-            sprite.InitializeSprite(FIRSTBAG + n, t + 62, 4, 15, 0, 0);
-            sprite.DrawSprite(FIRSTBAG + n, x, y);
+            game.sprites.InitializeSprite(FIRSTBAG + n, t + 62, 4, 15, 0, 0);
+            game.sprites.DrawSprite(FIRSTBAG + n, x, y);
         }
 
         public void DrawLife(int t, int x, int y)
         {
-            sprite.drawmiscspr(x, y, t + 110, 4, 12);
+            game.sprites.drawmiscspr(x, y, t + 110, 4, 12);
         }
 
         public void DrawEmerald(int x, int y)
         {
-            sprite.initmiscspr(x, y, 4, 10);
-            sprite.drawmiscspr(x, y, 108, 4, 10);
-            sprite.getis();
+            game.sprites.initmiscspr(x, y, 4, 10);
+            game.sprites.drawmiscspr(x, y, 108, 4, 10);
+            game.sprites.getis();
         }
 
         public void EraseEmerald(int x, int y)
         {
-            sprite.initmiscspr(x, y, 4, 10);
-            sprite.drawmiscspr(x, y, 109, 4, 10);
-            sprite.getis();
+            game.sprites.initmiscspr(x, y, 4, 10);
+            game.sprites.drawmiscspr(x, y, 109, 4, 10);
+            game.sprites.getis();
         }
 
         public void CreateDBFSprite()
@@ -279,11 +381,11 @@ namespace Digger.Net
             for (i = 0; i < FIREBALLS; i++)
                 firespr[i] = 0;
             for (i = FIRSTDIGGER; i < LASTDIGGER; i++)
-                sprite.CreateSprite(i, 0, diggerbufs[i - FIRSTDIGGER], 4, 15, 0, 0);
+                game.sprites.CreateSprite(i, 0, diggerbufs[i - FIRSTDIGGER], 4, 15, 0, 0);
             for (i = FIRSTBONUS; i < LASTBONUS; i++)
-                sprite.CreateSprite(i, 81, bonusbufs[i - FIRSTBONUS], 4, 15, 0, 0);
+                game.sprites.CreateSprite(i, 81, bonusbufs[i - FIRSTBONUS], 4, 15, 0, 0);
             for (i = FIRSTFIREBALL; i < LASTFIREBALL; i++)
-                sprite.CreateSprite(i, 82, firebufs[i - FIRSTFIREBALL], 2, 8, 0, 0);
+                game.sprites.CreateSprite(i, 82, firebufs[i - FIRSTFIREBALL], 2, 8, 0, 0);
         }
 
         public void InitDBFSprite()
@@ -297,53 +399,53 @@ namespace Digger.Net
             for (i = 0; i < FIREBALLS; i++)
                 firespr[i] = 0;
             for (i = FIRSTDIGGER; i < LASTDIGGER; i++)
-                sprite.InitializeSprite(i, 0, 4, 15, 0, 0);
+                game.sprites.InitializeSprite(i, 0, 4, 15, 0, 0);
             for (i = FIRSTBONUS; i < LASTBONUS; i++)
-                sprite.InitializeSprite(i, 81, 4, 15, 0, 0);
+                game.sprites.InitializeSprite(i, 81, 4, 15, 0, 0);
             for (i = FIRSTFIREBALL; i < LASTFIREBALL; i++)
-                sprite.InitializeSprite(i, 82, 2, 8, 0, 0);
+                game.sprites.InitializeSprite(i, 82, 2, 8, 0, 0);
         }
 
         public void DrawRightBlob(int x, int y)
         {
-            sprite.initmiscspr(x + 16, y - 1, 2, 18);
-            sprite.drawmiscspr(x + 16, y - 1, 102, 2, 18);
-            sprite.getis();
+            game.sprites.initmiscspr(x + 16, y - 1, 2, 18);
+            game.sprites.drawmiscspr(x + 16, y - 1, 102, 2, 18);
+            game.sprites.getis();
         }
 
         public void DrawLeftBlob(int x, int y)
         {
-            sprite.initmiscspr(x - 8, y - 1, 2, 18);
-            sprite.drawmiscspr(x - 8, y - 1, 104, 2, 18);
-            sprite.getis();
+            game.sprites.initmiscspr(x - 8, y - 1, 2, 18);
+            game.sprites.drawmiscspr(x - 8, y - 1, 104, 2, 18);
+            game.sprites.getis();
         }
 
         public void DrawTopBlob(int x, int y)
         {
-            sprite.initmiscspr(x - 4, y - 6, 6, 6);
-            sprite.drawmiscspr(x - 4, y - 6, 103, 6, 6);
-            sprite.getis();
+            game.sprites.initmiscspr(x - 4, y - 6, 6, 6);
+            game.sprites.drawmiscspr(x - 4, y - 6, 103, 6, 6);
+            game.sprites.getis();
         }
 
         public void DrawBottomBlob(int x, int y)
         {
-            sprite.initmiscspr(x - 4, y + 15, 6, 6);
-            sprite.drawmiscspr(x - 4, y + 15, 105, 6, 6);
-            sprite.getis();
+            game.sprites.initmiscspr(x - 4, y + 15, 6, 6);
+            game.sprites.drawmiscspr(x - 4, y + 15, 105, 6, 6);
+            game.sprites.getis();
         }
 
         public void DrawFurryBlob(int x, int y)
         {
-            sprite.initmiscspr(x - 4, y + 15, 6, 8);
-            sprite.drawmiscspr(x - 4, y + 15, 107, 6, 8);
-            sprite.getis();
+            game.sprites.initmiscspr(x - 4, y + 15, 6, 8);
+            game.sprites.drawmiscspr(x - 4, y + 15, 107, 6, 8);
+            game.sprites.getis();
         }
 
         public void DrawSquareBlob(int x, int y)
         {
-            sprite.initmiscspr(x - 4, y + 17, 6, 6);
-            sprite.drawmiscspr(x - 4, y + 17, 106, 6, 6);
-            sprite.getis();
+            game.sprites.initmiscspr(x - 4, y + 17, 6, 6);
+            game.sprites.drawmiscspr(x - 4, y + 17, 106, 6, 6);
+            game.sprites.getis();
         }
 
         public void DrawBackground(int l)
@@ -351,7 +453,7 @@ namespace Digger.Net
             for (int y = 14; y < 200; y += 4)
             {
                 for (int x = 0; x < 320; x += 20)
-                    sprite.drawmiscspr(x, y, 93 + l, 5, 4);
+                    game.sprites.drawmiscspr(x, y, 93 + l, 5, 4);
             }
         }
 
@@ -363,18 +465,18 @@ namespace Digger.Net
                 firespr[n]++;
                 if (firespr[n] > 2)
                     firespr[n] = 0;
-                sprite.InitializeSprite(FIRSTFIREBALL + n, 82 + firespr[n] + nn, 2, 8, 0, 0);
+                game.sprites.InitializeSprite(FIRSTFIREBALL + n, 82 + firespr[n] + nn, 2, 8, 0, 0);
             }
             else
-                sprite.InitializeSprite(FIRSTFIREBALL + n, 84 + t + nn, 2, 8, 0, 0);
-            sprite.DrawSprite(FIRSTFIREBALL + n, x, y);
+                game.sprites.InitializeSprite(FIRSTFIREBALL + n, 84 + t + nn, 2, 8, 0, 0);
+            game.sprites.DrawSprite(FIRSTFIREBALL + n, x, y);
         }
 
         public void DrawBonus(int x, int y)
         {
             int n = 0;
-            sprite.InitializeSprite(FIRSTBONUS + n, 81, 4, 15, 0, 0);
-            sprite.MoveDrawSprite(FIRSTBONUS + n, x, y);
+            game.sprites.InitializeSprite(FIRSTBONUS + n, 81, 4, 15, 0, 0);
+            game.sprites.MoveDrawSprite(FIRSTBONUS + n, x, y);
         }
 
         public void DrawDigger(int n, int t, int x, int y, bool f)
@@ -389,17 +491,17 @@ namespace Digger.Net
                 digspr[n] = 0;
             if (t >= 0 && t <= 6 && (t & 1) == 0)
             {
-                sprite.InitializeSprite(FIRSTDIGGER + n, (t + (f ? 0 : 1)) * 3 + digspr[n] + 1 + nn, 4, 15, 0, 0);
-                sprite.DrawSprite(FIRSTDIGGER + n, x, y);
+                game.sprites.InitializeSprite(FIRSTDIGGER + n, (t + (f ? 0 : 1)) * 3 + digspr[n] + 1 + nn, 4, 15, 0, 0);
+                game.sprites.DrawSprite(FIRSTDIGGER + n, x, y);
                 return;
             }
             if (t >= 10 && t <= 15)
             {
-                sprite.InitializeSprite(FIRSTDIGGER + n, 40 + nn - t, 4, 15, 0, 0);
-                sprite.DrawSprite(FIRSTDIGGER + n, x, y);
+                game.sprites.InitializeSprite(FIRSTDIGGER + n, 40 + nn - t, 4, 15, 0, 0);
+                game.sprites.DrawSprite(FIRSTDIGGER + n, x, y);
                 return;
             }
-            sprite.first[0] = sprite.first[1] = sprite.first[2] = sprite.first[3] = sprite.first[4] = -1;
+            game.sprites.first[0] = game.sprites.first[1] = game.sprites.first[2] = game.sprites.first[3] = game.sprites.first[4] = -1;
         }
     }
 }

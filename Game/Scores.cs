@@ -35,14 +35,12 @@ namespace Digger.Net
         public const string SFNAME = "DIGGER.SCO";
 
         private readonly Game game;
-        private readonly SdlGraphics gfx;
-        private readonly DrawApi drawApi;
+        private readonly Video video;
 
         public Scores(Game game)
         {
             this.game = game;
-            this.gfx = game.gfx;
-            this.drawApi = game.drawApi;
+            this.video = game.video;
         }
 
         private void readscores()
@@ -92,7 +90,7 @@ namespace Digger.Net
         {
             int i;
             for (i = 0; i < game.DiggerCount; i++)
-                addscore(i, 0);
+                AddScore(i, 0);
         }
 
         public void loadscores()
@@ -155,7 +153,7 @@ namespace Digger.Net
             }
         }
 
-        public void addscore(int n, int score)
+        public void AddScore(int n, int score)
         {
             scdat[n].score += score;
             if (scdat[n].score > 999999)
@@ -169,7 +167,7 @@ namespace Digger.Net
                 writenum(scdat[n].score, 248, 0, 6, 1);
             if (scdat[n].score >= scdat[n].nextbs + n)
             { /* +n to reproduce original bug */
-                if (game.diggers.getlives(n) < 5 || game.HasUnlimitedLives)
+                if (game.diggers.GetLives(n) < 5 || game.HasUnlimitedLives)
                 {
                     if (game.IsGauntletMode)
                         game.diggers.cgtime += 17897715; /* 15 second time bonus instead of the life */
@@ -188,29 +186,29 @@ namespace Digger.Net
         {
             bool initflag = false;
             for (int i = 0; i < game.DiggerCount; i++)
-                addscore(i, 0);
+                AddScore(i, 0);
             if (game.record.IsPlaying || !game.record.IsDrfValid)
                 return;
 
             if (game.IsGauntletMode)
             {
                 game.ClearTopLine();
-                game.drawApi.TextOut("TIME UP", 120, 0, 3);
+                game.video.TextOut("TIME UP", 120, 0, 3);
                 for (int i = 0; i < 50 && !game.input.IsGameCycleEnded; i++)
-                    game.newframe();
-                drawApi.EraseText(7, 120, 0, 3);
+                    game.NewFrame();
+                video.EraseText(7, 120, 0, 3);
             }
             for (int i = game.CurrentPlayer; i < game.CurrentPlayer + game.DiggerCount; i++)
             {
                 scoret = scdat[i].score;
                 if (scoret > scorehigh[11])
                 {
-                    gfx.Clear();
+                    video.Clear();
                     drawscores();
                     game.PlayerName = $"PLAYER {(i == 0 ? 1 : 2)}";
-                    drawApi.TextOut(game.PlayerName, 108, 0, 2);
-                    drawApi.TextOut(" NEW HIGH SCORE ", 64, 40, 2);
-                    getinitials();
+                    video.TextOut(game.PlayerName, 108, 0, 2);
+                    video.TextOut(" NEW HIGH SCORE ", 64, 40, 2);
+                    GetInitials();
                     ShuffleHigh();
                     savescores();
                     initflag = true;
@@ -219,23 +217,23 @@ namespace Digger.Net
             if (!initflag && !game.IsGauntletMode)
             {
                 game.ClearTopLine();
-                drawApi.TextOut("GAME OVER", 104, 0, 3);
+                video.TextOut("GAME OVER", 104, 0, 3);
                 for (int i = 0; i < 50 && !game.input.IsGameCycleEnded; i++)
-                    game.newframe();
-                drawApi.EraseText(9, 104, 0, 3);
+                    game.NewFrame();
+                video.EraseText(9, 104, 0, 3);
             }
         }
 
-        public void showtable(SdlGraphics ddap)
+        public void ShowTable()
         {
             int i, col;
-            drawApi.TextOut("HIGH SCORES", 16, 25, 3);
+            video.TextOut("HIGH SCORES", 16, 25, 3);
             col = 2;
             for (i = 1; i < 11; i++)
             {
                 highbuf = numtostring(scorehigh[i + 1]);
                 hsbuf = $"{scoreinit[i]}  {highbuf}";
-                drawApi.TextOut(hsbuf, 16, 31 + 13 * i, col);
+                video.TextOut(hsbuf, 16, 31 + 13 * i, col);
                 col = 1;
             }
         }
@@ -258,13 +256,13 @@ namespace Digger.Net
             writescores();
         }
 
-        public void getinitials()
+        public void GetInitials()
         {
             int k, i;
-            game.newframe();
-            drawApi.TextOut("ENTER YOUR", 100, 70, 3);
-            drawApi.TextOut(" INITIALS", 100, 90, 3);
-            drawApi.TextOut("_ _ _", 128, 130, 3);
+            game.NewFrame();
+            video.TextOut("ENTER YOUR", 100, 70, 3);
+            video.TextOut(" INITIALS", 100, 90, 3);
+            video.TextOut("_ _ _", 128, 130, 3);
             scoreinit[0] = "...";
             game.sound.KillSound();
             var initials = new char[3];
@@ -283,7 +281,7 @@ namespace Digger.Net
                 }
                 if (k != 0)
                 {
-                    gfx.WriteChar(i * 24 + 128, 130, (char)k, 3);
+                    video.WriteChar(i * 24 + 128, 130, (char)k, 3);
                     initials[i] = (char)k;
                 }
             }
@@ -292,40 +290,25 @@ namespace Digger.Net
                 FlashyWait(15);
 
             game.sound.SetupSound();
-            gfx.Clear();
-            gfx.SetPalette(0);
-            gfx.SetIntensity(0);
+            video.Clear();
+            video.ResetPalette();
             game.record.PutInitials(scoreinit[0]);
         }
 
         public void FlashyWait(int n)
         {
-            int p = 0;
-            int gap = 19;
-
             game.timer.SyncFrame();
 
-            for (int i = 0; i < 2 * n; i++)
-            {
-                for (int cx = 0; cx < game.sound.volume; cx++)
-                {
-                    p = 1 - p;
-                    gfx.SetPalette(p);
-                    for (int gt = 0; gt < gap; gt++)
-                        ;
-                }
-
-                gfx.UpdateScreen();
-            }
+            video.FlashyWait(n);
         }
 
         public int GetInitial(int x, int y)
         {
-            int i;
-            gfx.WriteChar(x, y, '_', 3);
+            video.WriteChar(x, y, '_', 3);
+
             do
             {
-                for (i = 0; i < 40; i++)
+                for (int i = 0; i < 40; i++)
                 {
                     if (game.input.keyboard.IsKeyboardHit())
                     {
@@ -336,11 +319,12 @@ namespace Digger.Net
                     }
                     FlashyWait(15);
                 }
-                for (i = 0; i < 40; i++)
+
+                for (int i = 0; i < 40; i++)
                 {
                     if (game.input.keyboard.IsKeyboardHit())
                     {
-                        gfx.WriteChar(x, y, '_', 3);
+                        video.WriteChar(x, y, '_', 3);
                         return game.input.keyboard.GetKey(false);
                     }
                     FlashyWait(15);
@@ -363,40 +347,40 @@ namespace Digger.Net
             scoreinit[j] = scoreinit[0];
         }
 
-        public void scorekill(int n)
+        public void ScoreKill(int n)
         {
-            addscore(n, 250);
+            AddScore(n, 250);
         }
 
-        public void scorekill2()
+        public void ScoreKill()
         {
-            addscore(0, 125);
-            addscore(1, 125);
+            AddScore(0, 125);
+            AddScore(1, 125);
         }
 
-        public void scoreemerald(int n)
+        public void ScoreEmerald(int n)
         {
-            addscore(n, 25);
+            AddScore(n, 25);
         }
 
-        public void scoreoctave(int n)
+        public void ScoreOctave(int n)
         {
-            addscore(n, 250);
+            AddScore(n, 250);
         }
 
         public void scoregold(int n)
         {
-            addscore(n, 500);
+            AddScore(n, 500);
         }
 
-        public void scorebonus(int n)
+        public void ScoreBonus(int n)
         {
-            addscore(n, 1000);
+            AddScore(n, 1000);
         }
 
-        public void scoreeatm(int n, int msc)
+        public void ScoreEatMonster(int n, int msc)
         {
-            addscore(n, msc * 200);
+            AddScore(n, msc * 200);
         }
 
         private void writenum(int n, int x, int y, int w, int c)
@@ -406,7 +390,8 @@ namespace Digger.Net
             {
                 int d = n % 10;
                 if (w > 1 || d > 0)
-                    gfx.WriteChar(xp, y, (char)(d + '0'), c);
+                    video.WriteChar(xp, y, (char)(d + '0'), c);
+
                 n /= 10;
                 w--;
                 xp -= 12;

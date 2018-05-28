@@ -2,13 +2,12 @@ using SDL2;
 
 namespace Digger.Net
 {
-    public class SdlTimer
+    public class SdlTimer : ITimer
     {
         public PFD phase_detector;
         public recfilter loop_error;
 
         private double cum_error = 0.0;
-        public uint FrameTime;
 
         public SdlTimer()
         {
@@ -17,6 +16,8 @@ namespace Digger.Net
             Math.PFD_init(ref phase_detector, 0.0);
             DebugLog.Write($"inittimer: ftime = {FrameTime}");
         }
+
+        public uint FrameTime { get; set; }
 
         public void SyncFrame()
         {

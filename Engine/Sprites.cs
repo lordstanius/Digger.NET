@@ -26,11 +26,11 @@ namespace Digger.Net
         public int[] sprnbwid = new int[SPRITES];
         public int[] sprnbhei = new int[SPRITES];
 
-        private SdlGraphics ddap;
+        private Game game;
 
-        public Sprites(SdlGraphics ddap)
+        public Sprites(Game game)
         {
-            this.ddap = ddap;
+            this.game = game;
         }
 
         public void CreateSprite(int n, int ch, Surface mov, int wid, int hei, int bwid, int bhei)
@@ -56,7 +56,7 @@ namespace Digger.Net
             clearrdrwf();
             setrdrwflgs(n);
             putis();
-            ddap.GetImage(sprx[n], spry[n], ref sprmov[n], sprwid[n], sprhei[n]);
+            game.video.GetImage(sprx[n], spry[n], ref sprmov[n], sprwid[n], sprhei[n]);
             sprenf[n] = true;
             sprrdrwf[n] = true;
             putims();
@@ -66,7 +66,7 @@ namespace Digger.Net
         {
             if (!sprenf[n])
                 return;
-            ddap.PutImage(sprx[n], spry[n], sprmov[n], sprwid[n], sprhei[n]);
+            game.video.PutImage(sprx[n], spry[n], sprmov[n], sprwid[n], sprhei[n]);
             sprenf[n] = false;
             clearrdrwf();
             setrdrwflgs(n);
@@ -102,7 +102,7 @@ namespace Digger.Net
             sprhei[n] = sprnhei[n];
             sprbwid[n] = sprnbwid[n];
             sprbhei[n] = sprnbhei[n];
-            ddap.GetImage(sprx[n], spry[n], ref sprmov[n], sprwid[n], sprhei[n]);
+            game.video.GetImage(sprx[n], spry[n], ref sprmov[n], sprwid[n], sprhei[n]);
 
             putims();
             bcollides(n);
@@ -132,7 +132,7 @@ namespace Digger.Net
         {
             for (int i = 0; i < SPRITES; i++)
                 if (sprrdrwf[i])
-                    ddap.GetImage(sprx[i], spry[i], ref sprmov[i], sprwid[i], sprhei[i]);
+                    game.video.GetImage(sprx[i], spry[i], ref sprmov[i], sprwid[i], sprhei[i]);
             putims();
         }
 
@@ -143,7 +143,7 @@ namespace Digger.Net
             sprch[SPRITES] = ch;
             sprwid[SPRITES] = wid;
             sprhei[SPRITES] = hei;
-            ddap.PutImage(sprx[SPRITES], spry[SPRITES], sprch[SPRITES], sprwid[SPRITES], sprhei[SPRITES]);
+            game.video.PutImage(sprx[SPRITES], spry[SPRITES], sprch[SPRITES], sprwid[SPRITES], sprhei[SPRITES]);
         }
 
         public void clearrdrwf()
@@ -224,14 +224,14 @@ namespace Digger.Net
         {
             for (int i = 0; i < SPRITES; i++)
                 if (sprrdrwf[i])
-                    ddap.PutImage(sprx[i], spry[i], sprch[i], sprwid[i], sprhei[i]);
+                    game.video.PutImage(sprx[i], spry[i], sprch[i], sprwid[i], sprhei[i]);
         }
 
         public void putis()
         {
             for (int i = 0; i < SPRITES; i++)
                 if (sprrdrwf[i])
-                    ddap.PutImage(sprx[i], spry[i], sprmov[i], sprwid[i], sprhei[i]);
+                    game.video.PutImage(sprx[i], spry[i], sprmov[i], sprwid[i], sprhei[i]);
         }
 
         public int[] first = new int[Const.TYPES];
@@ -265,7 +265,7 @@ namespace Digger.Net
         {
             System.Diagnostics.Debug.Assert(x + Const.CHR_W <= Const.MAX_W);
             System.Diagnostics.Debug.Assert(y + Const.CHR_H <= Const.MAX_H);
-            ddap.WriteChar(x, y, ch, c);
+            game.video.WriteChar(x, y, ch, c);
         }
     }
 }

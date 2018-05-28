@@ -51,7 +51,7 @@ namespace Digger.Net
         public Input(Game game)
         {
             this.game = game;
-            this.keyboard = new SdlKeyboard(game.gfx, game.timer);
+            this.keyboard = new SdlKeyboard(game);
         }
 
         public int ProcessKey(int kn)
@@ -171,7 +171,7 @@ namespace Digger.Net
         {
         }
 
-        public void detectjoy()
+        public void DetectJoystick()
         {
             joyflag = false;
             dir = dynamicdir = Const.DIR_NONE;

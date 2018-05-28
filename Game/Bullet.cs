@@ -56,7 +56,7 @@ namespace Digger.Net
         public void animate()
         {
             System.Diagnostics.Debug.Assert(expsn < 4);
-            game.drawApi.DrawFire(f_id, x, y, expsn);
+            game.video.DrawFire(f_id, x, y, expsn);
             if (expsn > 0)
             {
                 if (expsn == 1)

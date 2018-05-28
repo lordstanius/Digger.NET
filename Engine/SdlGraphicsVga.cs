@@ -127,7 +127,7 @@ namespace Digger.Net
         {
             int w = 3, h = 12;
 
-            if (!Alpha.isvalchar(ch))
+            if (!Alpha.IsValidChar(ch))
                 return;
 
             Surface tmp = ch2bmap(ref alphas, ch - 32, w, h);
