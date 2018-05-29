@@ -26,6 +26,7 @@
  * SUCH DAMAGE.
  *
  */
+// C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
 using System;
 
@@ -33,49 +34,49 @@ namespace Digger.Net
 {
     public class Digger
     {
-        public int d_id;
-        public bool alive;
-        public bool zombie;
-        public bool can_fire;
+        public readonly int id;
+        public bool isAlive;
+        public bool isZombie;
+        public bool canFire;
         public int dir;
         public int x;
         public int y;
 
         private readonly Game game;
 
-        public Digger(Game game, int d_id, int dir, int x, int y)
+        public Digger(Game game, int id, int dir, int x, int y)
         {
             this.dir = dir;
             this.x = x;
             this.y = y;
-            this.d_id = d_id;
-            this.alive = true;
-            this.zombie = false;
-            this.can_fire = true;
+            this.id = id;
+            this.isAlive = true;
+            this.isZombie = false;
+            this.canFire = true;
             this.game = game;
         }
 
-        public void put()
+        public void Put()
         {
-            game.sprites.MoveDrawSprite(Const.FIRSTDIGGER + d_id, x, y);
+            game.sprites.MoveDrawSprite(Const.FIRSTDIGGER + id, x, y);
         }
 
-        public void animate()
+        public void Animate()
         {
-            game.video.DrawDigger(d_id, dir, x, y, can_fire);
+            game.video.DrawDigger(id, dir, x, y, canFire);
         }
 
-        public void discharge()
+        public void Discharge()
         {
 
-            System.Diagnostics.Debug.Assert(can_fire);
-            can_fire = false;
+            System.Diagnostics.Debug.Assert(canFire);
+            canFire = false;
         }
 
-        public void recharge()
+        public void Recharge()
         {
-            System.Diagnostics.Debug.Assert(!can_fire);
-            can_fire = true;
+            System.Diagnostics.Debug.Assert(!canFire);
+            canFire = true;
         }
 
         public Action damage;

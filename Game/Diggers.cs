@@ -1,16 +1,18 @@
 /* Digger Remastered
    Copyright (c) Andrew Jenner 1998-2004 */
+// C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
+
 using System;
 
 namespace Digger.Net
 {
-    public struct digger_struct
+    public struct DiggerStruct
     {
         public int h, v, rx, ry, mdir, bagtime, rechargetime,
-              deathstage, deathbag, deathani, deathtime, emocttime, emn, msc, lives, ivt;
+              deathstage, deathBagIndex, deathani, deathtime, emocttime, emn, msc, lives, ivt;
         public bool notfiring, firepressed, dead, levdone, invin;
-        public Digger dob;
-        public Bullet bob;
+        public Digger digger;
+        public Bullet bullet;
     }
 
     public class Diggers
@@ -31,120 +33,110 @@ namespace Digger.Net
         private const int FIRSTMONSTER = Const.FIRSTMONSTER;
         private const int FIRSTFIREBALL = Const.FIRSTFIREBALL;
 
-        public digger_struct[] digdat = new digger_struct[DIGGERS];
+        public DiggerStruct[] diggerData = new DiggerStruct[DIGGERS];
 
         public int startbonustimeleft = 0;
         public int bonustimeleft;
 
-        public bool bonusvisible = false;
-        public bool bonusmode = false;
-        public bool digvisible;
+        public bool isBonusVisible;
+        public bool isBonusMode;
+        public bool isDiggerVisible;
         public uint cgtime;
 
         private readonly Game game;
-        private readonly Video video;
-        private readonly Input input;
-        private readonly Sound sound;
-        private readonly Sprites sprites;
-        private readonly Level level;
 
         public Diggers(Game game)
         {
             this.game = game;
-            this.input = game.input;
-            this.video = game.video;
-            this.sound = game.sound;
-            this.sprites = game.sprites;
-            this.level = game.level;
         }
 
         public void InitializeDiggers()
         {
-            for (int dig = game.CurrentPlayer; dig < game.DiggerCount + game.CurrentPlayer; dig++)
+            for (int dig = game.currentPlayer; dig < game.diggerCount + game.currentPlayer; dig++)
             {
-                if (digdat[dig].lives == 0)
+                if (diggerData[dig].lives == 0)
                     continue;
 
-                digdat[dig].v = 9;
-                digdat[dig].mdir = 4;
-                digdat[dig].h = (game.DiggerCount == 1) ? 7 : (8 - dig * 2);
-                int x = digdat[dig].h * 20 + 12;
+                diggerData[dig].v = 9;
+                diggerData[dig].mdir = 4;
+                diggerData[dig].h = (game.diggerCount == 1) ? 7 : (8 - dig * 2);
+                int x = diggerData[dig].h * 20 + 12;
                 int dir = (dig == 0) ? DIR_RIGHT : DIR_LEFT;
-                int y = digdat[dig].v * 18 + 18;
-                digdat[dig].rx = 0;
-                digdat[dig].ry = 0;
-                digdat[dig].bagtime = 0;
-                digdat[dig].dead = false; /* alive !=> !dead but dead => !alive */
-                digdat[dig].invin = false;
-                digdat[dig].ivt = 0;
-                digdat[dig].deathstage = 1;
-                digdat[dig].dob = new Digger(game, dig - game.CurrentPlayer, dir, x, y);
-                digdat[dig].bob = new Bullet(game, dig - game.CurrentPlayer, dir, x, y);
-                digdat[dig].dob.put();
-                digdat[dig].notfiring = true;
-                digdat[dig].emocttime = 0;
-                digdat[dig].bob.expsn = 0;
-                digdat[dig].firepressed = false;
-                digdat[dig].rechargetime = 0;
-                digdat[dig].emn = 0;
-                digdat[dig].msc = 1;
+                int y = diggerData[dig].v * 18 + 18;
+                diggerData[dig].rx = 0;
+                diggerData[dig].ry = 0;
+                diggerData[dig].bagtime = 0;
+                diggerData[dig].dead = false; /* alive !=> !dead but dead => !alive */
+                diggerData[dig].invin = false;
+                diggerData[dig].ivt = 0;
+                diggerData[dig].deathstage = 1;
+                diggerData[dig].digger = new Digger(game, dig - game.currentPlayer, dir, x, y);
+                diggerData[dig].bullet = new Bullet(game, dig - game.currentPlayer, dir, x, y);
+                diggerData[dig].digger.Put();
+                diggerData[dig].notfiring = true;
+                diggerData[dig].emocttime = 0;
+                diggerData[dig].bullet.expsn = 0;
+                diggerData[dig].firepressed = false;
+                diggerData[dig].rechargetime = 0;
+                diggerData[dig].emn = 0;
+                diggerData[dig].msc = 1;
             }
 
-            digvisible = true;
-            bonusvisible = bonusmode = false;
+            isDiggerVisible = true;
+            isBonusVisible = isBonusMode = false;
         }
 
         public void DrawDigger(int n)
         {
-            digdat[n].dob.animate();
-            if (digdat[n].invin)
+            diggerData[n].digger.Animate();
+            if (diggerData[n].invin)
             {
-                digdat[n].ivt--;
-                if (digdat[n].ivt == 0)
-                    digdat[n].invin = false;
+                diggerData[n].ivt--;
+                if (diggerData[n].ivt == 0)
+                    diggerData[n].invin = false;
                 else
-                  if (digdat[n].ivt % 10 < 5)
-                    sprites.EraseSprite(FIRSTDIGGER + n - game.CurrentPlayer);
+                  if (diggerData[n].ivt % 10 < 5)
+                    game.sprites.EraseSprite(FIRSTDIGGER + n - game.currentPlayer);
             }
         }
 
         public void DoDiggers(Bags bags, Monsters monsters, Scores scores)
         {
             game.NewFrame();
-            if (game.IsGauntletMode)
+            if (game.isGauntletMode)
             {
                 DrawLives();
                 if (cgtime < game.timer.FrameTime)
-                    game.IsTimeOut = true;
+                    game.isTimeOut = true;
                 cgtime -= game.timer.FrameTime;
             }
-            for (int n = game.CurrentPlayer; n < game.DiggerCount + game.CurrentPlayer; n++)
+            for (int n = game.currentPlayer; n < game.diggerCount + game.currentPlayer; n++)
             {
-                if (digdat[n].bob.expsn != 0)
-                    drawexplosion(n);
+                if (diggerData[n].bullet.expsn != 0)
+                    DrawExplosion(n);
                 else
                     UpdateFire(n, monsters, scores);
-                if (digvisible)
+                if (isDiggerVisible)
                 {
-                    if (digdat[n].dob.alive)
-                        if (digdat[n].bagtime != 0)
+                    if (diggerData[n].digger.isAlive)
+                        if (diggerData[n].bagtime != 0)
                         {
-                            int tdir = digdat[n].dob.dir;
-                            digdat[n].dob.dir = digdat[n].mdir;
+                            int tdir = diggerData[n].digger.dir;
+                            diggerData[n].digger.dir = diggerData[n].mdir;
                             DrawDigger(n);
-                            digdat[n].dob.dir = tdir;
+                            diggerData[n].digger.dir = tdir;
                             game.IncreasePenalty();
-                            digdat[n].bagtime--;
+                            diggerData[n].bagtime--;
                         }
                         else
-                            updatedigger(n, bags, monsters, scores);
+                            UpdateDigger(n, bags, monsters, scores);
                     else
-                        diggerdie(n, bags, monsters);
+                        DiggerDie(n, bags, monsters);
                 }
-                if (digdat[n].emocttime > 0)
-                    digdat[n].emocttime--;
+                if (diggerData[n].emocttime > 0)
+                    diggerData[n].emocttime--;
             }
-            if (bonusmode && IsAlive())
+            if (isBonusMode && IsAnyAlive())
             {
                 if (bonustimeleft != 0)
                 {
@@ -154,34 +146,34 @@ namespace Digger.Net
                         startbonustimeleft--;
                         if ((bonustimeleft & 1) != 0)
                         {
-                            video.SetIntensity(VideoIntensity.Normal);
-                            sound.soundbonus();
+                            game.video.SetIntensity(VideoIntensity.Normal);
+                            game.sound.soundbonus();
                         }
                         else
                         {
-                            video.SetIntensity(VideoIntensity.High);
-                            sound.soundbonus();
+                            game.video.SetIntensity(VideoIntensity.High);
+                            game.sound.soundbonus();
                         }
                         if (startbonustimeleft == 0)
                         {
-                            sound.music(0);
-                            sound.soundbonusoff();
-                            video.SetIntensity(VideoIntensity.High);
+                            game.sound.Music(0);
+                            game.sound.SoundBonusOff();
+                            game.video.SetIntensity(VideoIntensity.High);
                         }
                     }
                 }
                 else
                 {
-                    endbonusmode();
-                    sound.soundbonusoff();
-                    sound.music(1);
+                    EndBonusMode();
+                    game.sound.SoundBonusOff();
+                    game.sound.Music(1);
                 }
             }
-            if (bonusmode && !IsAlive())
+            if (isBonusMode && !IsAnyAlive())
             {
-                endbonusmode();
-                sound.soundbonusoff();
-                sound.music(1);
+                EndBonusMode();
+                game.sound.SoundBonusOff();
+                game.sound.Music(1);
             }
         }
 
@@ -192,50 +184,48 @@ namespace Digger.Net
             int[] clcoll = new int[SPRITES];
             int i;
             bool clflag;
-            if (digdat[n].notfiring)
+            if (diggerData[n].notfiring)
             {
-                if (digdat[n].rechargetime != 0)
+                if (diggerData[n].rechargetime != 0)
                 {
-                    digdat[n].rechargetime--;
-                    if (digdat[n].rechargetime == 0)
+                    diggerData[n].rechargetime--;
+                    if (diggerData[n].rechargetime == 0)
                     {
-                        digdat[n].dob.recharge();
+                        diggerData[n].digger.Recharge();
                     }
                 }
                 else
                 {
-                    if (getfirepflag(n - game.CurrentPlayer))
+                    if (GetFirepFlag(n - game.currentPlayer))
                     {
-                        if (digdat[n].dob.alive)
+                        if (diggerData[n].digger.isAlive)
                         {
-                            digdat[n].dob.discharge();
-                            digdat[n].rechargetime = level.LevelOf10() * 3 + 60;
-                            digdat[n].notfiring = false;
-                            switch (digdat[n].dob.dir)
+                            diggerData[n].digger.Discharge();
+                            diggerData[n].rechargetime = game.level.LevelOf10() * 3 + 60;
+                            diggerData[n].notfiring = false;
+                            switch (diggerData[n].digger.dir)
                             {
                                 case DIR_RIGHT:
-                                    fx = digdat[n].dob.x + 8;
-                                    fy = digdat[n].dob.y + 4;
+                                    fx = diggerData[n].digger.x + 8;
+                                    fy = diggerData[n].digger.y + 4;
                                     break;
                                 case DIR_UP:
-                                    fx = digdat[n].dob.x + 4;
-                                    fy = digdat[n].dob.y;
+                                    fx = diggerData[n].digger.x + 4;
+                                    fy = diggerData[n].digger.y;
                                     break;
                                 case DIR_LEFT:
-                                    fx = digdat[n].dob.x;
-                                    fy = digdat[n].dob.y + 4;
+                                    fx = diggerData[n].digger.x;
+                                    fy = diggerData[n].digger.y + 4;
                                     break;
                                 case DIR_DOWN:
-                                    fx = digdat[n].dob.x + 4;
-                                    fy = digdat[n].dob.y + 8;
+                                    fx = diggerData[n].digger.x + 4;
+                                    fy = diggerData[n].digger.y + 8;
                                     break;
                                 default:
-                                    Environment.Exit(1);
-                                    break;
+                                    throw new NotSupportedException($"Direction '{diggerData[n].digger.dir}' is not supported.");
                             }
-                            digdat[n].bob.update(digdat[n].dob.dir, fx, fy);
-                            digdat[n].bob.put();
-                            sound.soundfire(n);
+                            diggerData[n].bullet.Update(diggerData[n].digger.dir, fx, fy);
+                            diggerData[n].bullet.Put();
                         }
                     }
                 }
@@ -243,55 +233,55 @@ namespace Digger.Net
             else
             {
                 pix = 0;
-                switch (digdat[n].bob.dir)
+                switch (diggerData[n].bullet.dir)
                 {
                     case DIR_RIGHT:
-                        digdat[n].bob.x += 8;
-                        pix = video.GetPixel(digdat[n].bob.x, digdat[n].bob.y + 4) |
-                            video.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + 4);
+                        diggerData[n].bullet.x += 8;
+                        pix = game.video.GetPixel(diggerData[n].bullet.x, diggerData[n].bullet.y + 4) |
+                            game.video.GetPixel(diggerData[n].bullet.x + 4, diggerData[n].bullet.y + 4);
                         break;
                     case DIR_UP:
-                        digdat[n].bob.y -= 7;
+                        diggerData[n].bullet.y -= 7;
                         pix = 0;
                         for (i = 0; i < 7; i++)
-                            pix |= video.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + i);
+                            pix |= game.video.GetPixel(diggerData[n].bullet.x + 4, diggerData[n].bullet.y + i);
                         pix &= 0xc0;
                         break;
                     case DIR_LEFT:
-                        digdat[n].bob.x -= 8;
-                        pix = video.GetPixel(digdat[n].bob.x, digdat[n].bob.y + 4) |
-                            video.GetPixel(digdat[n].bob.x + 4, digdat[n].bob.y + 4);
+                        diggerData[n].bullet.x -= 8;
+                        pix = game.video.GetPixel(diggerData[n].bullet.x, diggerData[n].bullet.y + 4) |
+                            game.video.GetPixel(diggerData[n].bullet.x + 4, diggerData[n].bullet.y + 4);
                         break;
                     case DIR_DOWN:
-                        digdat[n].bob.y += 7;
+                        diggerData[n].bullet.y += 7;
                         pix = 0;
                         for (i = 0; i < 7; i++)
-                            pix |= video.GetPixel(digdat[n].bob.x, digdat[n].bob.y + i);
+                            pix |= game.video.GetPixel(diggerData[n].bullet.x, diggerData[n].bullet.y + i);
                         pix &= 0x3;
                         break;
                 }
-                digdat[n].bob.animate();
+                diggerData[n].bullet.Animate();
                 for (i = 0; i < TYPES; i++)
-                    clfirst[i] = sprites.first[i];
+                    clfirst[i] = game.sprites.first[i];
                 for (i = 0; i < SPRITES; i++)
-                    clcoll[i] = sprites.coll[i];
+                    clcoll[i] = game.sprites.coll[i];
                 game.IncreasePenalty();
                 i = clfirst[2];
                 while (i != -1)
                 {
                     monsters.KillMonster(i - FIRSTMONSTER);
                     scores.ScoreKill(n);
-                    digdat[n].bob.explode();
+                    diggerData[n].bullet.Explode();
                     i = clcoll[i];
                 }
                 i = clfirst[4];
                 while (i != -1)
                 {
-                    if (i - FIRSTDIGGER + game.CurrentPlayer != n && !digdat[i - FIRSTDIGGER + game.CurrentPlayer].invin
-                        && digdat[i - FIRSTDIGGER + game.CurrentPlayer].dob.alive)
+                    if (i - FIRSTDIGGER + game.currentPlayer != n && !diggerData[i - FIRSTDIGGER + game.currentPlayer].invin
+                        && diggerData[i - FIRSTDIGGER + game.currentPlayer].digger.isAlive)
                     {
-                        KillDigger(i - FIRSTDIGGER + game.CurrentPlayer, 3, 0);
-                        digdat[n].bob.explode();
+                        KillDigger(i - FIRSTDIGGER + game.currentPlayer, 3, 0);
+                        diggerData[n].bullet.Explode();
                     }
                     i = clcoll[i];
                 }
@@ -302,76 +292,76 @@ namespace Digger.Net
                     clflag = false;
                 if (clfirst[0] != -1 || clfirst[1] != -1 || clfirst[3] != -1)
                 {
-                    digdat[n].bob.explode();
+                    diggerData[n].bullet.Explode();
                     i = clfirst[3];
                     while (i != -1)
                     {
-                        if (digdat[i - FIRSTFIREBALL + game.CurrentPlayer].bob.expsn == 0)
+                        if (diggerData[i - FIRSTFIREBALL + game.currentPlayer].bullet.expsn == 0)
                         {
-                            digdat[i - FIRSTFIREBALL + game.CurrentPlayer].bob.explode();
+                            diggerData[i - FIRSTFIREBALL + game.currentPlayer].bullet.Explode();
                         }
                         i = clcoll[i];
                     }
                 }
-                switch (digdat[n].bob.dir)
+                switch (diggerData[n].bullet.dir)
                 {
                     case DIR_RIGHT:
-                        if (digdat[n].bob.x > 296)
+                        if (diggerData[n].bullet.x > 296)
                         {
-                            digdat[n].bob.explode();
+                            diggerData[n].bullet.Explode();
                         }
                         else
                         {
                             if (pix != 0 && !clflag)
                             {
-                                digdat[n].bob.x -= 8;
-                                digdat[n].bob.animate();
-                                digdat[n].bob.explode();
+                                diggerData[n].bullet.x -= 8;
+                                diggerData[n].bullet.Animate();
+                                diggerData[n].bullet.Explode();
                             }
                         }
                         break;
                     case DIR_UP:
-                        if (digdat[n].bob.y < 15)
+                        if (diggerData[n].bullet.y < 15)
                         {
-                            digdat[n].bob.explode();
+                            diggerData[n].bullet.Explode();
                         }
                         else
                         {
                             if (pix != 0 && !clflag)
                             {
-                                digdat[n].bob.y += 7;
-                                digdat[n].bob.animate();
-                                digdat[n].bob.explode();
+                                diggerData[n].bullet.y += 7;
+                                diggerData[n].bullet.Animate();
+                                diggerData[n].bullet.Explode();
                             }
                         }
                         break;
                     case DIR_LEFT:
-                        if (digdat[n].bob.x < 16)
+                        if (diggerData[n].bullet.x < 16)
                         {
-                            digdat[n].bob.explode();
+                            diggerData[n].bullet.Explode();
                         }
                         else
                         {
                             if (pix != 0 && !clflag)
                             {
-                                digdat[n].bob.x += 8;
-                                digdat[n].bob.animate();
-                                digdat[n].bob.explode();
+                                diggerData[n].bullet.x += 8;
+                                diggerData[n].bullet.Animate();
+                                diggerData[n].bullet.Explode();
                             }
                         }
                         break;
                     case DIR_DOWN:
-                        if (digdat[n].bob.y > 183)
+                        if (diggerData[n].bullet.y > 183)
                         {
-                            digdat[n].bob.explode();
+                            diggerData[n].bullet.Explode();
                         }
                         else
                         {
                             if (pix != 0 && !clflag)
                             {
-                                digdat[n].bob.y -= 7;
-                                digdat[n].bob.animate();
-                                digdat[n].bob.explode();
+                                diggerData[n].bullet.y -= 7;
+                                diggerData[n].bullet.Animate();
+                                diggerData[n].bullet.Explode();
                             }
                         }
                         break;
@@ -379,108 +369,108 @@ namespace Digger.Net
             }
         }
 
-        public void erasediggers()
+        public void EraseDiggers()
         {
             int i;
-            for (i = 0; i < game.DiggerCount; i++)
-                sprites.EraseSprite(FIRSTDIGGER + i);
+            for (i = 0; i < game.diggerCount; i++)
+                game.sprites.EraseSprite(FIRSTDIGGER + i);
 
-            digvisible = false;
+            isDiggerVisible = false;
         }
 
-        public void drawexplosion(int n)
+        public void DrawExplosion(int n)
         {
-            if (digdat[n].bob.expsn < 4)
+            if (diggerData[n].bullet.expsn < 4)
             {
-                digdat[n].bob.animate();
+                diggerData[n].bullet.Animate();
                 game.IncreasePenalty();
             }
             else
             {
-                killfire(n);
+                KillFire(n);
             }
         }
 
-        public void killfire(int n)
+        public void KillFire(int n)
         {
-            if (!digdat[n].notfiring)
+            if (!diggerData[n].notfiring)
             {
-                digdat[n].notfiring = true;
-                digdat[n].bob.remove();
+                diggerData[n].notfiring = true;
+                diggerData[n].bullet.Remove();
             }
         }
 
-        private void updatedigger(int n, Bags bags, Monsters monsters, Scores scores)
+        private void UpdateDigger(int n, Bags bags, Monsters monsters, Scores scores)
         {
             int dir, ddir, diggerox, diggeroy, nmon;
             bool push = true, bagf;
             int[] clfirst = new int[TYPES];
             int[] clcoll = new int[SPRITES];
-            input.readdirect(n - game.CurrentPlayer);
-            dir = input.getdirect(n - game.CurrentPlayer);
+            game.input.ReadDirect(n - game.currentPlayer);
+            dir = game.input.getdirect(n - game.currentPlayer);
             if (dir == DIR_RIGHT || dir == DIR_UP || dir == DIR_LEFT || dir == DIR_DOWN)
                 ddir = dir;
             else
                 ddir = DIR_NONE;
-            if (digdat[n].rx == 0 && (ddir == DIR_UP || ddir == DIR_DOWN))
-                digdat[n].dob.dir = digdat[n].mdir = ddir;
-            if (digdat[n].ry == 0 && (ddir == DIR_RIGHT || ddir == DIR_LEFT))
-                digdat[n].dob.dir = digdat[n].mdir = ddir;
+            if (diggerData[n].rx == 0 && (ddir == DIR_UP || ddir == DIR_DOWN))
+                diggerData[n].digger.dir = diggerData[n].mdir = ddir;
+            if (diggerData[n].ry == 0 && (ddir == DIR_RIGHT || ddir == DIR_LEFT))
+                diggerData[n].digger.dir = diggerData[n].mdir = ddir;
             if (dir == DIR_NONE)
-                digdat[n].mdir = DIR_NONE;
+                diggerData[n].mdir = DIR_NONE;
             else
-                digdat[n].mdir = digdat[n].dob.dir;
-            if ((digdat[n].dob.x == 292 && digdat[n].mdir == DIR_RIGHT) ||
-                (digdat[n].dob.x == 12 && digdat[n].mdir == DIR_LEFT) ||
-                (digdat[n].dob.y == 180 && digdat[n].mdir == DIR_DOWN) ||
-                (digdat[n].dob.y == 18 && digdat[n].mdir == DIR_UP))
-                digdat[n].mdir = DIR_NONE;
-            diggerox = digdat[n].dob.x;
-            diggeroy = digdat[n].dob.y;
-            if (digdat[n].mdir != DIR_NONE)
-                video.EatField(diggerox, diggeroy, digdat[n].mdir);
-            switch (digdat[n].mdir)
+                diggerData[n].mdir = diggerData[n].digger.dir;
+            if ((diggerData[n].digger.x == 292 && diggerData[n].mdir == DIR_RIGHT) ||
+                (diggerData[n].digger.x == 12 && diggerData[n].mdir == DIR_LEFT) ||
+                (diggerData[n].digger.y == 180 && diggerData[n].mdir == DIR_DOWN) ||
+                (diggerData[n].digger.y == 18 && diggerData[n].mdir == DIR_UP))
+                diggerData[n].mdir = DIR_NONE;
+            diggerox = diggerData[n].digger.x;
+            diggeroy = diggerData[n].digger.y;
+            if (diggerData[n].mdir != DIR_NONE)
+                game.video.EatField(diggerox, diggeroy, diggerData[n].mdir);
+            switch (diggerData[n].mdir)
             {
                 case DIR_RIGHT:
-                    video.DrawRightBlob(digdat[n].dob.x, digdat[n].dob.y);
-                    digdat[n].dob.x += 4;
+                    game.video.DrawRightBlob(diggerData[n].digger.x, diggerData[n].digger.y);
+                    diggerData[n].digger.x += 4;
                     break;
                 case DIR_UP:
-                    video.DrawTopBlob(digdat[n].dob.x, digdat[n].dob.y);
-                    digdat[n].dob.y -= 3;
+                    game.video.DrawTopBlob(diggerData[n].digger.x, diggerData[n].digger.y);
+                    diggerData[n].digger.y -= 3;
                     break;
                 case DIR_LEFT:
-                    video.DrawLeftBlob(digdat[n].dob.x, digdat[n].dob.y);
-                    digdat[n].dob.x -= 4;
+                    game.video.DrawLeftBlob(diggerData[n].digger.x, diggerData[n].digger.y);
+                    diggerData[n].digger.x -= 4;
                     break;
                 case DIR_DOWN:
-                    video.DrawBottomBlob(digdat[n].dob.x, digdat[n].dob.y);
-                    digdat[n].dob.y += 3;
+                    game.video.DrawBottomBlob(diggerData[n].digger.x, diggerData[n].digger.y);
+                    diggerData[n].digger.y += 3;
                     break;
             }
-            if (game.emeralds.HitEmerald((digdat[n].dob.x - 12) / 20, (digdat[n].dob.y - 18) / 18,
-                           (digdat[n].dob.x - 12) % 20, (digdat[n].dob.y - 18) % 18,
-                           digdat[n].mdir))
+            if (game.emeralds.HitEmerald((diggerData[n].digger.x - 12) / 20, (diggerData[n].digger.y - 18) / 18,
+                           (diggerData[n].digger.x - 12) % 20, (diggerData[n].digger.y - 18) % 18,
+                           diggerData[n].mdir))
             {
-                if (digdat[n].emocttime == 0)
-                    digdat[n].emn = 0;
+                if (diggerData[n].emocttime == 0)
+                    diggerData[n].emn = 0;
                 scores.ScoreEmerald(n);
-                sound.soundem();
-                sound.soundemerald(digdat[n].emn);
+                game.sound.soundem();
+                game.sound.soundemerald(diggerData[n].emn);
 
-                digdat[n].emn++;
-                if (digdat[n].emn == 8)
+                diggerData[n].emn++;
+                if (diggerData[n].emn == 8)
                 {
-                    digdat[n].emn = 0;
+                    diggerData[n].emn = 0;
                     scores.ScoreOctave(n);
                 }
-                digdat[n].emocttime = 9;
+                diggerData[n].emocttime = 9;
             }
             DrawDigger(n);
             for (int i = 0; i < TYPES; i++)
-                clfirst[i] = sprites.first[i];
+                clfirst[i] = game.sprites.first[i];
             for (int i = 0; i < SPRITES; i++)
-                clcoll[i] = sprites.coll[i];
+                clcoll[i] = game.sprites.coll[i];
             game.IncreasePenalty();
 
             int j = clfirst[1];
@@ -497,217 +487,216 @@ namespace Digger.Net
 
             if (bagf)
             {
-                if (digdat[n].mdir == DIR_RIGHT || digdat[n].mdir == DIR_LEFT)
+                if (diggerData[n].mdir == DIR_RIGHT || diggerData[n].mdir == DIR_LEFT)
                 {
-                    push = bags.PushBags(digdat[n].mdir, clfirst, clcoll);
-                    digdat[n].bagtime++;
+                    push = bags.PushBags(diggerData[n].mdir, clfirst, clcoll);
+                    diggerData[n].bagtime++;
                 }
                 else
                   if (!bags.PushBagsUp(clfirst, clcoll))
                     push = false;
                 if (!push)
                 { /* Strange, push not completely defined */
-                    digdat[n].dob.x = diggerox;
-                    digdat[n].dob.y = diggeroy;
-                    digdat[n].dob.dir = digdat[n].mdir;
+                    diggerData[n].digger.x = diggerox;
+                    diggerData[n].digger.y = diggeroy;
+                    diggerData[n].digger.dir = diggerData[n].mdir;
                     DrawDigger(n);
                     game.IncreasePenalty();
-                    digdat[n].dob.dir = reversedir(digdat[n].mdir);
+                    diggerData[n].digger.dir = ReverseDir(diggerData[n].mdir);
                 }
             }
-            if (clfirst[2] != -1 && bonusmode && digdat[n].dob.alive)
+            if (clfirst[2] != -1 && isBonusMode && diggerData[n].digger.isAlive)
                 for (nmon = monsters.KillMonsters(clfirst, clcoll); nmon != 0; nmon--)
                 {
-                    sound.soundeatm();
-                    sceatm(n, scores);
+                    game.sound.SoundEatMonster();
+                    ScoreEatMonster(n);
                 }
             if (clfirst[0] != -1)
             {
                 scores.ScoreBonus(n);
-                initbonusmode();
+                InitializeBonusMode();
             }
-            digdat[n].h = (digdat[n].dob.x - 12) / 20;
-            digdat[n].rx = (digdat[n].dob.x - 12) % 20;
-            digdat[n].v = (digdat[n].dob.y - 18) / 18;
-            digdat[n].ry = (digdat[n].dob.y - 18) % 18;
+            diggerData[n].h = (diggerData[n].digger.x - 12) / 20;
+            diggerData[n].rx = (diggerData[n].digger.x - 12) % 20;
+            diggerData[n].v = (diggerData[n].digger.y - 18) / 18;
+            diggerData[n].ry = (diggerData[n].digger.y - 18) % 18;
         }
 
-        public void sceatm(int n, Scores scores)
+        public void ScoreEatMonster(int n)
         {
-            scores.ScoreEatMonster(n, digdat[n].msc);
-            digdat[n].msc <<= 1;
+            game.scores.ScoreEatMonster(n, diggerData[n].msc);
+            diggerData[n].msc <<= 1;
         }
 
         public int[] deatharc = { 3, 5, 6, 6, 5, 3, 0 };
 
-        private void diggerdie(int n, Bags bags, Monsters monsters)
+        private void DiggerDie(int n, Bags bags, Monsters monsters)
         {
             int[] clfirst = new int[TYPES];
             int[] clcoll = new int[SPRITES];
             bool alldead;
-            switch (digdat[n].deathstage)
+            switch (diggerData[n].deathstage)
             {
                 case 1:
-                    if (bags.GetBagY(digdat[n].deathbag) + 6 > digdat[n].dob.y)
-                        digdat[n].dob.y = bags.GetBagY(digdat[n].deathbag) + 6;
-                    video.DrawDigger(n - game.CurrentPlayer, 15, digdat[n].dob.x, digdat[n].dob.y, false);
+                    if (bags.GetBagY(diggerData[n].deathBagIndex) + 6 > diggerData[n].digger.y)
+                        diggerData[n].digger.y = bags.GetBagY(diggerData[n].deathBagIndex) + 6;
+                    game.video.DrawDigger(n - game.currentPlayer, 15, diggerData[n].digger.x, diggerData[n].digger.y, false);
                     game.IncreasePenalty();
-                    if (bags.GetBagDirection(digdat[n].deathbag) + 1 == 0)
+                    if (bags.GetBagDirection(diggerData[n].deathBagIndex) + 1 == 0)
                     {
-                        sound.soundddie();
-                        digdat[n].deathtime = 5;
-                        digdat[n].deathstage = 2;
-                        digdat[n].deathani = 0;
-                        digdat[n].dob.y -= 6;
+                        game.sound.SoundDiggerDie();
+                        diggerData[n].deathtime = 5;
+                        diggerData[n].deathstage = 2;
+                        diggerData[n].deathani = 0;
+                        diggerData[n].digger.y -= 6;
                     }
                     break;
                 case 2:
-                    if (digdat[n].deathtime != 0)
+                    if (diggerData[n].deathtime != 0)
                     {
-                        digdat[n].deathtime--;
+                        diggerData[n].deathtime--;
                         break;
                     }
-                    if (digdat[n].deathani == 0)
-                        sound.music(2);
-                    video.DrawDigger(n - game.CurrentPlayer, 14 - digdat[n].deathani, digdat[n].dob.x, digdat[n].dob.y,
+                    if (diggerData[n].deathani == 0)
+                        game.sound.Music(2);
+                    game.video.DrawDigger(n - game.currentPlayer, 14 - diggerData[n].deathani, diggerData[n].digger.x, diggerData[n].digger.y,
                                false);
                     for (int i = 0; i < TYPES; i++)
-                        clfirst[i] = sprites.first[i];
+                        clfirst[i] = game.sprites.first[i];
                     for (int i = 0; i < SPRITES; i++)
-                        clcoll[i] = sprites.coll[i];
+                        clcoll[i] = game.sprites.coll[i];
                     game.IncreasePenalty();
-                    if (digdat[n].deathani == 0 && clfirst[2] != -1)
+                    if (diggerData[n].deathani == 0 && clfirst[2] != -1)
                         monsters.KillMonsters(clfirst, clcoll);
-                    if (digdat[n].deathani < 4)
+                    if (diggerData[n].deathani < 4)
                     {
-                        digdat[n].deathani++;
-                        digdat[n].deathtime = 2;
+                        diggerData[n].deathani++;
+                        diggerData[n].deathtime = 2;
                     }
                     else
                     {
-                        digdat[n].deathstage = 4;
-                        if (sound.musicflag || game.DiggerCount > 1)
-                            digdat[n].deathtime = 60;
+                        diggerData[n].deathstage = 4;
+                        if (game.sound.isMusicEnabled || game.diggerCount > 1)
+                            diggerData[n].deathtime = 60;
                         else
-                            digdat[n].deathtime = 10;
+                            diggerData[n].deathtime = 10;
                     }
                     break;
                 case 3:
-                    digdat[n].deathstage = 5;
-                    digdat[n].deathani = 0;
-                    digdat[n].deathtime = 0;
+                    diggerData[n].deathstage = 5;
+                    diggerData[n].deathani = 0;
+                    diggerData[n].deathtime = 0;
                     break;
                 case 5:
-                    if (digdat[n].deathani >= 0 && digdat[n].deathani <= 6)
+                    if (diggerData[n].deathani >= 0 && diggerData[n].deathani <= 6)
                     {
-                        video.DrawDigger(n - game.CurrentPlayer, 15, digdat[n].dob.x,
-                                   digdat[n].dob.y - deatharc[digdat[n].deathani], false);
-                        if (digdat[n].deathani == 6 && !IsAlive())
-                            sound.musicoff();
+                        game.video.DrawDigger(n - game.currentPlayer, 15, diggerData[n].digger.x,
+                                   diggerData[n].digger.y - deatharc[diggerData[n].deathani], false);
+                        if (diggerData[n].deathani == 6 && !IsAnyAlive())
+                            game.sound.MusicOff();
                         game.IncreasePenalty();
-                        digdat[n].deathani++;
-                        if (digdat[n].deathani == 1)
-                            sound.soundddie();
-                        if (digdat[n].deathani == 7)
+                        diggerData[n].deathani++;
+                        if (diggerData[n].deathani == 1)
+                            game.sound.SoundDiggerDie();
+                        if (diggerData[n].deathani == 7)
                         {
-                            digdat[n].deathtime = 5;
-                            digdat[n].deathani = 0;
-                            digdat[n].deathstage = 2;
+                            diggerData[n].deathtime = 5;
+                            diggerData[n].deathani = 0;
+                            diggerData[n].deathstage = 2;
                         }
                     }
                     break;
                 case 4:
-                    if (digdat[n].deathtime != 0)
-                        digdat[n].deathtime--;
+                    if (diggerData[n].deathtime != 0)
+                        diggerData[n].deathtime--;
                     else
                     {
-                        digdat[n].dead = true;
+                        diggerData[n].dead = true;
                         alldead = true;
-                        for (int i = 0; i < game.DiggerCount; i++)
-                            if (!digdat[i].dead)
+                        for (int i = 0; i < game.diggerCount; i++)
+                            if (!diggerData[i].dead)
                             {
                                 alldead = false;
                                 break;
                             }
                         if (alldead)
                             game.SetDead(true);
-                        else if (IsAlive() && digdat[n].lives > 0)
+                        else if (IsAnyAlive() && diggerData[n].lives > 0)
                         {
-                            if (!game.IsGauntletMode)
-                                digdat[n].lives--;
+                            if (!game.isGauntletMode)
+                                diggerData[n].lives--;
                             DrawLives();
-                            if (digdat[n].lives > 0)
+                            if (diggerData[n].lives > 0)
                             {
-                                digdat[n].v = 9;
-                                digdat[n].mdir = 4;
-                                digdat[n].h = (game.DiggerCount == 1) ? 7 : (8 - n * 2);
-                                digdat[n].dob.x = digdat[n].h * 20 + 12;
-                                digdat[n].dob.dir = (n == 0) ? DIR_RIGHT : DIR_LEFT;
-                                digdat[n].rx = 0;
-                                digdat[n].ry = 0;
-                                digdat[n].bagtime = 0;
-                                digdat[n].dob.alive = true;
-                                digdat[n].dead = false;
-                                digdat[n].invin = true;
-                                digdat[n].ivt = 50;
-                                digdat[n].deathstage = 1;
-                                digdat[n].dob.y = digdat[n].v * 18 + 18;
-                                sprites.EraseSprite(n + FIRSTDIGGER - game.CurrentPlayer);
-                                digdat[n].dob.put();
-                                digdat[n].notfiring = true;
-                                digdat[n].emocttime = 0;
-                                digdat[n].firepressed = false;
-                                digdat[n].bob.expsn = 0;
-                                digdat[n].rechargetime = 0;
-                                digdat[n].emn = 0;
-                                digdat[n].msc = 1;
+                                diggerData[n].v = 9;
+                                diggerData[n].mdir = 4;
+                                diggerData[n].h = (game.diggerCount == 1) ? 7 : (8 - n * 2);
+                                diggerData[n].digger.x = diggerData[n].h * 20 + 12;
+                                diggerData[n].digger.dir = (n == 0) ? DIR_RIGHT : DIR_LEFT;
+                                diggerData[n].rx = 0;
+                                diggerData[n].ry = 0;
+                                diggerData[n].bagtime = 0;
+                                diggerData[n].digger.isAlive = true;
+                                diggerData[n].dead = false;
+                                diggerData[n].invin = true;
+                                diggerData[n].ivt = 50;
+                                diggerData[n].deathstage = 1;
+                                diggerData[n].digger.y = diggerData[n].v * 18 + 18;
+                                game.sprites.EraseSprite(n + FIRSTDIGGER - game.currentPlayer);
+                                diggerData[n].digger.Put();
+                                diggerData[n].notfiring = true;
+                                diggerData[n].emocttime = 0;
+                                diggerData[n].firepressed = false;
+                                diggerData[n].bullet.expsn = 0;
+                                diggerData[n].rechargetime = 0;
+                                diggerData[n].emn = 0;
+                                diggerData[n].msc = 1;
                             }
-                            input.clearfire(n);
-                            if (bonusmode)
-                                sound.music(0);
+                            game.input.ClearFire(n);
+                            if (isBonusMode)
+                                game.sound.Music(0);
                             else
-                                sound.music(1);
+                                game.sound.Music(1);
                         }
                     }
                     break;
             }
         }
 
-        public void createbonus()
+        public void CreateBonus()
         {
-            bonusvisible = true;
-            video.DrawBonus(292, 18);
+            isBonusVisible = true;
+            game.video.DrawBonus(292, 18);
         }
 
-        private void initbonusmode()
+        private void InitializeBonusMode()
         {
-            int i;
-            bonusmode = true;
-            erasebonus();
-            video.SetIntensity(VideoIntensity.High);
-            bonustimeleft = 250 - level.LevelOf10() * 20;
+            isBonusMode = true;
+            EraseBonus();
+            game.video.SetIntensity(VideoIntensity.High);
+            bonustimeleft = 250 - game.level.LevelOf10() * 20;
             startbonustimeleft = 20;
-            for (i = 0; i < game.DiggerCount; i++)
-                digdat[i].msc = 1;
+            for (int i = 0; i < game.diggerCount; i++)
+                diggerData[i].msc = 1;
         }
 
-        private void endbonusmode()
+        private void EndBonusMode()
         {
-            bonusmode = false;
-            video.SetIntensity(0);
+            isBonusMode = false;
+            game.video.SetIntensity(0);
         }
 
-        public void erasebonus()
+        public void EraseBonus()
         {
-            if (bonusvisible)
+            if (isBonusVisible)
             {
-                bonusvisible = false;
-                sprites.EraseSprite(Const.FIRSTBONUS);
+                isBonusVisible = false;
+                game.sprites.EraseSprite(Const.FIRSTBONUS);
             }
-            video.SetIntensity(VideoIntensity.Normal);
+            game.video.SetIntensity(VideoIntensity.Normal);
         }
 
-        public int reversedir(int dir)
+        public int ReverseDir(int dir)
         {
             switch (dir)
             {
@@ -719,59 +708,58 @@ namespace Digger.Net
             return dir;
         }
 
-        public bool checkdiggerunderbag(int h, int v)
+        public bool CheckIsDiggerUnderBag(int h, int v)
         {
-            for (int n = game.CurrentPlayer; n < game.DiggerCount + game.CurrentPlayer; n++)
-                if (digdat[n].dob.alive)
-                    if (digdat[n].mdir == DIR_UP || digdat[n].mdir == DIR_DOWN)
-                        if ((digdat[n].dob.x - 12) / 20 == h)
-                            if ((digdat[n].dob.y - 18) / 18 == v || (digdat[n].dob.y - 18) / 18 + 1 == v)
+            for (int n = game.currentPlayer; n < game.diggerCount + game.currentPlayer; n++)
+                if (diggerData[n].digger.isAlive)
+                    if (diggerData[n].mdir == DIR_UP || diggerData[n].mdir == DIR_DOWN)
+                        if ((diggerData[n].digger.x - 12) / 20 == h)
+                            if ((diggerData[n].digger.y - 18) / 18 == v || (diggerData[n].digger.y - 18) / 18 + 1 == v)
                                 return true;
             return false;
         }
 
         public void KillDigger(int n, int stage, int bag)
         {
-            if (digdat[n].invin)
+            if (diggerData[n].invin)
                 return;
-            if (digdat[n].deathstage < 2 || digdat[n].deathstage > 4)
+            if (diggerData[n].deathstage < 2 || diggerData[n].deathstage > 4)
             {
-                digdat[n].dob.alive = false;
-                digdat[n].deathstage = stage;
-                digdat[n].deathbag = bag;
+                diggerData[n].digger.isAlive = false;
+                diggerData[n].deathstage = stage;
+                diggerData[n].deathBagIndex = bag;
             }
         }
 
-        bool getfirepflag(int n)
+        bool GetFirepFlag(int n)
         {
-            return n == 0 ? input.firepflag : input.fire2pflag;
+            return n == 0 ? game.input.firepflag : game.input.fire2pflag;
         }
 
         public int DiggerX(int n)
         {
-            return digdat[n].dob.x;
+            return diggerData[n].digger.x;
         }
 
         public int DiggerY(int n)
         {
-            return digdat[n].dob.y;
+            return diggerData[n].digger.y;
         }
 
         public bool IsDiggerAlive(int n)
         {
-            return digdat[n].dob.alive;
+            return diggerData[n].digger.isAlive;
         }
 
         public void ResetDiggerTime(int n)
         {
-            digdat[n].bagtime = 0;
+            diggerData[n].bagtime = 0;
         }
 
-        public bool IsAlive()
+        public bool IsAnyAlive()
         {
-            int i;
-            for (i = game.CurrentPlayer; i < game.DiggerCount + game.CurrentPlayer; i++)
-                if (digdat[i].dob.alive)
+            for (int i = game.currentPlayer; i < game.diggerCount + game.currentPlayer; i++)
+                if (diggerData[i].digger.isAlive)
                     return true;
 
             return false;
@@ -779,90 +767,90 @@ namespace Digger.Net
 
         public int GetLives(int pl)
         {
-            return digdat[pl].lives;
+            return diggerData[pl].lives;
         }
 
-        public void addlife(int pl)
+        public void AddLife(int pl)
         {
-            digdat[pl].lives++;
-            sound.sound1up();
+            diggerData[pl].lives++;
+            game.sound.Sound1Up();
         }
 
         public void InitializeLives()
         {
             int i;
-            for (i = 0; i < game.DiggerCount + game.PlayerCount - 1; i++)
-                digdat[i].lives = 3;
+            for (i = 0; i < game.diggerCount + game.playerCount - 1; i++)
+                diggerData[i].lives = 3;
         }
 
         public void DecreaseLife(int player)
         {
-            if (!game.IsGauntletMode)
-                digdat[player].lives--;
+            if (!game.isGauntletMode)
+                diggerData[player].lives--;
         }
 
         public void DrawLives()
         {
             int l, n, g;
-            if (game.IsGauntletMode)
+            if (game.isGauntletMode)
             {
                 g = (int)(cgtime / 1193181);
                 string buf = string.Format("{0:D3}:{1:D2}", g / 60, g % 60);
-                video.TextOut(buf, 124, 0, 3);
+                game.video.TextOut(buf, 124, 0, 3);
                 return;
             }
             n = GetLives(0) - 1;
-            video.EraseText(5, 96, 0, 2);
+            game.video.EraseText(5, 96, 0, 2);
             if (n > 4)
             {
-                video.DrawLife(0, 80, 0);
+                game.video.DrawLife(0, 80, 0);
                 string buf = string.Format("0x{0:X4}", n);
-                video.TextOut(buf, 100, 0, 2);
+                game.video.TextOut(buf, 100, 0, 2);
             }
             else
             {
                 for (l = 1; l < 5; l++)
                 {
-                    video.DrawLife(n > 0 ? 0 : 2, l * 20 + 60, 0);
+                    game.video.DrawLife(n > 0 ? 0 : 2, l * 20 + 60, 0);
                     n--;
                 }
             }
 
-            if (game.PlayerCount == 2)
+            if (game.playerCount == 2)
             {
-                video.EraseText(5, 164, 0, 2);
+                game.video.EraseText(5, 164, 0, 2);
                 n = GetLives(1) - 1;
                 if (n > 4)
                 {
                     string buf = string.Format("0x{0:X4}", n);
-                    video.TextOut(buf, 220 - buf.Length * Const.CHR_W, 0, 2);
-                    video.DrawLife(1, 224, 0);
+                    game.video.TextOut(buf, 220 - buf.Length * Const.CHR_W, 0, 2);
+                    game.video.DrawLife(1, 224, 0);
                 }
                 else
                 {
                     for (l = 1; l < 5; l++)
                     {
-                        video.DrawLife(n > 0 ? 1 : 2, 244 - l * 20, 0);
+                        game.video.DrawLife(n > 0 ? 1 : 2, 244 - l * 20, 0);
                         n--;
                     }
                 }
             }
 
-            if (game.DiggerCount == 2)
+            if (game.diggerCount == 2)
             {
-                video.EraseText(5, 164, 0, 1);
+                game.video.EraseText(5, 164, 0, 1);
                 n = GetLives(1) - 1;
                 if (n > 4)
                 {
                     string buf = string.Format("0x{0:X4}", n);
-                    video.TextOut(buf, 220 - buf.Length * Const.CHR_W, 0, 1);
-                    video.DrawLife(3, 224, 0);
+                    game.video.TextOut(buf, 220 - buf.Length * Const.CHR_W, 0, 1);
+                    game.video.DrawLife(3, 224, 0);
                 }
                 else
                 {
                     for (l = 1; l < 5; l++)
                     {
-                        video.DrawLife(n > 0 ? 3 : 2, 244 - l * 20, 0);
+                        game.video.DrawLife(n > 0 ? 3 : 2, 244 - l * 20, 0);
                         n--;
                     }
                 }

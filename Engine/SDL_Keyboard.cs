@@ -9,6 +9,7 @@
  * Maxim Sobolev
  * --------------------------------------------------------------------------- 
  */
+// C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
 using System;
 using System.Collections.Generic;
@@ -18,13 +19,43 @@ using SDL2;
 
 namespace Digger.Net
 {
-    public class SdlKeyboard
+    public class SDL_Keyboard
     {
+        public const int KBLEN = 30;
+
+        private readonly SDL.SDL_Scancode[] defaultKeys =
+        {
+            SDL.SDL_Scancode.SDL_SCANCODE_RIGHT,        /* 1 Right */
+            SDL.SDL_Scancode.SDL_SCANCODE_UP,           /* 1 Up */
+            SDL.SDL_Scancode.SDL_SCANCODE_LEFT,         /* 1 Left */
+            SDL.SDL_Scancode.SDL_SCANCODE_DOWN,         /* 1 Down */
+            SDL.SDL_Scancode.SDL_SCANCODE_F1,           /* 1 Fire */
+            SDL.SDL_Scancode.SDL_SCANCODE_D,            /* 2 Right */
+            SDL.SDL_Scancode.SDL_SCANCODE_W,            /* 2 Up */
+            SDL.SDL_Scancode.SDL_SCANCODE_A,            /* 2 Left */
+            SDL.SDL_Scancode.SDL_SCANCODE_S,            /* 2 Down */
+            SDL.SDL_Scancode.SDL_SCANCODE_TAB,          /* 2 Fire */
+            SDL.SDL_Scancode.SDL_SCANCODE_T,            /* Cheat */
+            SDL.SDL_Scancode.SDL_SCANCODE_KP_PLUS,      /* Accelerate */
+            SDL.SDL_Scancode.SDL_SCANCODE_KP_MINUS,     /* Brake */
+            SDL.SDL_Scancode.SDL_SCANCODE_F7,           /* Music */
+            SDL.SDL_Scancode.SDL_SCANCODE_F9,           /* Sound */
+            SDL.SDL_Scancode.SDL_SCANCODE_F10,          /* Exit */
+            SDL.SDL_Scancode.SDL_SCANCODE_SPACE,        /* Pause */
+            SDL.SDL_Scancode.SDL_SCANCODE_N,            /* Change mode */
+            SDL.SDL_Scancode.SDL_SCANCODE_F8,           /* Save DRF */
+            SDL.SDL_Scancode.SDL_SCANCODE_V,            /* Change video to VGA */
+            SDL.SDL_Scancode.SDL_SCANCODE_C,            /* Change video to CGA */
+        };
+
+        public readonly int[][] keycodes;
+        public static short klen = 0;
         private static SDL.SDL_EventFilter pHandler;
+        private readonly KeyBufferEntry[] kbuffer = new KeyBufferEntry[KBLEN];
 
         private Game game;
 
-        public SdlKeyboard(Game game)
+        public SDL_Keyboard(Game game)
         {
             this.game = game;
 
@@ -34,8 +65,13 @@ namespace Digger.Net
 
             pHandler = new SDL.SDL_EventFilter(Handler);
             SDL.SDL_SetEventFilter(pHandler, IntPtr.Zero);
+
+            keycodes = new int[defaultKeys.Length][];
+            for (int i = 0; i < defaultKeys.Length; ++i)
+                keycodes[i] = new []{ (int)defaultKeys[i], -2, -2, -2, -2 };
         }
 
+        public int KeyCount => defaultKeys.Length;
         public bool IsRightPressed => GetAsyncKeyState(keycodes[0][0]);
         public bool IsUpPressed => GetAsyncKeyState(keycodes[1][0]);
         public bool IsLeftPressed => GetAsyncKeyState(keycodes[2][0]);
@@ -47,37 +83,11 @@ namespace Digger.Net
         public bool IsDown2Pressed => GetAsyncKeyState(keycodes[8][0]);
         public bool IsF12Pressed => GetAsyncKeyState(keycodes[9][0]);
 
-        public const int KBLEN = 30;
-
-        public readonly int[][] keycodes = {
-            new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_RIGHT,-2,-2,-2,-2},    /* 1 Right */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_UP,-2,-2,-2,-2},       /* 1 Up */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_LEFT,-2,-2,-2,-2},     /* 1 Left */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_DOWN,-2,-2,-2,-2},     /* 1 Down */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_F1,-2,-2,-2,-2},       /* 1 Fire */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_S,-2,-2,-2,-2},        /* 2 Right */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_W,-2,-2,-2,-2},        /* 2 Up */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_A,-2,-2,-2,-2},        /* 2 Left */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_Z,-2,-2,-2,-2},        /* 2 Down */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_TAB,-2,-2,-2,-2},      /* 2 Fire */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_T,-2,-2,-2,-2},        /* Cheat */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_KP_PLUS,-2,-2,-2,-2},  /* Accelerate */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_KP_MINUS,-2,-2,-2,-2}, /* Brake */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_F7,-2,-2,-2,-2},       /* Music */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_F9,-2,-2,-2,-2},       /* Sound */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_F10,-2,-2,-2,-2},      /* Exit */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_SPACE,-2,-2,-2,-2},    /* Pause */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_N,-2,-2,-2,-2},        /* Change mode */
-			new int[]{(int)SDL.SDL_Scancode.SDL_SCANCODE_F8,-2,-2,-2,-2}};      /* Save DRF */
-
-        public struct kbent
+        public struct KeyBufferEntry
         {
             public SDL.SDL_Keycode sym;
             public SDL.SDL_Scancode scancode;
         };
-
-        static kbent[] kbuffer = new kbent[KBLEN];
-        public static short klen = 0;
 
         public int Handler(IntPtr udata, IntPtr pEvent)
         {
@@ -104,7 +114,10 @@ namespace Digger.Net
             }
 
             if (sdlEvent.type == SDL.SDL_EventType.SDL_QUIT)
-                Environment.Exit(0);
+            {
+                game.isGameCycleEnded = true;
+                game.shouldExit = true;
+            }
 
             return 1;
         }
@@ -119,22 +132,16 @@ namespace Digger.Net
 
         public int GetKey(bool scancode)
         {
-            int result;
-
-            while (!IsKeyboardHit())
+            while (!IsKeyboardHit() && !game.shouldExit)
             {
                 game.timer.SyncFrame();
                 game.video.UpdateScreen();
             }
 
-            if (scancode)
-            {
-                result = (int)kbuffer[0].scancode;
-            }
-            else
-            {
-                result = (int)kbuffer[0].sym;
-            }
+            int result = scancode ?
+                (int)kbuffer[0].scancode :
+                (int)kbuffer[0].sym;
+
             klen--;
             ShiftLeft(kbuffer);
 
@@ -146,6 +153,11 @@ namespace Digger.Net
             SDL.SDL_PumpEvents();
 
             return klen > 0;
+        }
+
+        public bool IsKeyRemapped(int index)
+        {
+            return keycodes[index][0] != (int)defaultKeys[index];
         }
 
         private static void ShiftLeft<T>(IList<T> list)

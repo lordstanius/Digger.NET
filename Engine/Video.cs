@@ -1,15 +1,12 @@
 /* Digger Remastered
    Copyright (c) Andrew Jenner 1998-2004 */
-// C# port by Mladen Stanisic
+// C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
-using System;
 using SDL2;
+using System;
 
 namespace Digger.Net
 {
-    public enum VideoMode { CGA, VGA };
-    public enum VideoIntensity { Normal, High }
-
     public class Video
     {
         private const int DIR_NONE = Const.DIR_NONE;
@@ -61,27 +58,30 @@ namespace Digger.Net
         public int[] digspr = new int[DIGGERS];
         public int[] digspd = new int[DIGGERS];
         public int[] firespr = new int[FIREBALLS];
+        public bool isFullScreen;
 
         public readonly string EmptyLine = new string(' ', MAX_TEXT_LEN);
 
         private Game game;
-
-        private SdlGraphics gfx = new SdlGraphicsVga();
+        private SDL_Video gfx;
 
         public Video(Game game)
         {
             this.game = game;
         }
 
-        
+        public VideoMode VideoMode { get; private set; } = VideoMode.VGA;
 
         public void Initialize()
         {
-            gfx.Initialize();
-            gfx.SetPalette(0);
+            if (gfx == null)
+                gfx = new SDL_Video(VideoMode);
+
+            if (isFullScreen)
+                gfx.SetDisplayMode(isFullScreen);
         }
 
-        internal void ResetPalette()
+        public void ResetPalette()
         {
             gfx.SetPalette(0);
             gfx.SetNormalIntensity();
@@ -92,20 +92,18 @@ namespace Digger.Net
             gfx.UpdateScreen();
         }
 
-        public void EnableFullScreen()
+        public void SetVideoMode(VideoMode mode)
         {
-            gfx.EnableFullScreen();
-        }
-
-        public void SetVideoMode(VideoMode cGA)
-        {
-            this.gfx = new SdlGraphicsCga();
-            Initialize();
+            VideoMode = mode;
+            if (gfx != null && gfx.TrySetVideoMode(mode))
+                game.isVideoModeChanged = true;
         }
 
         public void SwitchDisplayMode()
         {
-            gfx.SwitchDisplayMode();
+            isFullScreen = !isFullScreen;
+            if (!gfx.SetDisplayMode(isFullScreen))
+                throw new SystemException($"Couldn't set {(isFullScreen ? "fullscreen" : "windowed")} display.");
         }
 
         public void GetImage(int x, int y, ref Surface surface, int width, int heigth)
@@ -167,7 +165,7 @@ namespace Digger.Net
                         field[y * MWIDTH + x] &= 0xd03f;
                     if (c == 'S' || c == 'H')
                         field[y * MWIDTH + x] &= 0xdfe0;
-                    if (game.CurrentPlayer == 0)
+                    if (game.currentPlayer == 0)
                         field1[y * MWIDTH + x] = field[y * MWIDTH + x];
                     else
                         field2[y * MWIDTH + x] = field[y * MWIDTH + x];
@@ -179,7 +177,7 @@ namespace Digger.Net
         {
             for (int x = 0; x < MWIDTH; x++)
                 for (int y = 0; y < MHEIGHT; y++)
-                    if (game.CurrentPlayer == 0)
+                    if (game.currentPlayer == 0)
                         field[y * MWIDTH + x] = field1[y * MWIDTH + x];
                     else
                         field[y * MWIDTH + x] = field2[y * MWIDTH + x];
@@ -207,7 +205,7 @@ namespace Digger.Net
             int x, y;
             for (x = 0; x < MWIDTH; x++)
                 for (y = 0; y < MHEIGHT; y++)
-                    if (game.CurrentPlayer == 0)
+                    if (game.currentPlayer == 0)
                         field1[y * MWIDTH + x] = field[y * MWIDTH + x];
                     else
                         field2[y * MWIDTH + x] = field[y * MWIDTH + x];
@@ -318,7 +316,7 @@ namespace Digger.Net
             return gfx.GetPixel(x, y);
         }
 
-        public void CreateMBSprite()
+        public void CreateMonsterBagSprites()
         {
             for (int i = 0; i < BAGS; i++)
                 game.sprites.CreateSprite(FIRSTBAG + i, 62, bagbufs[i], 4, 15, 0, 0);
@@ -326,10 +324,10 @@ namespace Digger.Net
             for (int i = 0; i < MONSTERS; i++)
                 game.sprites.CreateSprite(FIRSTMONSTER + i, 71, monbufs[i], 4, 15, 0, 0);
 
-            CreateDBFSprite();
+            CreateDiggerBonusFireballSprites();
         }
 
-        public void InitializeMBSprite()
+        public void InitMonsterBagSprites()
         {
             for (int i = 0; i < BAGS; i++)
                 game.sprites.InitializeSprite(FIRSTBAG + i, 62, 4, 15, 0, 0);
@@ -337,7 +335,7 @@ namespace Digger.Net
             for (int i = 0; i < MONSTERS; i++)
                 game.sprites.InitializeSprite(FIRSTMONSTER + i, 71, 4, 15, 0, 0);
 
-            InitDBFSprite();
+            InitDiggerBonusFireballSprites();
         }
 
         public void DrawTitleScreen()
@@ -370,39 +368,45 @@ namespace Digger.Net
             game.sprites.getis();
         }
 
-        public void CreateDBFSprite()
+        public void CreateDiggerBonusFireballSprites()
         {
-            int i;
-            for (i = 0; i < DIGGERS; i++)
+            for (int i = 0; i < DIGGERS; i++)
             {
                 digspd[i] = 1;
                 digspr[i] = 0;
             }
-            for (i = 0; i < FIREBALLS; i++)
+
+            for (int i = 0; i < FIREBALLS; i++)
                 firespr[i] = 0;
-            for (i = FIRSTDIGGER; i < LASTDIGGER; i++)
+
+            for (int i = FIRSTDIGGER; i < LASTDIGGER; i++)
                 game.sprites.CreateSprite(i, 0, diggerbufs[i - FIRSTDIGGER], 4, 15, 0, 0);
-            for (i = FIRSTBONUS; i < LASTBONUS; i++)
+
+            for (int i = FIRSTBONUS; i < LASTBONUS; i++)
                 game.sprites.CreateSprite(i, 81, bonusbufs[i - FIRSTBONUS], 4, 15, 0, 0);
-            for (i = FIRSTFIREBALL; i < LASTFIREBALL; i++)
+
+            for (int i = FIRSTFIREBALL; i < LASTFIREBALL; i++)
                 game.sprites.CreateSprite(i, 82, firebufs[i - FIRSTFIREBALL], 2, 8, 0, 0);
         }
 
-        public void InitDBFSprite()
+        public void InitDiggerBonusFireballSprites()
         {
-            int i;
-            for (i = 0; i < DIGGERS; i++)
+            for (int i = 0; i < DIGGERS; i++)
             {
                 digspd[i] = 1;
                 digspr[i] = 0;
             }
-            for (i = 0; i < FIREBALLS; i++)
+
+            for (int i = 0; i < FIREBALLS; i++)
                 firespr[i] = 0;
-            for (i = FIRSTDIGGER; i < LASTDIGGER; i++)
+
+            for (int i = FIRSTDIGGER; i < LASTDIGGER; i++)
                 game.sprites.InitializeSprite(i, 0, 4, 15, 0, 0);
-            for (i = FIRSTBONUS; i < LASTBONUS; i++)
+
+            for (int i = FIRSTBONUS; i < LASTBONUS; i++)
                 game.sprites.InitializeSprite(i, 81, 4, 15, 0, 0);
-            for (i = FIRSTFIREBALL; i < LASTFIREBALL; i++)
+
+            for (int i = FIRSTFIREBALL; i < LASTFIREBALL; i++)
                 game.sprites.InitializeSprite(i, 82, 2, 8, 0, 0);
         }
 
@@ -451,10 +455,8 @@ namespace Digger.Net
         public void DrawBackground(int l)
         {
             for (int y = 14; y < 200; y += 4)
-            {
                 for (int x = 0; x < 320; x += 20)
                     game.sprites.drawmiscspr(x, y, 93 + l, 5, 4);
-            }
         }
 
         public void DrawFire(int n, int x, int y, int t)
@@ -483,24 +485,30 @@ namespace Digger.Net
         {
             int nn = (n == 0) ? 0 : 31;
             digspr[n] += digspd[n];
+
             if (digspr[n] == 2 || digspr[n] == 0)
                 digspd[n] = -digspd[n];
+
             if (digspr[n] > 2)
                 digspr[n] = 2;
+
             if (digspr[n] < 0)
                 digspr[n] = 0;
+
             if (t >= 0 && t <= 6 && (t & 1) == 0)
             {
                 game.sprites.InitializeSprite(FIRSTDIGGER + n, (t + (f ? 0 : 1)) * 3 + digspr[n] + 1 + nn, 4, 15, 0, 0);
                 game.sprites.DrawSprite(FIRSTDIGGER + n, x, y);
                 return;
             }
+
             if (t >= 10 && t <= 15)
             {
                 game.sprites.InitializeSprite(FIRSTDIGGER + n, 40 + nn - t, 4, 15, 0, 0);
                 game.sprites.DrawSprite(FIRSTDIGGER + n, x, y);
                 return;
             }
+
             game.sprites.first[0] = game.sprites.first[1] = game.sprites.first[2] = game.sprites.first[3] = game.sprites.first[4] = -1;
         }
     }

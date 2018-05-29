@@ -24,7 +24,7 @@
  * SUCH DAMAGE.
  *
  */
- // C# port by Mladen Stanisic
+ // C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
 using System;
 
@@ -168,10 +168,7 @@ namespace Digger.Net
             double n, w;
 
             if (Fs < Fc * 2.0)
-            {
-                DebugLog.Write($"fo_init: cutoff frequency ({Fc:N1}) should be less than half of the sampling rate ({Fs:N2})");
-                Environment.Exit(0);
-            }
+                throw new InvalidOperationException($"fo_init: cutoff frequency ({Fc:N1}) should be less than half of the sampling rate ({Fs:N2})");
 
             w = System.Math.Tan(System.Math.PI * Fc / Fs);
             n = 1.0 / (1.0 + w);

@@ -26,6 +26,8 @@
  * SUCH DAMAGE.
  *
  */
+// C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
+
 using System;
 
 namespace Digger.Net

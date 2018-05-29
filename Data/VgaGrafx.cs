@@ -1,5 +1,6 @@
 /* Digger Remastered
 Copyright (c) Andrew Jenner 1998-2004 */
+// C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
 namespace Digger.Net
 {
@@ -7,7 +8,7 @@ namespace Digger.Net
     {
         /* palette1, normal intensity */
         public static readonly byte[,] Palette1 = {
-            {0,0,0,0},
+            {0,0,0,0}, // r, g, b, a
             {0,0,128,0},
             {0,128,0,0},
             {0,128,128,0},

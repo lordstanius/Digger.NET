@@ -2,19 +2,21 @@ using SDL2;
 
 namespace Digger.Net
 {
-    public class SdlTimer : ITimer
+    public class SDL_Timer
     {
         public PFD phase_detector;
         public recfilter loop_error;
 
         private double cum_error = 0.0;
 
-        public SdlTimer()
+        public SDL_Timer()
         {
             double tfreq = 1000000.0 / FrameTime;
             loop_error = Math.recfilter_init(tfreq, 0.1);
             Math.PFD_init(ref phase_detector, 0.0);
-            DebugLog.Write($"inittimer: ftime = {FrameTime}");
+#if DIGGER_DEBUG
+            Log.Write($"inittimer: ftime = {FrameTime}");
+#endif
         }
 
         public uint FrameTime { get; set; }
@@ -36,8 +38,9 @@ namespace Digger.Net
             double add_delay_d = (Math.freqoff_to_period(tfreq, 1.0, filterval) * 1000.0) + cum_error;
             uint add_delay = (uint)System.Math.Round(add_delay_d);
             cum_error = add_delay_d - add_delay;
-            DebugLog.Write($"clk_rl = {clk_rl}, add_delay = {add_delay}, eval = {eval}, filterval = {filterval}, cum_error = {cum_error}");
-
+#if DIGGER_DEBUG
+            Log.Write($"clk_rl = {clk_rl}, add_delay = {add_delay}, eval = {eval}, filterval = {filterval}, cum_error = {cum_error}");
+#endif
             SDL.SDL_Delay(add_delay);
         }
     }

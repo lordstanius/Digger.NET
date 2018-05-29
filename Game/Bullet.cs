@@ -26,11 +26,13 @@
  * SUCH DAMAGE.
  *
  */
+// C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
+
 namespace Digger.Net
 {
     public class Bullet
     {
-        public int f_id;
+        public readonly int id;
         public int expsn;
         public int dir;
         public int x;
@@ -38,52 +40,50 @@ namespace Digger.Net
 
         private readonly Game game;
 
-        public Bullet(Game game, int f_id, int dir, int x, int y)
+        public Bullet(Game game, int id, int dir, int x, int y)
         {
             this.dir = dir;
             this.x = x;
             this.y = y;
-            this.f_id = f_id;
+            this.id = id;
             this.expsn = 0;
             this.game = game;
         }
 
-        public void put()
+        public void Put()
         {
-            game.sprites.MoveDrawSprite(Const.FIRSTFIREBALL + f_id, x, y);
+            game.sprites.MoveDrawSprite(Const.FIRSTFIREBALL + id, x, y);
+            game.sound.SoundFire(id);
         }
 
-        public void animate()
+        public void Animate()
         {
             System.Diagnostics.Debug.Assert(expsn < 4);
-            game.video.DrawFire(f_id, x, y, expsn);
+            game.video.DrawFire(id, x, y, expsn);
             if (expsn > 0)
             {
                 if (expsn == 1)
-                {
-                    game.sound.soundexplode(f_id);
-                }
+                    game.sound.SoundExplode(id);
+
                 ++expsn;
             }
         }
 
-        public void remove()
+        public void Remove()
         {
-            game.sprites.EraseSprite(Const.FIRSTFIREBALL + f_id);
+            game.sprites.EraseSprite(Const.FIRSTFIREBALL + id);
             if (expsn > 1)
-            {
-                game.sound.soundfireoff(f_id);
-            }
+                game.sound.SoundFireOff(id);
+
             expsn = 0;
         }
 
-        public void explode()
+        public void Explode()
         {
-            /*assert(self.expsn == 0);*/
             expsn = 1;
         }
 
-        public void update(int dir, int fx, int fy)
+        public void Update(int dir, int fx, int fy)
         {
             this.dir = dir;
             this.x = fx;

@@ -1,26 +1,23 @@
 /* Digger Remastered
    Copyright (c) Andrew Jenner 1998-2004 */
+// C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
 namespace Digger.Net
 {
     public class Input
     {
-        public SdlKeyboard keyboard;
-        public const int NKEYS = 19;
+        private const int KEY_CHEAT = 10;         /* Cheat */
+        private const int KEY_SPEED_UP = 11;      /* Increase speed */
+        private const int KEY_SPEED_DOWN = 12;    /* Decrease speed */
+        private const int KEY_MUSIC_TOGGLE = 13;  /* Toggle music */
+        private const int KEY_SOUND_TOGGLE = 14;  /* Toggle sound */
+        private const int KEY_EXIT = 15;          /* Exit */
+        private const int KEY_PAUSE = 16;         /* Pause */
+        private const int KEY_MODE_CHANGE = 17;   /* Mode change */
+        private const int KEY_SAVE_DRF = 18;      /* Save DRF */
+        private const int KEY_SWITCH_TO_VGA = 19; // Change video to VGA
+        private const int KEY_SWITCH_TO_CGA = 20; // Change video to CGA
 
-        private const int DKEY_CHT = 10; /* Cheat */
-        private const int DKEY_SUP = 11; /* Increase speed */
-        private const int DKEY_SDN = 12; /* Decrease speed */
-        private const int DKEY_MTG = 13; /* Toggle music */
-        private const int DKEY_STG = 14; /* Toggle sound */
-        private const int DKEY_EXT = 15; /* Exit */
-        private const int DKEY_PUS = 16; /* Pause */
-        private const int DKEY_MCH = 17; /* Mode change */
-        private const int DKEY_SDR = 18; /* Save DRF */
-
-        public bool[] krdf = new bool[NKEYS];
-
-        public bool IsGameCycleEnded;
         public bool firepflag;
         public bool fire2pflag;
         public bool pausef;
@@ -36,10 +33,11 @@ namespace Digger.Net
         public bool aup2pressed = false;
         public bool adown2pressed = false;
         public bool af12pressed = false;
+        private int dynamicdir = -1, dynamicdir2 = -1, dir = -1, dir2 = -1, joyx = 0, joyy = 0;
+        public bool oupressed = false, odpressed = false, olpressed = false, orpressed = false;
+        public bool ou2pressed = false, od2pressed = false, ol2pressed = false, or2pressed = false;
 
         public int akeypressed;
-
-        private int dynamicdir = -1, dynamicdir2 = -1, dir = -1, dir2 = -1, joyx = 0, joyy = 0;
 
         private bool joybut1 = false;
         private bool joyflag = false;
@@ -47,17 +45,22 @@ namespace Digger.Net
         private int keydir, keydir2, jleftthresh, jupthresh, jrightthresh, jdownthresh, joyanax, joyanay;
 
         private readonly Game game;
+        private readonly SDL_Keyboard keyboard;
 
         public Input(Game game)
         {
             this.game = game;
-            this.keyboard = new SdlKeyboard(game);
+            this.keyboard = new SDL_Keyboard(game);
         }
+
+        public int[][] KeyCodes => keyboard.keycodes;
+        public int KeyCount => keyboard.KeyCount;
+        public bool IsKeyboardHit => keyboard.IsKeyboardHit();
 
         public int ProcessKey(int kn)
         {
             int key = keyboard.GetKey(true);
-            if (kn != DKEY_EXT && key == keyboard.keycodes[DKEY_EXT][0])
+            if (kn != KEY_EXIT && key == keyboard.keycodes[KEY_EXIT][0])
                 return -1;
             keyboard.keycodes[kn][0] = key;
             return (0);
@@ -71,7 +74,7 @@ namespace Digger.Net
            there is none, in which case return -1. It is done this way around for
            historical reasons, there is no fundamental reason why it shouldn't be the
            other way around. */
-        public void checkkeyb(Sound sound)
+        public void CheckKeyBuffer()
         {
             int k = 0;
 
@@ -102,45 +105,53 @@ namespace Digger.Net
                 for (int i = 0; i < 10; i++)
                     for (int j = 2; j < 5; j++)
                         if (akeypressed == keyboard.keycodes[i][j])
-                            aflagp(i, true);
+                            AsyncFlagPressed(i, true);
 
-                for (int i = 10; i < NKEYS; i++)
+                for (int i = 10; i < KeyCount; i++)
                     for (int j = 0; j < 5; j++)
                         if (akeypressed == keyboard.keycodes[i][j])
                             k = i;
                 switch (k)
                 {
-                    case DKEY_CHT: /* Cheat! */
-                        if (!game.IsGauntletMode)
+                    case KEY_CHEAT: /* Cheat! */
+                        if (!game.isGauntletMode)
                         {
                             game.record.IsPlaying = false;
                             game.record.IsDrfValid = false;
                         }
                         break;
-                    case DKEY_SUP: /* Increase speed */
+                    case KEY_SPEED_UP: /* Increase speed */
                         if (game.timer.FrameTime > 10000)
                             game.timer.FrameTime -= 10000;
                         break;
-                    case DKEY_SDN: /* Decrease speed */
+                    case KEY_SPEED_DOWN: /* Decrease speed */
                         game.timer.FrameTime += 10000;
                         break;
-                    case DKEY_MTG: /* Toggle music */
-                        sound.musicflag = !sound.musicflag;
+                    case KEY_MUSIC_TOGGLE: /* Toggle music */
+                        game.sound.isMusicEnabled = !game.sound.isMusicEnabled;
                         break;
-                    case DKEY_STG: /* Toggle sound */
-                        sound.soundflag = !sound.soundflag;
+                    case KEY_SOUND_TOGGLE: /* Toggle sound */
+                        game.sound.isSoundEnabled = !game.sound.isSoundEnabled;
                         break;
-                    case DKEY_EXT: /* Exit */
-                        IsGameCycleEnded = true;
+                    case KEY_EXIT: /* Exit */
+                        game.isGameCycleEnded = true;
                         break;
-                    case DKEY_PUS: /* Pause */
+                    case KEY_PAUSE: /* Pause */
                         pausef = true;
                         break;
-                    case DKEY_MCH: /* Mode change */
+                    case KEY_MODE_CHANGE: /* Mode change */
                         mode_change = true;
                         break;
-                    case DKEY_SDR: /* Save DRF */
+                    case KEY_SAVE_DRF: /* Save DRF */
                         game.record.SaveDrf = true;
+                        break;
+                    case KEY_SWITCH_TO_VGA:
+                        if (!game.record.IsPlaying && !game.isStarted)
+                            game.video.SetVideoMode(VideoMode.VGA);
+                        break;
+                    case KEY_SWITCH_TO_CGA:
+                        if (!game.record.IsPlaying && !game.isStarted)
+                            game.video.SetVideoMode(VideoMode.CGA);
                         break;
                 }
                 if (!mode_change)
@@ -148,7 +159,7 @@ namespace Digger.Net
             }
         }
 
-        private void aflagp(int i, bool value)
+        private void AsyncFlagPressed(int i, bool value)
         {
             switch (i)
             {
@@ -167,7 +178,7 @@ namespace Digger.Net
 
         /* Joystick not yet implemented. It will be, though, using gethrt on platform
            DOSPC. */
-        public void readjoy()
+        public void ReadJoystick()
         {
         }
 
@@ -179,7 +190,7 @@ namespace Digger.Net
 
         /* Contrary to some beliefs, you don't need a separate OS call to flush the
            keyboard buffer. */
-        public void flushkeybuf()
+        public void FlushKeyBuffer()
         {
             while (keyboard.IsKeyboardHit())
                 keyboard.GetKey(true);
@@ -188,7 +199,7 @@ namespace Digger.Net
             aleft2pressed = aright2pressed = aup2pressed = adown2pressed = af12pressed = false;
         }
 
-        public void clearfire(int n)
+        public void ClearFire(int n)
         {
             if (n == 0)
                 af1pressed = false;
@@ -196,10 +207,7 @@ namespace Digger.Net
                 af12pressed = false;
         }
 
-        public bool oupressed = false, odpressed = false, olpressed = false, orpressed = false;
-        public bool ou2pressed = false, od2pressed = false, ol2pressed = false, or2pressed = false;
-
-        public void readdirect(int n)
+        public void ReadDirect(int n)
         {
             short j;
             bool u = false, d = false, l = false, r = false;
@@ -296,7 +304,7 @@ namespace Digger.Net
                 joyanax = 0;
                 for (j = 0; j < 4; j++)
                 {
-                    readjoy();
+                    ReadJoystick();
                     joyanax += joyx;
                     joyanay += joyy;
                 }
@@ -317,7 +325,7 @@ namespace Digger.Net
             bool startf = false;
             if (joyflag)
             {
-                readjoy();
+                ReadJoystick();
                 if (joybut1)
                     startf = true;
             }
@@ -335,7 +343,7 @@ namespace Digger.Net
                 joyanax = 0;
                 for (j = 0; j < 50; j++)
                 {
-                    readjoy();
+                    ReadJoystick();
                     joyanax += joyx;
                     joyanay += joyy;
                 }
@@ -399,6 +407,16 @@ namespace Digger.Net
             }
 
             return dir;
+        }
+
+        public bool IsKeyRemapped(int index)
+        {
+            return keyboard.IsKeyRemapped(index);
+        }
+
+        public int GetKey(bool isScanCode)
+        {
+            return keyboard.GetKey(isScanCode);
         }
     }
 }

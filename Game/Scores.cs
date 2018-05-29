@@ -1,7 +1,7 @@
 /* Digger Remastered
    Copyright (c) Andrew Jenner 1998-2004 */
+// C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
-using System;
 using System.IO;
 using System.Text;
 
@@ -9,29 +9,20 @@ namespace Digger.Net
 {
     public class Scores
     {
-        struct scdat_struct
+        private struct ScoreData
         {
             public int score, nextbs;
         }
 
-        static scdat_struct[] scdat = new scdat_struct[Const.DIGGERS];
-
+        private readonly ScoreData[] scdat = new ScoreData[Const.DIGGERS];
         public string highbuf;
-
         public int[] scorehigh = new int[12];
-
         public string[] scoreinit = new string[11];
-
         public int scoret = 0;
-
         public string hsbuf;
-
         public byte[] scorebuf = new byte[512];
-
         public int bonusscore = 20000;
-
         public bool gotinitflag = false;
-
         public const string SFNAME = "DIGGER.SCO";
 
         private readonly Game game;
@@ -43,7 +34,7 @@ namespace Digger.Net
             this.video = game.video;
         }
 
-        private void readscores()
+        private void ReadScores()
         {
             if (!game.level.IsUsingLevelFile)
             {
@@ -67,7 +58,7 @@ namespace Digger.Net
             }
         }
 
-        private void writescores()
+        private void WriteScores()
         {
             if (!game.level.IsUsingLevelFile)
             {
@@ -86,20 +77,20 @@ namespace Digger.Net
             }
         }
 
-        public void initscores()
+        public void InitializeScores()
         {
             int i;
-            for (i = 0; i < game.DiggerCount; i++)
+            for (i = 0; i < game.diggerCount; i++)
                 AddScore(i, 0);
         }
 
-        public void loadscores()
+        public void LoadScores()
         {
             int p = 0;
-            readscores();
-            if (game.IsGauntletMode)
+            ReadScores();
+            if (game.isGauntletMode)
                 p = 111;
-            if (game.DiggerCount == 2)
+            if (game.diggerCount == 2)
                 p += 222;
             if (scorebuf[p++] != 's')
             {
@@ -123,33 +114,33 @@ namespace Digger.Net
             }
         }
 
-        public void zeroscores()
+        public void ZeroScores()
         {
             scdat[0].score = scdat[1].score = 0;
             scdat[0].nextbs = scdat[1].nextbs = bonusscore;
             scoret = 0;
         }
 
-        public void writecurscore(int col)
+        public void WriteCurrentScore(int col)
         {
-            if (game.CurrentPlayer == 0)
-                writenum(scdat[0].score, 0, 0, 6, col);
+            if (game.currentPlayer == 0)
+                WriteNumber(scdat[0].score, 0, 0, 6, col);
             else
               if (scdat[1].score < 100000)
-                writenum(scdat[1].score, 236, 0, 6, col);
+                WriteNumber(scdat[1].score, 236, 0, 6, col);
             else
-                writenum(scdat[1].score, 248, 0, 6, col);
+                WriteNumber(scdat[1].score, 248, 0, 6, col);
         }
 
-        public void drawscores()
+        public void DrawScores()
         {
-            writenum(scdat[0].score, 0, 0, 6, 3);
-            if (game.PlayerCount == 2 || game.DiggerCount == 2)
+            WriteNumber(scdat[0].score, 0, 0, 6, 3);
+            if (game.playerCount == 2 || game.diggerCount == 2)
             {
                 if (scdat[1].score < 100000)
-                    writenum(scdat[1].score, 236, 0, 6, 3);
+                    WriteNumber(scdat[1].score, 236, 0, 6, 3);
                 else
-                    writenum(scdat[1].score, 248, 0, 6, 3);
+                    WriteNumber(scdat[1].score, 248, 0, 6, 3);
             }
         }
 
@@ -159,20 +150,20 @@ namespace Digger.Net
             if (scdat[n].score > 999999)
                 scdat[n].score = 0;
             if (n == 0)
-                writenum(scdat[n].score, 0, 0, 6, 1);
+                WriteNumber(scdat[n].score, 0, 0, 6, 1);
             else
               if (scdat[n].score < 100000)
-                writenum(scdat[n].score, 236, 0, 6, 1);
+                WriteNumber(scdat[n].score, 236, 0, 6, 1);
             else
-                writenum(scdat[n].score, 248, 0, 6, 1);
+                WriteNumber(scdat[n].score, 248, 0, 6, 1);
             if (scdat[n].score >= scdat[n].nextbs + n)
             { /* +n to reproduce original bug */
-                if (game.diggers.GetLives(n) < 5 || game.HasUnlimitedLives)
+                if (game.diggers.GetLives(n) < 5 || game.hasUnlimitedLives)
                 {
-                    if (game.IsGauntletMode)
+                    if (game.isGauntletMode)
                         game.diggers.cgtime += 17897715; /* 15 second time bonus instead of the life */
                     else
-                        game.diggers.addlife(n);
+                        game.diggers.AddLife(n);
                     game.diggers.DrawLives();
                 }
                 scdat[n].nextbs += bonusscore;
@@ -182,43 +173,43 @@ namespace Digger.Net
             game.IncreasePenalty();
         }
 
-        public void endofgame()
+        public void EndOfGame()
         {
             bool initflag = false;
-            for (int i = 0; i < game.DiggerCount; i++)
+            for (int i = 0; i < game.diggerCount; i++)
                 AddScore(i, 0);
             if (game.record.IsPlaying || !game.record.IsDrfValid)
                 return;
 
-            if (game.IsGauntletMode)
+            if (game.isGauntletMode)
             {
                 game.ClearTopLine();
                 game.video.TextOut("TIME UP", 120, 0, 3);
-                for (int i = 0; i < 50 && !game.input.IsGameCycleEnded; i++)
+                for (int i = 0; i < 50 && !game.isGameCycleEnded; i++)
                     game.NewFrame();
                 video.EraseText(7, 120, 0, 3);
             }
-            for (int i = game.CurrentPlayer; i < game.CurrentPlayer + game.DiggerCount; i++)
+            for (int i = game.currentPlayer; i < game.currentPlayer + game.diggerCount; i++)
             {
                 scoret = scdat[i].score;
                 if (scoret > scorehigh[11])
                 {
                     video.Clear();
-                    drawscores();
-                    game.PlayerName = $"PLAYER {(i == 0 ? 1 : 2)}";
-                    video.TextOut(game.PlayerName, 108, 0, 2);
+                    DrawScores();
+                    game.playerName = $"PLAYER {(i == 0 ? 1 : 2)}";
+                    video.TextOut(game.playerName, 108, 0, 2);
                     video.TextOut(" NEW HIGH SCORE ", 64, 40, 2);
                     GetInitials();
                     ShuffleHigh();
-                    savescores();
+                    SaveScores();
                     initflag = true;
                 }
             }
-            if (!initflag && !game.IsGauntletMode)
+            if (!initflag && !game.isGauntletMode)
             {
                 game.ClearTopLine();
                 video.TextOut("GAME OVER", 104, 0, 3);
-                for (int i = 0; i < 50 && !game.input.IsGameCycleEnded; i++)
+                for (int i = 0; i < 50 && !game.isGameCycleEnded; i++)
                     game.NewFrame();
                 video.EraseText(9, 104, 0, 3);
             }
@@ -231,29 +222,29 @@ namespace Digger.Net
             col = 2;
             for (i = 1; i < 11; i++)
             {
-                highbuf = numtostring(scorehigh[i + 1]);
+                highbuf = IntToString(scorehigh[i + 1]);
                 hsbuf = $"{scoreinit[i]}  {highbuf}";
                 video.TextOut(hsbuf, 16, 31 + 13 * i, col);
                 col = 1;
             }
         }
 
-        private void savescores()
+        private void SaveScores()
         {
             int i, p = 0, j;
-            if (game.IsGauntletMode)
+            if (game.isGauntletMode)
                 p = 111;
-            if (game.DiggerCount == 2)
+            if (game.diggerCount == 2)
                 p += 222;
             scorebuf[p] = (byte)'s';
             for (i = 1; i < 11; i++)
             {
-                highbuf = numtostring(scorehigh[i + 1]);
+                highbuf = IntToString(scorehigh[i + 1]);
                 hsbuf = $"{scoreinit[i]}  {highbuf}";
                 for (j = 0; j < 11; j++)
                     scorebuf[p + j + i * 11 - 10] = (byte)hsbuf[j];
             }
-            writescores();
+            WriteScores();
         }
 
         public void GetInitials()
@@ -310,9 +301,9 @@ namespace Digger.Net
             {
                 for (int i = 0; i < 40; i++)
                 {
-                    if (game.input.keyboard.IsKeyboardHit())
+                    if (game.input.IsKeyboardHit)
                     {
-                        int key = game.input.keyboard.GetKey(false);
+                        int key = game.input.GetKey(false);
                         if (!char.IsLetterOrDigit((char)key))
                             continue;
                         return key;
@@ -322,10 +313,10 @@ namespace Digger.Net
 
                 for (int i = 0; i < 40; i++)
                 {
-                    if (game.input.keyboard.IsKeyboardHit())
+                    if (game.input.IsKeyboardHit)
                     {
                         video.WriteChar(x, y, '_', 3);
-                        return game.input.keyboard.GetKey(false);
+                        return game.input.GetKey(false);
                     }
                     FlashyWait(15);
                 }
@@ -383,7 +374,7 @@ namespace Digger.Net
             AddScore(n, msc * 200);
         }
 
-        private void writenum(int n, int x, int y, int w, int c)
+        private void WriteNumber(int n, int x, int y, int w, int c)
         {
             int xp = (w - 1) * 12 + x;
             while (w > 0)
@@ -398,7 +389,7 @@ namespace Digger.Net
             }
         }
 
-        static string numtostring(int n)
+        private static string IntToString(int n)
         {
             return string.Format("{0,-6:d}", n);
         }

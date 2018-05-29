@@ -48,26 +48,25 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Engine\ISoundDevice.cs" />
-    <Compile Include="Engine\ITimer.cs" />
-    <Compile Include="Engine\SdlGraphicsCga.cs" />
+    <Compile Include="Data\Sounds.cs" />
     <Compile Include="Game\Const.cs" />
     <Compile Include="Game\Emeralds.cs" />
     <Compile Include="Game\Level.cs" />
     <Compile Include="Game\Monsters.cs" />
-    <Compile Include="Graphics\Alpha.cs" />
+    <Compile Include="Data\Alpha.cs" />
     <Compile Include="Engine\Video.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Game\Bags.cs" />
     <Compile Include="Game\Bullet.cs" />
-    <Compile Include="Graphics\CgaGrafx.cs" />
+    <Compile Include="Data\CgaGrafx.cs" />
     <Compile Include="Game\Diggers.cs" />
-    <Compile Include="Engine\DigMath.cs" />
+    <Compile Include="Engine\Math.cs" />
     <Compile Include="Game\Digger.cs" />
-    <Compile Include="Engine\SdlGraphics.cs" />
-    <Compile Include="Graphics\Icon.cs" />
+    <Compile Include="Engine\SDL_Video.cs" />
+    <Compile Include="Data\Icon.cs" />
     <Compile Include="Properties\Resource.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -77,26 +76,25 @@
     <Compile Include="SDL2_bindings\Surface.cs" />
     <Compile Include="Utility\Ini.cs" />
     <Compile Include="Engine\Input.cs" />
-    <Compile Include="Engine\Keyboard.cs" />
+    <Compile Include="Engine\Keys.cs" />
     <Compile Include="Game\Game.cs" />
     <Content Include="digger.ico" />
     <Compile Include="Game\Monster.cs" />
     <Compile Include="Engine\Recording.cs" />
     <Compile Include="Game\Scores.cs" />
-    <Compile Include="Engine\SdlKeyboard.cs" />
-    <Compile Include="Engine\SdlSound.cs" />
-    <Compile Include="Engine\SdlTimer.cs" />
-    <Compile Include="Engine\SdlGraphicsVga.cs" />
+    <Compile Include="Engine\SDL_Keyboard.cs" />
+    <Compile Include="Engine\SDL_Sound.cs" />
+    <Compile Include="Engine\SDL_Timer.cs" />
     <Compile Include="Engine\Sound.cs" />
     <Compile Include="Engine\Sprites.cs" />
     <Compile Include="Utility\Log.cs" />
     <Compile Include="Utility\StdLib.cs" />
-    <Compile Include="Graphics\VgaGrafx.cs" />
+    <Compile Include="Data\VgaGrafx.cs" />
+    <None Include="Resources\ctitle.png" />
+    <None Include="Resources\vtitle.png" />
     <Content Include="SDL2.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <None Include="Resources\vtitle.png" />
-    <None Include="Resources\ctitle.bmp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -107,5 +105,6 @@
       <LastGenOutput>Resource.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -2777,6 +2777,26 @@ namespace SDL2
 			public byte g;
 			public byte b;
 			public byte a;
+
+            public static SDL_Color FromArgb(int a, int r, int g, int b)
+            {
+                return new SDL_Color {
+                    a = (byte)a,
+                    r = (byte)r,
+                    g = (byte)g,
+                    b = (byte)b
+                };
+            }
+
+            /// <summary>
+            /// Returns 32-bit ARGB value of this structure. 
+            /// The byte-ordering of the 32-bit ARGB value is AARRGGBB.
+            /// </summary>
+            public int ToArgb()
+            {
+                return (int)((a << 24 & 0xFF000000U) | 
+                    (r << 16 & 0xFF0000U) | (g << 8 & 0xFF00U) | (b & 0xFFU));
+            }
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -2935,7 +2955,15 @@ namespace SDL2
 		[StructLayout(LayoutKind.Sequential)]
 		public struct SDL_Rect
 		{
-			public int x;
+            public SDL_Rect(int x, int y, int w, int h)
+            {
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+            }
+
+            public int x;
 			public int y;
 			public int w;
 			public int h;
@@ -5483,9 +5511,9 @@ namespace SDL2
 				gamecontroller,
 				axis
 			);
-			SDL_GameControllerButtonBind result = new SDL_GameControllerButtonBind();
-			result.bindType = (SDL_GameControllerBindType) dumb.bindType;
-			result.value.hat.hat = dumb.unionVal0;
+            SDL_GameControllerButtonBind result = new SDL_GameControllerButtonBind();
+            result.bindType = (SDL_GameControllerBindType)dumb.bindType;
+            result.value.hat.hat = dumb.unionVal0;
 			result.value.hat.hat_mask = dumb.unionVal1;
 			return result;
 		}
@@ -5536,9 +5564,11 @@ namespace SDL2
 				gamecontroller,
 				button
 			);
-			SDL_GameControllerButtonBind result = new SDL_GameControllerButtonBind();
-			result.bindType = (SDL_GameControllerBindType) dumb.bindType;
-			result.value.hat.hat = dumb.unionVal0;
+            SDL_GameControllerButtonBind result = new SDL_GameControllerButtonBind
+            {
+                bindType = (SDL_GameControllerBindType)dumb.bindType
+            };
+            result.value.hat.hat = dumb.unionVal0;
 			result.value.hat.hat_mask = dumb.unionVal1;
 			return result;
 		}

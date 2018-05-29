@@ -1,4 +1,7 @@
-﻿using System;
+﻿/* Digger Remastered
+   Copyright (c) Andrew Jenner 1998-2004 */
+// C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
+
 using System.IO;
 using System.Text;
 
@@ -99,31 +102,21 @@ namespace Digger.Net
             this.game = game;
         }
 
+        public int LevelOf10() => game.LevelNo > 10 ? 10 : game.LevelNo;
+
         public char GetLevelChar(int x, int y, int l)
         {
-            if ((l == 3 || l == 4) && !IsUsingLevelFile && game.DiggerCount == 2 && y == 9 && (x == 6 || x == 8))
+            if ((l == 3 || l == 4) && !IsUsingLevelFile && game.diggerCount == 2 && y == 9 && (x == 6 || x == 8))
                 return 'H';
             return leveldat[l - 1, y][x];
         }
 
         public int LevelPlan()
         {
-            int l = LevelNo();
+            int l = game.LevelNo;
             if (l > 8)
                 l = (l & 3) + 5; /* Level plan: 12345678, 678, (5678) 247 times, 5 forever */
             return l;
-        }
-
-        public int LevelOf10()
-        {
-            if (game.gamedat[game.CurrentPlayer].level > 10)
-                return 10;
-            return game.gamedat[game.CurrentPlayer].level;
-        }
-
-        public int LevelNo()
-        {
-            return game.gamedat[game.CurrentPlayer].level;
         }
 
         public void ReadLevelFile()

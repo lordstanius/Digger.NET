@@ -27,6 +27,9 @@
         public const int MHEIGHT = 10;
         public const int MSIZE = MWIDTH * MHEIGHT;
 
+        public const int DEFAULT_FRAME_TIME = 80000;
+        public const int DEFAULT_GAUNTLET_TIME = 120;
+
         /* Sprite order is figured out here. By LAST I mean last+1. */
         public const int FIRSTBONUS = 0;
         public const int LASTBONUS = (FIRSTBONUS + BONUSES);

@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace Digger.Net
 {
-    public class SdlSound : ISoundDevice
+    public class SDL_Sound
     {
         [StructLayout(LayoutKind.Sequential)]
         private struct sudata
@@ -16,12 +16,12 @@ namespace Digger.Net
             public IntPtr hp_fltr;
         };
 
-        private static GetSampleDelegate GetSample;
         private static SDL.SDL_AudioCallback pFillAudio = FillAudio;
+        private static Func<byte> GetSample;
 
         public bool IsWaveDeviceAvailable { get; private set; }
 
-        public bool SetDevice(ushort sampleRate, ushort bufferSize, GetSampleDelegate getSample)
+        public bool SetDevice(ushort sampleRate, ushort bufferSize, Func<byte> getSample)
         {
             GetSample = getSample;
             SDL.SDL_AudioSpec wanted = new SDL.SDL_AudioSpec();
@@ -42,9 +42,9 @@ namespace Digger.Net
 
             if (result == false)
             {
-                DebugLog.Write($"Couldn't open audio: {SDL.SDL_GetError()}");
+                Log.Write($"Couldn't open audio: {SDL.SDL_GetError()}");
                 Marshal.FreeHGlobal(wanted.userdata);
-                return (false);
+                return false;
             }
 
             sud.bsize = sud.obtained.size;
@@ -64,7 +64,7 @@ namespace Digger.Net
             sudata sud = udata.ToStruct<sudata>();
             if (len > sud.bsize)
             {
-                DebugLog.Write("fill_audio: OUCH, len > bsize!");
+                Log.Write("fill_audio: OUCH, len > bsize!");
                 len = (int)sud.bsize;
             }
 
@@ -80,7 +80,7 @@ namespace Digger.Net
                 Marshal.WriteInt16(sud.buf, i * sizeof(short), (short)System.Math.Round(sample));
             }
 
-            SDL.SDL_MixAudioFormat(stream, sud.buf, sud.obtained.format, (uint)len, 80);
+            SDL.SDL_MixAudioFormat(stream, sud.buf, sud.obtained.format, (uint)len, SDL.SDL_MIX_MAXVOLUME);
         }
 
         public void DisableSound()

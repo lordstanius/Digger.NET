@@ -13,8 +13,8 @@
         private const int DIR_DOWN = Const.DIR_DOWN;
 
         private int emmask = 0;
-        private short[] emeraldBox = { 8, 12, 12, 9, 16, 12, 6, 9 };
-        private byte[] emeraldField = new byte[MSIZE];
+        private readonly short[] emeraldBox = { 8, 12, 12, 9, 16, 12, 6, 9 };
+        private readonly byte[] emeraldField = new byte[MSIZE];
 
         private Game game;
         private Video video;
@@ -27,7 +27,7 @@
 
         public void DrawEmeralds()
         {
-            emmask = (short)(1 << game.CurrentPlayer);
+            emmask = (short)(1 << game.currentPlayer);
             for (int x = 0; x < MWIDTH; x++)
                 for (int y = 0; y < MHEIGHT; y++)
                     if ((emeraldField[y * MWIDTH + x] & emmask) != 0)
@@ -36,7 +36,7 @@
 
         public void MakeEmeraldField()
         {
-            emmask = (short)(1 << game.CurrentPlayer);
+            emmask = (short)(1 << game.currentPlayer);
             for (int x = 0; x < MWIDTH; x++)
                 for (int y = 0; y < MHEIGHT; y++)
                     if (game.level.GetLevelChar(x, y, game.level.LevelPlan()) == 'C')
@@ -47,18 +47,21 @@
 
         public bool HitEmerald(int x, int y, int rx, int ry, int dir)
         {
-            bool hit = false;
-            int r;
             if (dir != DIR_RIGHT && dir != DIR_UP && dir != DIR_LEFT && dir != DIR_DOWN)
-                return hit;
+                return false;
+
             if (dir == DIR_RIGHT && rx != 0)
                 x++;
+
             if (dir == DIR_DOWN && ry != 0)
                 y++;
+
+            int r;
             if (dir == DIR_RIGHT || dir == DIR_LEFT)
                 r = rx;
             else
                 r = ry;
+
             if ((emeraldField[y * MWIDTH + x] & emmask) != 0)
             {
                 if (r == emeraldBox[dir])
@@ -70,11 +73,12 @@
                 {
                     video.EraseEmerald(x * 20 + 12, y * 18 + 21);
                     game.IncreasePenalty();
-                    hit = true;
                     emeraldField[y * MWIDTH + x] &= (byte)~emmask;
+                    return true;
                 }
             }
-            return hit;
+
+            return false;
         }
 
         public int Count()

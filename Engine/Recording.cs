@@ -1,5 +1,6 @@
 /* Digger Remastered
    Copyright (c) Andrew Jenner 1998-2004 */
+// C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
 using System;
 using System.IO;
@@ -52,20 +53,20 @@ namespace Digger.Net
 
             // save current values
             uint origgtime = game.gameTime;
-            bool origg = game.IsGauntletMode;
-            int origstartlev = game.StartingLevel;
-            int orignplayers = game.PlayerCount;
-            int origdiggers = game.DiggerCount;
+            bool origg = game.isGauntletMode;
+            int origstartlev = game.startingLevel;
+            int orignplayers = game.playerCount;
+            int origdiggers = game.diggerCount;
 
             using (var playf = new StreamReader(name, Encoding.ASCII))
             {
 #if INTDRF
                 info = File.OpenWrite("DRFINFO.TXT");
 #endif
-                game.IsGauntletMode = false;
-                game.StartingLevel = 1;
-                game.PlayerCount = 1;
-                game.DiggerCount = 1;
+                game.isGauntletMode = false;
+                game.startingLevel = 1;
+                game.playerCount = 1;
+                game.diggerCount = 1;
                 /* The file is in two distinct parts. In the first, line breaks are used as
                    separators. In the second, they are ignored. This is the first. */
 
@@ -90,27 +91,27 @@ namespace Digger.Net
 
                 if (buf.StartsWith("1"))
                 {
-                    game.PlayerCount = 1;
+                    game.playerCount = 1;
                     buf = buf.Substring(1);
                 }
                 else
                 {
                     if (buf.StartsWith("2"))
                     {
-                        game.PlayerCount = 2;
+                        game.playerCount = 2;
                         buf = buf.Substring(1);
                     }
                     else
                     {
                         if (buf.StartsWith("M"))
                         {
-                            game.DiggerCount = buf[1] - '0';
+                            game.diggerCount = buf[1] - '0';
                             buf = buf.Substring(2);
                         }
 
                         if (buf.StartsWith("G"))
                         {
-                            game.IsGauntletMode = true;
+                            game.isGauntletMode = true;
                             game.gameTime = uint.Parse(buf.Substring(1));
                             while (char.IsDigit(buf[0]))
                                 buf = buf.Substring(1);
@@ -121,7 +122,7 @@ namespace Digger.Net
                     buf = buf.Substring(1);
 
                 if (buf.StartsWith("I"))
-                    game.StartingLevel = int.Parse(buf.Substring(1));
+                    game.startingLevel = int.Parse(buf.Substring(1));
 
                 /* Get bonus score */
                 if ((buf = playf.ReadLine()) == null)
@@ -150,12 +151,12 @@ namespace Digger.Net
             IsPlaying = false;
 
             // restore current values
-            game.IsGauntletMode = origg;
+            game.isGauntletMode = origg;
             game.gameTime = origgtime;
             Kludge = false;
-            game.StartingLevel = origstartlev;
-            game.DiggerCount = origdiggers;
-            game.PlayerCount = orignplayers;
+            game.startingLevel = origstartlev;
+            game.diggerCount = origdiggers;
+            game.playerCount = orignplayers;
         }
 
         public void MakeDirection(ref int dir, ref bool fire, char d)
@@ -188,7 +189,7 @@ namespace Digger.Net
             {
                 if (playBuffer[0] == 'E' || playBuffer[0] == 'e')
                 {
-                    game.input.IsGameCycleEnded = true;
+                    game.isGameCycleEnded = true;
                     return;
                 }
 
@@ -280,25 +281,25 @@ namespace Digger.Net
             else
                 recordingBuffer.AppendLine(Const.DIGGER_VERSION);
 
-            if (game.DiggerCount > 1)
+            if (game.diggerCount > 1)
             {
-                recordingBuffer.AppendFormat("M{0}", game.DiggerCount);
-                if (game.IsGauntletMode)
+                recordingBuffer.AppendFormat("M{0}", game.diggerCount);
+                if (game.isGauntletMode)
                     recordingBuffer.AppendFormat("G{0}", game.gameTime);
             }
-            else if (game.IsGauntletMode)
+            else if (game.isGauntletMode)
             {
                 recordingBuffer.AppendFormat("G{0}", game.gameTime);
             }
             else
             {
-                recordingBuffer.AppendFormat("{0}", game.PlayerCount);
+                recordingBuffer.AppendFormat("{0}", game.playerCount);
             }
 
             /*  if (unlimlives)
                 mprintf("U"); */
-            if (game.StartingLevel > 1)
-                recordingBuffer.AppendFormat("I{0}", game.StartingLevel);
+            if (game.startingLevel > 1)
+                recordingBuffer.AppendFormat("I{0}", game.startingLevel);
 
             recordingBuffer.AppendFormat("\n{0}\n", game.scores.bonusscore);
             for (int lvl = 0; lvl < 8; lvl++)
@@ -337,14 +338,14 @@ namespace Digger.Net
                     }
                     catch (Exception ex)
                     {
-                        DebugLog.Write(ex);
+                        Log.Write(ex);
                         GotName = false;
                     }
                 }
 
                 if (!GotName)
                 {
-                    if (game.PlayerCount == 2)
+                    if (game.playerCount == 2)
                         recf = File.OpenWrite(REC_FILE_NAME); /* Should get a name, really */
                     else
                     {
