@@ -76,13 +76,13 @@
     <Compile Include="SDL2_bindings\Surface.cs" />
     <Compile Include="Utility\Ini.cs" />
     <Compile Include="Engine\Input.cs" />
-    <Compile Include="Engine\Keys.cs" />
+    <Compile Include="Engine\Keyboard.cs" />
     <Compile Include="Game\Game.cs" />
     <Content Include="digger.ico" />
     <Compile Include="Game\Monster.cs" />
     <Compile Include="Engine\Recording.cs" />
     <Compile Include="Game\Scores.cs" />
-    <Compile Include="Engine\SDL_Keyboard.cs" />
+    <Compile Include="Engine\SDL_Input.cs" />
     <Compile Include="Engine\SDL_Sound.cs" />
     <Compile Include="Engine\SDL_Timer.cs" />
     <Compile Include="Engine\Sound.cs" />

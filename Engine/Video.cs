@@ -148,9 +148,20 @@ namespace Digger.Net
             TextOut(text, x, y, c, text.Length);
         }
 
+        public void TextOutCentered(string text, int y, int c)
+        {
+            int x = (MAX_TEXT_LEN - text.Length) / 2 * CHR_W;
+            TextOut(text, x, y, c);
+        }
+
         public void EraseText(short n, int x, int y, short c)
         {
             TextOut(EmptyLine, x, y, c, n);
+        }
+
+        public void EraseLine(int y)
+        {
+            EraseText(MAX_TEXT_LEN, 0, y, 0);
         }
 
         public void MakeField(Level level)

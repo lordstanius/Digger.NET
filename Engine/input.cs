@@ -45,24 +45,25 @@ namespace Digger.Net
         private int keydir, keydir2, jleftthresh, jupthresh, jrightthresh, jdownthresh, joyanax, joyanay;
 
         private readonly Game game;
-        private readonly SDL_Keyboard keyboard;
+        private readonly SDL_Input keyboard;
 
         public Input(Game game)
         {
             this.game = game;
-            this.keyboard = new SDL_Keyboard(game);
+            this.keyboard = new SDL_Input(game);
         }
 
         public int[][] KeyCodes => keyboard.keycodes;
         public int KeyCount => keyboard.KeyCount;
         public bool IsKeyboardHit => keyboard.IsKeyboardHit();
 
-        public int ProcessKey(int kn)
+        public int ProcessKey(int keyNo)
         {
             int key = keyboard.GetKey(true);
-            if (kn != KEY_EXIT && key == keyboard.keycodes[KEY_EXIT][0])
+            if (keyNo != KEY_EXIT && key == keyboard.keycodes[KEY_EXIT][0])
                 return -1;
-            keyboard.keycodes[kn][0] = key;
+
+            keyboard.keycodes[keyNo][0] = key;
             return (0);
         }
 
@@ -118,6 +119,7 @@ namespace Digger.Net
                         {
                             game.record.IsPlaying = false;
                             game.record.IsDrfValid = false;
+                            game.hasUnlimitedLives = true;
                         }
                         break;
                     case KEY_SPEED_UP: /* Increase speed */

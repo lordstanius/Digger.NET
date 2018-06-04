@@ -149,7 +149,11 @@ namespace Digger.Net
                 {
                     int j = 0;
                     foreach (string keyCode in vbuf.Split(','))
-                        input.KeyCodes[i][j++] = int.Parse(keyCode);
+                    {
+                        int scanCode = int.Parse(keyCode);
+                        if (scanCode != 0)
+                            input.KeyCodes[i][j++] = scanCode;
+                    }
                 }
             }
             gameTime = (uint)Ini.GetINIInt(INI_GAME_SETTINGS, "GauntletTime", Const.DEFAULT_GAUNTLET_TIME, INI_FILE_NAME);
@@ -236,7 +240,7 @@ namespace Digger.Net
 
         private string GetKeyboardBufferKey(int i)
         {
-            return string.Format("{0}{1}", Keys.KeyNames[i], (i >= 5 && i < 10) ? " (Player 2)" : null);
+            return string.Format("{0}{1}", Keyboard.KeyNames[i], (i >= 5 && i < 10) ? " (Player 2)" : null);
         }
 
         public void ParseCmdLine(string[] args)
@@ -338,9 +342,9 @@ namespace Digger.Net
                     if (argch == 'K')
                     {
                         if (word.Length > 2 && char.ToUpper(word[2]) == 'A')
-                            Keys.Redefine(this, true);
+                            Keyboard.Redefine(this, true);
                         else
-                            Keys.Redefine(this, false);
+                            Keyboard.Redefine(this, false);
                     }
                     if (argch == 'Q')
                         quiet = true;
@@ -631,7 +635,7 @@ namespace Digger.Net
             } while (!isGameCycleEnded && !shouldExit);
         }
 
-        public void NewFrame()
+        internal void NewFrame()
         {
             if (isVideoModeChanged)
                 return;
@@ -754,6 +758,7 @@ namespace Digger.Net
                         for (int i = currentPlayer; i < diggerCount + currentPlayer; i++)
                             if (diggers.GetLives(i) > 0 && !diggers.IsDiggerAlive(i))
                                 diggers.DecreaseLife(i);
+
                         diggers.DrawLives();
                         gamedat[currentPlayer].level++;
                         if (gamedat[currentPlayer].level > 1000)

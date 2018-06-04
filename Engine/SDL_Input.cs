@@ -19,7 +19,7 @@ using SDL2;
 
 namespace Digger.Net
 {
-    public class SDL_Keyboard
+    public class SDL_Input
     {
         public const int KBLEN = 30;
 
@@ -55,7 +55,7 @@ namespace Digger.Net
 
         private Game game;
 
-        public SDL_Keyboard(Game game)
+        public SDL_Input(Game game)
         {
             this.game = game;
 

@@ -164,6 +164,7 @@ namespace Digger.Net
                         game.diggers.cgtime += 17897715; /* 15 second time bonus instead of the life */
                     else
                         game.diggers.AddLife(n);
+
                     game.diggers.DrawLives();
                 }
                 scdat[n].nextbs += bonusscore;
