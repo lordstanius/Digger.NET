@@ -407,7 +407,7 @@ namespace Digger.Net
             int[] clfirst = new int[TYPES];
             int[] clcoll = new int[SPRITES];
             game.input.ReadDirect(n - game.currentPlayer);
-            dir = game.input.getdirect(n - game.currentPlayer);
+            dir = game.input.GetDirect(n - game.currentPlayer);
             if (dir == DIR_RIGHT || dir == DIR_UP || dir == DIR_LEFT || dir == DIR_DOWN)
                 ddir = dir;
             else
@@ -540,6 +540,7 @@ namespace Digger.Net
                 case 1:
                     if (bags.GetBagY(diggerData[n].deathBagIndex) + 6 > diggerData[n].digger.y)
                         diggerData[n].digger.y = bags.GetBagY(diggerData[n].deathBagIndex) + 6;
+
                     game.video.DrawDigger(n - game.currentPlayer, 15, diggerData[n].digger.x, diggerData[n].digger.y, false);
                     game.IncreasePenalty();
                     if (bags.GetBagDirection(diggerData[n].deathBagIndex) + 1 == 0)
@@ -559,15 +560,19 @@ namespace Digger.Net
                     }
                     if (diggerData[n].deathani == 0)
                         game.sound.Music(2);
-                    game.video.DrawDigger(n - game.currentPlayer, 14 - diggerData[n].deathani, diggerData[n].digger.x, diggerData[n].digger.y,
-                               false);
+
+                    game.video.DrawDigger(n - game.currentPlayer, 14 - diggerData[n].deathani, diggerData[n].digger.x, diggerData[n].digger.y, false);
+
                     for (int i = 0; i < TYPES; i++)
                         clfirst[i] = game.sprites.first[i];
+
                     for (int i = 0; i < SPRITES; i++)
                         clcoll[i] = game.sprites.coll[i];
+
                     game.IncreasePenalty();
                     if (diggerData[n].deathani == 0 && clfirst[2] != -1)
                         monsters.KillMonsters(clfirst, clcoll);
+
                     if (diggerData[n].deathani < 4)
                     {
                         diggerData[n].deathani++;
@@ -590,14 +595,14 @@ namespace Digger.Net
                 case 5:
                     if (diggerData[n].deathani >= 0 && diggerData[n].deathani <= 6)
                     {
-                        game.video.DrawDigger(n - game.currentPlayer, 15, diggerData[n].digger.x,
-                                   diggerData[n].digger.y - deatharc[diggerData[n].deathani], false);
+                        game.video.DrawDigger(n - game.currentPlayer, 15, diggerData[n].digger.x, diggerData[n].digger.y - deatharc[diggerData[n].deathani], false);
                         if (diggerData[n].deathani == 6 && !IsAnyAlive())
                             game.sound.MusicOff();
                         game.IncreasePenalty();
                         diggerData[n].deathani++;
                         if (diggerData[n].deathani == 1)
                             game.sound.SoundDiggerDie();
+
                         if (diggerData[n].deathani == 7)
                         {
                             diggerData[n].deathtime = 5;
@@ -785,7 +790,7 @@ namespace Digger.Net
 
         public void DecreaseLife(int player)
         {
-            if (!game.isGauntletMode)
+            if (!game.isGauntletMode && !game.hasUnlimitedLives)
                 diggerData[player].lives--;
         }
 

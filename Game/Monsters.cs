@@ -193,7 +193,7 @@ namespace Digger.Net
                 /* Set up monster direction properties to chase Digger */
 
                 int dig = mondat[mon].chase;
-                if (!game.diggers.IsDiggerAlive(dig))
+                if (!game.diggers.IsDiggerAlive(dig) && game.diggerCount > 1)
                     dig = dig == 1 ? 0 : 1; // chase the other if one is dead
 
                 if (System.Math.Abs(game.diggers.DiggerY(dig) - mopos.y) > System.Math.Abs(game.diggers.DiggerX(dig) - mopos.x))

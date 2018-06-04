@@ -21,7 +21,7 @@
         public const int CHR_W = 12;
         public const int CHR_H = 12;
 
-        public const int MAX_TEXT_LEN = MAX_W / CHR_W;
+        public const int MAX_TEXT_LEN = MAX_W / CHR_W + 1;
 
         public const int MWIDTH = 15;
         public const int MHEIGHT = 10;

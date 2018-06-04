@@ -8,8 +8,8 @@ namespace Digger.Net
 {
     public class GameData
     {
-        public int level = 1;
-        public bool IsLevelDone;
+        public int level;
+        public bool isLevelDone;
     }
 
     public class Game
@@ -80,7 +80,7 @@ namespace Digger.Net
             new GameMode(true, 1, 2, new Label[]{ new Label("TWO PLAYER", 180), new Label( "GAUNTLET", 192)})
         };
 
-        private GameData[] gamedat = { new GameData(), new GameData() };
+        private GameData[] gameData;
 
         public string playerName;
         public int currentPlayer;
@@ -133,7 +133,7 @@ namespace Digger.Net
             bags = new Bags(this);
         }
 
-        public int LevelNo => gamedat[currentPlayer].level;
+        public int LevelNo => gameData[currentPlayer].level;
 
         public void LoadSettings()
         {
@@ -149,7 +149,11 @@ namespace Digger.Net
                 {
                     int j = 0;
                     foreach (string keyCode in vbuf.Split(','))
-                        input.KeyCodes[i][j++] = int.Parse(keyCode);
+                    {
+                        int scanCode = int.Parse(keyCode);
+                        if (scanCode != 0)
+                            input.KeyCodes[i][j++] = scanCode;
+                    }
                 }
             }
             gameTime = (uint)Ini.GetINIInt(INI_GAME_SETTINGS, "GauntletTime", Const.DEFAULT_GAUNTLET_TIME, INI_FILE_NAME);
@@ -236,7 +240,7 @@ namespace Digger.Net
 
         private string GetKeyboardBufferKey(int i)
         {
-            return string.Format("{0}{1}", Keys.KeyNames[i], (i >= 5 && i < 10) ? " (Player 2)" : null);
+            return string.Format("{0}{1}", Keyboard.KeyNames[i], (i >= 5 && i < 10) ? " (Player 2)" : null);
         }
 
         public void ParseCmdLine(string[] args)
@@ -338,17 +342,18 @@ namespace Digger.Net
                     if (argch == 'K')
                     {
                         if (word.Length > 2 && char.ToUpper(word[2]) == 'A')
-                            Keys.Redefine(this, true);
+                            Keyboard.Redefine(this, true);
                         else
-                            Keys.Redefine(this, false);
+                            Keyboard.Redefine(this, false);
                     }
                     if (argch == 'Q')
                         quiet = true;
+
                     if (argch == 'G')
                     {
                         gameTime = 0;
-                        while (word[i] != 0)
-                            gameTime = 10 * gameTime + word[i++] - '0';
+                        for (int j = 0; j < word.Length; ++j)
+                            gameTime = 10 * gameTime + word[j++] - '0';
 
                         if (gameTime > 3599)
                             gameTime = 3599;
@@ -418,7 +423,7 @@ namespace Digger.Net
         {
             Console.WriteLine("DIGGER - Copyright (c) 1983 Windmill software");
             Console.WriteLine("Restored 1998 by AJ Software");
-            Console.WriteLine("https://github.com/lordstanius/digger");
+            Console.WriteLine("https://github.com/lordstanius/digger.net");
             Console.WriteLine($"Version: {DIGGER_VERSION}\r\n");
             Console.WriteLine("Command line syntax:");
             Console.WriteLine("  DIGGER [[/S:]speed] [[/L:]level file] [/C] [/Q] [/M] ");
@@ -434,7 +439,7 @@ namespace Digger.Net
             Console.WriteLine("/R = Record graphics to file");
             Console.WriteLine("/P = Playback and restart program");
             Console.WriteLine("/E = Playback and exit program");
-            Console.WriteLine("/O = Loop to beginning of command line");
+            Console.WriteLine("/O = Playback and loop to beginning of command line");
             Console.WriteLine("/K = Redefine keyboard (A = all keys) ");
             Console.WriteLine("/G = Gauntlet mode");
             Console.WriteLine("/2 = Two player simultaneous mode");
@@ -448,6 +453,10 @@ namespace Digger.Net
             if (isInitialized)
                 return;
 
+            gameData = new[] { new GameData(), new GameData() };
+            foreach (var game in gameData)
+                game.level = startingLevel;
+            
             Calibrate();
             video.Initialize();
             input.DetectJoystick();
@@ -483,10 +492,10 @@ namespace Digger.Net
                 isStarted = false;
                 frame = 0;
                 NewFrame();
-                input.teststart();
+                input.TestStart();
                 while (!isStarted && !isGameCycleEnded)
                 {
-                    isStarted = input.teststart();
+                    isStarted = input.TestStart();
                     if (input.mode_change)
                     {
                         SwitchNPlayers();
@@ -631,7 +640,7 @@ namespace Digger.Net
             } while (!isGameCycleEnded && !shouldExit);
         }
 
-        public void NewFrame()
+        internal void NewFrame()
         {
             if (isVideoModeChanged)
                 return;
@@ -708,7 +717,7 @@ namespace Digger.Net
                     for (int i = 0; i < diggerCount; i++)
                         input.ReadDirect(i);
 
-                    while (!isEverybodyDead && !gamedat[currentPlayer].IsLevelDone && !isGameCycleEnded && !isTimeOut && !isVideoModeChanged)
+                    while (!isEverybodyDead && !gameData[currentPlayer].isLevelDone && !isGameCycleEnded && !isTimeOut && !isVideoModeChanged)
                     {
                         penalty = 0;
                         diggers.DoDiggers(bags, monsters, scores);
@@ -747,17 +756,18 @@ namespace Digger.Net
                         record.PlaySkipEOL();
                     if (isGameCycleEnded)
                         record.PutEndOfGame();
-                    if (gamedat[currentPlayer].IsLevelDone)
+                    if (gameData[currentPlayer].isLevelDone)
                         sound.SoundLevelDone(input);
-                    if (emeralds.Count() == 0 || gamedat[currentPlayer].IsLevelDone)
+                    if (emeralds.Count() == 0 || gameData[currentPlayer].isLevelDone)
                     {
                         for (int i = currentPlayer; i < diggerCount + currentPlayer; i++)
                             if (diggers.GetLives(i) > 0 && !diggers.IsDiggerAlive(i))
                                 diggers.DecreaseLife(i);
+
                         diggers.DrawLives();
-                        gamedat[currentPlayer].level++;
-                        if (gamedat[currentPlayer].level > 1000)
-                            gamedat[currentPlayer].level = 1000;
+                        gameData[currentPlayer].level++;
+                        if (gameData[currentPlayer].level > 1000)
+                            gameData[currentPlayer].level = 1000;
                         InitalizeLevel();
                     }
                     else if (isEverybodyDead)
@@ -826,7 +836,7 @@ namespace Digger.Net
 
         public void InitalizeLevel()
         {
-            gamedat[currentPlayer].IsLevelDone = false;
+            gameData[currentPlayer].isLevelDone = false;
             video.MakeField(level);
             emeralds.MakeEmeraldField();
             bags.Initialize();
@@ -853,7 +863,7 @@ namespace Digger.Net
         public void CheckIsLevelDone()
         {
             bool isLevelDone = (emeralds.Count() == 0 || monsters.MonstersLeftCount() == 0) && diggers.IsAnyAlive();
-            gamedat[currentPlayer].IsLevelDone = isLevelDone;
+            gameData[currentPlayer].isLevelDone = isLevelDone;
         }
 
         public void IncreasePenalty()
@@ -904,7 +914,7 @@ namespace Digger.Net
         private int GetArgument(char argch, string allargs, ref bool hasopt)
         {
             if (char.IsLetterOrDigit(argch))
-                return char.ToUpper(argch);
+                argch = char.ToUpper(argch);
 
             char c = argch;
 
