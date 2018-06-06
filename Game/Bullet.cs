@@ -50,9 +50,11 @@ namespace Digger.Net
             this.game = game;
         }
 
+        private int SpriteID => Const.FIRSTFIREBALL + id;
+
         public void Put()
         {
-            game.sprites.MoveDrawSprite(Const.FIRSTFIREBALL + id, x, y);
+            game.sprites.MoveDrawSprite(SpriteID, x, y);
             game.sound.SoundFire(id);
         }
 
@@ -71,7 +73,7 @@ namespace Digger.Net
 
         public void Remove()
         {
-            game.sprites.EraseSprite(Const.FIRSTFIREBALL + id);
+            game.sprites.EraseSprite(SpriteID);
             if (expsn > 1)
                 game.sound.SoundFireOff(id);
 

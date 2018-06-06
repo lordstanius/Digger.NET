@@ -147,12 +147,12 @@ namespace Digger.Net
                         if ((bonustimeleft & 1) != 0)
                         {
                             game.video.SetIntensity(VideoIntensity.Normal);
-                            game.sound.soundbonus();
+                            game.sound.SoundBonus();
                         }
                         else
                         {
                             game.video.SetIntensity(VideoIntensity.High);
-                            game.sound.soundbonus();
+                            game.sound.SoundBonus();
                         }
                         if (startbonustimeleft == 0)
                         {
@@ -454,9 +454,9 @@ namespace Digger.Net
             {
                 if (diggerData[n].emocttime == 0)
                     diggerData[n].emn = 0;
+
                 scores.ScoreEmerald(n);
-                game.sound.soundem();
-                game.sound.soundemerald(diggerData[n].emn);
+                game.sound.SoundEmerald(diggerData[n].emn);
 
                 diggerData[n].emn++;
                 if (diggerData[n].emn == 8)
@@ -464,6 +464,7 @@ namespace Digger.Net
                     diggerData[n].emn = 0;
                     scores.ScoreOctave(n);
                 }
+
                 diggerData[n].emocttime = 9;
             }
             DrawDigger(n);

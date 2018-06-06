@@ -36,8 +36,6 @@ namespace Digger.Net
         private const string INI_KEY_SETTINGS = "Keys";
         private const string INI_FILE_NAME = "digger.ini";
 
-        private const int SOUND_BUFFER_SIZE = 4096;
-        private const int SOUND_RATE = 44100;
         private const int DEF_SND_DEV = 0;
 
         private const string BASE_OPTS = "OUH?QM2CKL:R:P:S:E:G:I:";
@@ -137,7 +135,6 @@ namespace Digger.Net
 
         public void LoadSettings()
         {
-            bool cgaflag;
             string vbuf;
 
             for (int i = 0; i < input.KeyCount; i++)
@@ -179,12 +176,15 @@ namespace Digger.Net
             if (!quiet)
             {
                 sound.volume = 1;
-                sound.SoundInitGlobal(SOUND_BUFFER_SIZE, SOUND_RATE);
+                sound.SoundInitGlobal();
             }
 
-            cgaflag = Ini.GetINIBool(INI_GRAPHICS_SETTINGS, "CGA", false, INI_FILE_NAME);
-            if (cgaflag)
-                video.SetVideoMode(VideoMode.CGA);
+            string videoModeStr = Ini.GetINIString(INI_GRAPHICS_SETTINGS, "VideoMode", null, INI_FILE_NAME);
+            if (videoModeStr != null)
+            {
+                var videoMode = (VideoMode)Enum.Parse(typeof(VideoMode), videoModeStr);
+                video.SetVideoMode(videoMode);
+            }
 
             video.isFullScreen = Ini.GetINIBool(INI_GRAPHICS_SETTINGS, "Fullscreen", false, INI_FILE_NAME);
             hasUnlimitedLives = Ini.GetINIBool(INI_GAME_SETTINGS, "UnlimitedLives", false, INI_FILE_NAME);
@@ -216,8 +216,8 @@ namespace Digger.Net
             if (video.isFullScreen)
                 Ini.WriteINIBool(INI_GRAPHICS_SETTINGS, "Fullscreen", video.isFullScreen, INI_FILE_NAME);
 
-            if (video.VideoMode == VideoMode.CGA)
-                Ini.WriteINIBool(INI_GRAPHICS_SETTINGS, "CGA", true, INI_FILE_NAME);
+            if (video.VideoMode != Const.DEFAULT_VIDEO_MODE)
+                Ini.WriteINIString(INI_GRAPHICS_SETTINGS, "VideoMode", video.VideoMode.ToString(), INI_FILE_NAME);
 
             if (hasUnlimitedLives)
                 Ini.GetINIBool(INI_GAME_SETTINGS, "UnlimitedLives", hasUnlimitedLives, INI_FILE_NAME);
@@ -459,7 +459,6 @@ namespace Digger.Net
             
             Calibrate();
             video.Initialize();
-            input.DetectJoystick();
             sound.Initialize();
 
             isInitialized = true;
@@ -483,7 +482,6 @@ namespace Digger.Net
             {
                 sound.StopSound();
                 video.CreateMonsterBagSprites();
-                input.DetectJoystick();
                 video.Clear();
                 video.DrawTitleScreen();
                 video.TextOut("D I G G E R", 100, 0, 3);
@@ -887,7 +885,7 @@ namespace Digger.Net
             if (input.pausef)
             {
                 sound.SoundPause();
-                sound.sett2val(40);
+                sound.SetT2Val(40);
                 sound.SetSoundT2();
                 ClearTopLine();
                 video.TextOut("PRESS ANY KEY", 80, 0, 1);

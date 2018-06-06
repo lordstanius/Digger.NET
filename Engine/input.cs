@@ -22,27 +22,24 @@ namespace Digger.Net
         public bool fire2pflag;
         public bool pausef;
         public bool mode_change;
-        public bool aleftpressed = false;
-        public bool arightpressed = false;
-        public bool auppressed = false;
-        public bool adownpressed = false;
-        public bool start = false;
-        public bool af1pressed = false;
-        public bool aleft2pressed = false;
-        public bool aright2pressed = false;
-        public bool aup2pressed = false;
-        public bool adown2pressed = false;
-        public bool af12pressed = false;
-        private int dynamicdir = -1, dynamicdir2 = -1, dir = -1, dir2 = -1, joyx = 0, joyy = 0;
-        public bool oupressed = false, odpressed = false, olpressed = false, orpressed = false;
-        public bool ou2pressed = false, od2pressed = false, ol2pressed = false, or2pressed = false;
 
-        public int akeypressed;
+        private bool isLeftPressed;
+        private bool isRightPressed;
+        private bool isUpPressed;
+        private bool isDownPressed;
+        private bool shouldStart;
+        private bool isF1Pressed;
+        private bool isLeft2Pressed;
+        private bool isRight2Pressed;
+        private bool isUp2Pressed;
+        private bool isDown2Pressed;
+        private bool isF12Pressed;
+        private bool oupressed, odpressed, olpressed, orpressed;
+        private bool ou2pressed, od2pressed, ol2pressed, or2pressed;
 
-        private bool joybut1 = false;
-        private bool joyflag = false;
-
-        private int keydir, keydir2, jleftthresh, jupthresh, jrightthresh, jdownthresh, joyanax, joyanay;
+        private int dynamicdir = -1, dynamicdir2 = -1, dir = -1, dir2 = -1;
+        private int keyPressed;
+        private int keydir, keydir2;
 
         private readonly Game game;
         private readonly SDL_Input keyboard;
@@ -77,41 +74,50 @@ namespace Digger.Net
            other way around. */
         public void CheckKeyBuffer()
         {
-            int k = 0;
-
             if (keyboard.IsLeftPressed)
-                aleftpressed = true;
-            if (keyboard.IsRightPressed)
-                arightpressed = true;
-            if (keyboard.IsUpPressed)
-                auppressed = true;
-            if (keyboard.IsDownPressed)
-                adownpressed = true;
-            if (keyboard.IsF1Pressed)
-                af1pressed = true;
-            if (keyboard.IsLeft2Pressed)
-                aleft2pressed = true;
-            if (keyboard.IsRight2Pressed)
-                aright2pressed = true;
-            if (keyboard.IsUp2Pressed)
-                aup2pressed = true;
-            if (keyboard.IsDown2Pressed)
-                adown2pressed = true;
-            if (keyboard.IsF12Pressed)
-                af12pressed = true;
+                isLeftPressed = true;
 
+            if (keyboard.IsRightPressed)
+                isRightPressed = true;
+
+            if (keyboard.IsUpPressed)
+                isUpPressed = true;
+
+            if (keyboard.IsDownPressed)
+                isDownPressed = true;
+
+            if (keyboard.IsF1Pressed)
+                isF1Pressed = true;
+
+            if (keyboard.IsLeft2Pressed)
+                isLeft2Pressed = true;
+
+            if (keyboard.IsRight2Pressed)
+                isRight2Pressed = true;
+
+            if (keyboard.IsUp2Pressed)
+                isUp2Pressed = true;
+
+            if (keyboard.IsDown2Pressed)
+                isDown2Pressed = true;
+
+            if (keyboard.IsF12Pressed)
+                isF12Pressed = true;
+
+            int k = 0;
             while (keyboard.IsKeyboardHit())
             {
-                akeypressed = keyboard.GetKey(true);
+                keyPressed = keyboard.GetKey(true);
                 for (int i = 0; i < 10; i++)
                     for (int j = 2; j < 5; j++)
-                        if (akeypressed == keyboard.keycodes[i][j])
+                        if (keyPressed == keyboard.keycodes[i][j])
                             AsyncFlagPressed(i, true);
 
                 for (int i = 10; i < KeyCount; i++)
                     for (int j = 0; j < 5; j++)
-                        if (akeypressed == keyboard.keycodes[i][j])
+                        if (keyPressed == keyboard.keycodes[i][j])
                             k = i;
+
                 switch (k)
                 {
                     case KEY_CHEAT: /* Cheat! */
@@ -156,8 +162,9 @@ namespace Digger.Net
                             game.video.SetVideoMode(VideoMode.CGA);
                         break;
                 }
+
                 if (!mode_change)
-                    start = true;                                /* Change number of players */
+                    shouldStart = true;                                /* Change number of players */
             }
         }
 
@@ -165,29 +172,17 @@ namespace Digger.Net
         {
             switch (i)
             {
-                case 0: arightpressed = value; break;
-                case 1: auppressed = value; break;
-                case 2: aleftpressed = value; break;
-                case 3: adownpressed = value; break;
-                case 4: af1pressed = value; break;
-                case 5: aright2pressed = value; break;
-                case 6: aup2pressed = value; break;
-                case 7: aleft2pressed = value; break;
-                case 8: adown2pressed = value; break;
-                case 9: af12pressed = value; break;
+                case 0: isRightPressed = value; break;
+                case 1: isUpPressed = value; break;
+                case 2: isLeftPressed = value; break;
+                case 3: isDownPressed = value; break;
+                case 4: isF1Pressed = value; break;
+                case 5: isRight2Pressed = value; break;
+                case 6: isUp2Pressed = value; break;
+                case 7: isLeft2Pressed = value; break;
+                case 8: isDown2Pressed = value; break;
+                case 9: isF12Pressed = value; break;
             }
-        }
-
-        /* Joystick not yet implemented. It will be, though, using gethrt on platform
-           DOSPC. */
-        public void ReadJoystick()
-        {
-        }
-
-        public void DetectJoystick()
-        {
-            joyflag = false;
-            dir = dynamicdir = Const.DIR_NONE;
         }
 
         /* Contrary to some beliefs, you don't need a separate OS call to flush the
@@ -197,34 +192,33 @@ namespace Digger.Net
             while (keyboard.IsKeyboardHit())
                 keyboard.GetKey(true);
 
-            aleftpressed = arightpressed = auppressed = adownpressed = af1pressed = false;
-            aleft2pressed = aright2pressed = aup2pressed = adown2pressed = af12pressed = false;
+            isLeftPressed = isRightPressed = isUpPressed = isDownPressed = isF1Pressed = false;
+            isLeft2Pressed = isRight2Pressed = isUp2Pressed = isDown2Pressed = isF12Pressed = false;
         }
 
         public void ClearFire(int n)
         {
             if (n == 0)
-                af1pressed = false;
+                isF1Pressed = false;
             else
-                af12pressed = false;
+                isF12Pressed = false;
         }
 
         public void ReadDirect(int n)
         {
-            short j;
             bool u = false, d = false, l = false, r = false;
             bool u2 = false, d2 = false, l2 = false, r2 = false;
 
             if (n == 0)
             {
-                if (auppressed || keyboard.IsUpPressed) { u = true; auppressed = false; }
-                if (adownpressed || keyboard.IsDownPressed) { d = true; adownpressed = false; }
-                if (aleftpressed || keyboard.IsLeftPressed) { l = true; aleftpressed = false; }
-                if (arightpressed || keyboard.IsRightPressed) { r = true; arightpressed = false; }
-                if (keyboard.IsF1Pressed || af1pressed)
+                if (isUpPressed || keyboard.IsUpPressed) { u = true; isUpPressed = false; }
+                if (isDownPressed || keyboard.IsDownPressed) { d = true; isDownPressed = false; }
+                if (isLeftPressed || keyboard.IsLeftPressed) { l = true; isLeftPressed = false; }
+                if (isRightPressed || keyboard.IsRightPressed) { r = true; isRightPressed = false; }
+                if (keyboard.IsF1Pressed || isF1Pressed)
                 {
                     firepflag = true;
-                    af1pressed = false;
+                    isF1Pressed = false;
                 }
                 else
                     firepflag = false;
@@ -258,14 +252,14 @@ namespace Digger.Net
             }
             else
             {
-                if (aup2pressed || keyboard.IsUp2Pressed) { u2 = true; aup2pressed = false; }
-                if (adown2pressed || keyboard.IsDown2Pressed) { d2 = true; adown2pressed = false; }
-                if (aleft2pressed || keyboard.IsLeft2Pressed) { l2 = true; aleft2pressed = false; }
-                if (aright2pressed || keyboard.IsRight2Pressed) { r2 = true; aright2pressed = false; }
-                if (keyboard.IsF12Pressed || af12pressed)
+                if (isUp2Pressed || keyboard.IsUp2Pressed) { u2 = true; isUp2Pressed = false; }
+                if (isDown2Pressed || keyboard.IsDown2Pressed) { d2 = true; isDown2Pressed = false; }
+                if (isLeft2Pressed || keyboard.IsLeft2Pressed) { l2 = true; isLeft2Pressed = false; }
+                if (isRight2Pressed || keyboard.IsRight2Pressed) { r2 = true; isRight2Pressed = false; }
+                if (keyboard.IsF12Pressed || isF12Pressed)
                 {
                     fire2pflag = true;
-                    af12pressed = false;
+                    isF12Pressed = false;
                 }
                 else
                     fire2pflag = false;
@@ -297,79 +291,21 @@ namespace Digger.Net
                     keydir2 = dynamicdir2;
                 dir2 = Const.DIR_NONE;
             }
-
-            if (joyflag)
-            {
-                game.IncreasePenalty();
-                game.IncreasePenalty();
-                joyanay = 0;
-                joyanax = 0;
-                for (j = 0; j < 4; j++)
-                {
-                    ReadJoystick();
-                    joyanax += joyx;
-                    joyanay += joyy;
-                }
-                joyx = joyanax >> 2;
-                joyy = joyanay >> 2;
-                if (joybut1)
-                    firepflag = true;
-                else
-                    firepflag = false;
-            }
         }
 
         /* Calibrate joystick while waiting at title screen. This works more
            effectively if the user waggles the joystick in the title screen. */
         public bool TestStart()
         {
-            short j;
             bool startf = false;
-            if (joyflag)
+            if (shouldStart)
             {
-                ReadJoystick();
-                if (joybut1)
-                    startf = true;
-            }
-            if (start)
-            {
-                start = false;
+                shouldStart = false;
                 startf = true;
-                joyflag = false;
             }
             if (!startf)
                 return false;
-            if (joyflag)
-            {
-                joyanay = 0;
-                joyanax = 0;
-                for (j = 0; j < 50; j++)
-                {
-                    ReadJoystick();
-                    joyanax += joyx;
-                    joyanay += joyy;
-                }
-                joyx = joyanax / 50;
-                joyy = joyanay / 50;
-                jleftthresh = joyx - 35;
-                if (jleftthresh < 0)
-                    jleftthresh = 0;
-                jleftthresh += 10;
-                jupthresh = joyy - 35;
-                if (jupthresh < 0)
-                    jupthresh = 0;
-                jupthresh += 10;
-                jrightthresh = joyx + 35;
-                if (jrightthresh > 255)
-                    jrightthresh = 255;
-                jrightthresh -= 10;
-                jdownthresh = joyy + 35;
-                if (jdownthresh > 255)
-                    jdownthresh = 255;
-                jdownthresh -= 10;
-                joyanax = joyx;
-                joyanay = joyy;
-            }
+
             return true;
         }
 
@@ -378,21 +314,6 @@ namespace Digger.Net
         public int GetDirect(int n)
         {
             int dir = ((n == 0) ? keydir : keydir2);
-            if (joyflag)
-            {
-                dir = Const.DIR_NONE;
-                if (joyx < jleftthresh)
-                    dir = Const.DIR_LEFT;
-                if (joyx > jrightthresh)
-                    dir = Const.DIR_RIGHT;
-                if (joyx >= jleftthresh && joyx <= jrightthresh)
-                {
-                    if (joyy < jupthresh)
-                        dir = Const.DIR_UP;
-                    if (joyy > jdownthresh)
-                        dir = Const.DIR_DOWN;
-                }
-            }
             if (n == 0)
             {
                 if (game.record.IsPlaying)

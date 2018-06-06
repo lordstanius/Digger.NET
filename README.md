@@ -1,7 +1,7 @@
 # Digger game in C# .NET
 This is C# port of Windmill Software's classic game from 1983, remastered by Andrew Jenner. 
 Port is based on Maxim Sobolyev's SDL version of Digger (<https://github.com/sobomax/digger>) and includes some bugfixes that were revealed during the transfer of C code to C# as well as CGA display mode. It builds in Visual Studio 2017 with .NET 4.6 and SDL library v2.0.5 on Windows.
-VGA display is default, press C on main screen in order to switch to CGA.
+CGA display is default, press V on main screen in order to switch to VGA.
 
 <img src="https://github.com/lordstanius/WinDig/blob/master/digger.png" width="320"></a>
 

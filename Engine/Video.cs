@@ -70,7 +70,7 @@ namespace Digger.Net
             this.game = game;
         }
 
-        public VideoMode VideoMode { get; private set; } = VideoMode.VGA;
+        public VideoMode VideoMode { get; private set; } = Const.DEFAULT_VIDEO_MODE;
 
         public void Initialize()
         {
@@ -362,20 +362,20 @@ namespace Digger.Net
 
         public void DrawLife(int t, int x, int y)
         {
-            game.sprites.drawmiscspr(x, y, t + 110, 4, 12);
+            game.sprites.DrawMiscSprite(x, y, t + 110, 4, 12);
         }
 
         public void DrawEmerald(int x, int y)
         {
-            game.sprites.initmiscspr(x, y, 4, 10);
-            game.sprites.drawmiscspr(x, y, 108, 4, 10);
+            game.sprites.InitializeMiscSprites(x, y, 4, 10);
+            game.sprites.DrawMiscSprite(x, y, 108, 4, 10);
             game.sprites.getis();
         }
 
         public void EraseEmerald(int x, int y)
         {
-            game.sprites.initmiscspr(x, y, 4, 10);
-            game.sprites.drawmiscspr(x, y, 109, 4, 10);
+            game.sprites.InitializeMiscSprites(x, y, 4, 10);
+            game.sprites.DrawMiscSprite(x, y, 109, 4, 10);
             game.sprites.getis();
         }
 
@@ -423,43 +423,43 @@ namespace Digger.Net
 
         public void DrawRightBlob(int x, int y)
         {
-            game.sprites.initmiscspr(x + 16, y - 1, 2, 18);
-            game.sprites.drawmiscspr(x + 16, y - 1, 102, 2, 18);
+            game.sprites.InitializeMiscSprites(x + 16, y - 1, 2, 18);
+            game.sprites.DrawMiscSprite(x + 16, y - 1, 102, 2, 18);
             game.sprites.getis();
         }
 
         public void DrawLeftBlob(int x, int y)
         {
-            game.sprites.initmiscspr(x - 8, y - 1, 2, 18);
-            game.sprites.drawmiscspr(x - 8, y - 1, 104, 2, 18);
+            game.sprites.InitializeMiscSprites(x - 8, y - 1, 2, 18);
+            game.sprites.DrawMiscSprite(x - 8, y - 1, 104, 2, 18);
             game.sprites.getis();
         }
 
         public void DrawTopBlob(int x, int y)
         {
-            game.sprites.initmiscspr(x - 4, y - 6, 6, 6);
-            game.sprites.drawmiscspr(x - 4, y - 6, 103, 6, 6);
+            game.sprites.InitializeMiscSprites(x - 4, y - 6, 6, 6);
+            game.sprites.DrawMiscSprite(x - 4, y - 6, 103, 6, 6);
             game.sprites.getis();
         }
 
         public void DrawBottomBlob(int x, int y)
         {
-            game.sprites.initmiscspr(x - 4, y + 15, 6, 6);
-            game.sprites.drawmiscspr(x - 4, y + 15, 105, 6, 6);
+            game.sprites.InitializeMiscSprites(x - 4, y + 15, 6, 6);
+            game.sprites.DrawMiscSprite(x - 4, y + 15, 105, 6, 6);
             game.sprites.getis();
         }
 
         public void DrawFurryBlob(int x, int y)
         {
-            game.sprites.initmiscspr(x - 4, y + 15, 6, 8);
-            game.sprites.drawmiscspr(x - 4, y + 15, 107, 6, 8);
+            game.sprites.InitializeMiscSprites(x - 4, y + 15, 6, 8);
+            game.sprites.DrawMiscSprite(x - 4, y + 15, 107, 6, 8);
             game.sprites.getis();
         }
 
         public void DrawSquareBlob(int x, int y)
         {
-            game.sprites.initmiscspr(x - 4, y + 17, 6, 6);
-            game.sprites.drawmiscspr(x - 4, y + 17, 106, 6, 6);
+            game.sprites.InitializeMiscSprites(x - 4, y + 17, 6, 6);
+            game.sprites.DrawMiscSprite(x - 4, y + 17, 106, 6, 6);
             game.sprites.getis();
         }
 
@@ -467,7 +467,7 @@ namespace Digger.Net
         {
             for (int y = 14; y < 200; y += 4)
                 for (int x = 0; x < 320; x += 20)
-                    game.sprites.drawmiscspr(x, y, 93 + l, 5, 4);
+                    game.sprites.DrawMiscSprite(x, y, 93 + l, 5, 4);
         }
 
         public void DrawFire(int n, int x, int y, int t)

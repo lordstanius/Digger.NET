@@ -50,6 +50,7 @@ namespace Digger.Net
         }
 
         public VideoMode VideoMode { get; private set; }
+        public IntPtr Window => window;
 
         private void CreateCaches()
         {

@@ -10,22 +10,28 @@ namespace Digger.Net
     {
         public const int SPRITES = Const.SPRITES;
 
-        public bool[] sprrdrwf = new bool[SPRITES + 1];
-        public bool[] sprrecf = new bool[SPRITES + 1];
-        public bool[] sprenf = new bool[SPRITES];
-        public Surface[] sprmov = new Surface[SPRITES];
-        public int[] sprch = new int[SPRITES + 1];
-        public int[] sprx = new int[SPRITES + 1];
-        public int[] spry = new int[SPRITES + 1];
-        public int[] sprwid = new int[SPRITES + 1];
-        public int[] sprhei = new int[SPRITES + 1];
-        public int[] sprbwid = new int[SPRITES];
-        public int[] sprbhei = new int[SPRITES];
-        public int[] sprnch = new int[SPRITES];
-        public int[] sprnwid = new int[SPRITES];
-        public int[] sprnhei = new int[SPRITES];
-        public int[] sprnbwid = new int[SPRITES];
-        public int[] sprnbhei = new int[SPRITES];
+        public int[] first = new int[Const.TYPES];
+        public int[] coll = new int[SPRITES];
+
+        private int[] firstt = { Const.FIRSTBONUS, Const.FIRSTBAG, Const.FIRSTMONSTER, Const.FIRSTFIREBALL, Const.FIRSTDIGGER };
+        private int[] lastt = { Const.LASTBONUS, Const.LASTBAG, Const.LASTMONSTER, Const.LASTFIREBALL, Const.LASTDIGGER };
+
+        private readonly bool[] spriteNeedsRedrawFlag = new bool[SPRITES + 1];
+        private readonly bool[] spriteRecursionFlag = new bool[SPRITES + 1];
+        private readonly bool[] spriteEnabledFlag = new bool[SPRITES];
+        private readonly int[] spriteChar = new int[SPRITES + 1];
+        private readonly int[] spriteX = new int[SPRITES + 1];
+        private readonly int[] spriteY = new int[SPRITES + 1];
+        private readonly int[] spriteWidth = new int[SPRITES + 1];
+        private readonly int[] spriteHeigth = new int[SPRITES + 1];
+        private readonly int[] spriteBorderWidth = new int[SPRITES];
+        private readonly int[] spriteBorderHeigth = new int[SPRITES];
+        private readonly int[] newSpriteChar = new int[SPRITES];
+        private readonly int[] newSpriteWidth = new int[SPRITES];
+        private readonly int[] newSpriteHeigth = new int[SPRITES];
+        private readonly int[] newSpriteBorderWidth = new int[SPRITES];
+        private readonly int[] newSpriteBorderHeight = new int[SPRITES];
+        private readonly Surface[] spriteBuffer = new Surface[SPRITES];
 
         private Game game;
 
@@ -36,229 +42,229 @@ namespace Digger.Net
 
         public void CreateSprite(int n, int ch, Surface mov, int wid, int hei, int bwid, int bhei)
         {
-            sprnch[n] = sprch[n] = ch;
-            sprmov[n] = mov;
-            sprnwid[n] = sprwid[n] = wid;
-            sprnhei[n] = sprhei[n] = hei;
-            sprnbwid[n] = sprbwid[n] = bwid;
-            sprnbhei[n] = sprbhei[n] = bhei;
-            sprenf[n] = false;
+            newSpriteChar[n] = spriteChar[n] = ch;
+            spriteBuffer[n] = mov;
+            newSpriteWidth[n] = spriteWidth[n] = wid;
+            newSpriteHeigth[n] = spriteHeigth[n] = hei;
+            newSpriteBorderWidth[n] = spriteBorderWidth[n] = bwid;
+            newSpriteBorderHeight[n] = spriteBorderHeigth[n] = bhei;
+            spriteEnabledFlag[n] = false;
         }
 
         public void MoveDrawSprite(int n, int x, int y)
         {
-            sprx[n] = (short)(x & -4);
-            spry[n] = y;
-            sprch[n] = sprnch[n];
-            sprwid[n] = sprnwid[n];
-            sprhei[n] = sprnhei[n];
-            sprbwid[n] = sprnbwid[n];
-            sprbhei[n] = sprnbhei[n];
-            clearrdrwf();
-            setrdrwflgs(n);
-            putis();
-            game.video.GetImage(sprx[n], spry[n], ref sprmov[n], sprwid[n], sprhei[n]);
-            sprenf[n] = true;
-            sprrdrwf[n] = true;
-            putims();
+            spriteX[n] = (short)(x & -4);
+            spriteY[n] = y;
+            spriteChar[n] = newSpriteChar[n];
+            spriteWidth[n] = newSpriteWidth[n];
+            spriteHeigth[n] = newSpriteHeigth[n];
+            spriteBorderWidth[n] = newSpriteBorderWidth[n];
+            spriteBorderHeigth[n] = newSpriteBorderHeight[n];
+            ClearRedrawFlag();
+            SetRedrawFlags(n);
+            RedrawBackgroudImages();
+            game.video.GetImage(spriteX[n], spriteY[n], ref spriteBuffer[n], spriteWidth[n], spriteHeigth[n]);
+            spriteEnabledFlag[n] = true;
+            spriteNeedsRedrawFlag[n] = true;
+            DrawActualSprites();
         }
 
         public void EraseSprite(int n)
         {
-            if (!sprenf[n])
+            if (!spriteEnabledFlag[n])
                 return;
-            game.video.PutImage(sprx[n], spry[n], sprmov[n], sprwid[n], sprhei[n]);
-            sprenf[n] = false;
-            clearrdrwf();
-            setrdrwflgs(n);
-            putims();
+            game.video.PutImage(spriteX[n], spriteY[n], spriteBuffer[n], spriteWidth[n], spriteHeigth[n]);
+            spriteEnabledFlag[n] = false;
+            ClearRedrawFlag();
+            SetRedrawFlags(n);
+            DrawActualSprites();
         }
 
         public void DrawSprite(int n, int x, int y)
         {
             x &= -4;
-            clearrdrwf();
-            setrdrwflgs(n);
-            int t1 = sprx[n];
-            int t2 = spry[n];
-            int t3 = sprwid[n];
-            int t4 = sprhei[n];
-            sprx[n] = x;
-            spry[n] = y;
-            sprwid[n] = sprnwid[n];
-            sprhei[n] = sprnhei[n];
-            clearrecf();
-            setrdrwflgs(n);
-            sprhei[n] = t4;
-            sprwid[n] = t3;
-            spry[n] = t2;
-            sprx[n] = t1;
-            sprrdrwf[n] = true;
-            putis();
-            sprenf[n] = true;
-            sprx[n] = x;
-            spry[n] = y;
-            sprch[n] = sprnch[n];
-            sprwid[n] = sprnwid[n];
-            sprhei[n] = sprnhei[n];
-            sprbwid[n] = sprnbwid[n];
-            sprbhei[n] = sprnbhei[n];
-            game.video.GetImage(sprx[n], spry[n], ref sprmov[n], sprwid[n], sprhei[n]);
+            ClearRedrawFlag();
+            SetRedrawFlags(n);
+            int t1 = spriteX[n];
+            int t2 = spriteY[n];
+            int t3 = spriteWidth[n];
+            int t4 = spriteHeigth[n];
+            spriteX[n] = x;
+            spriteY[n] = y;
+            spriteWidth[n] = newSpriteWidth[n];
+            spriteHeigth[n] = newSpriteHeigth[n];
+            ClearRecursionFlags();
+            SetRedrawFlags(n);
+            spriteHeigth[n] = t4;
+            spriteWidth[n] = t3;
+            spriteY[n] = t2;
+            spriteX[n] = t1;
+            spriteNeedsRedrawFlag[n] = true;
+            RedrawBackgroudImages();
+            spriteEnabledFlag[n] = true;
+            spriteX[n] = x;
+            spriteY[n] = y;
+            spriteChar[n] = newSpriteChar[n];
+            spriteWidth[n] = newSpriteWidth[n];
+            spriteHeigth[n] = newSpriteHeigth[n];
+            spriteBorderWidth[n] = newSpriteBorderWidth[n];
+            spriteBorderHeigth[n] = newSpriteBorderHeight[n];
+            game.video.GetImage(spriteX[n], spriteY[n], ref spriteBuffer[n], spriteWidth[n], spriteHeigth[n]);
 
-            putims();
-            bcollides(n);
+            DrawActualSprites();
+            CreateCollisionLinkedList(n);
         }
 
         public void InitializeSprite(int n, int ch, int wid, int hei, short bwid, short bhei)
         {
-            sprnch[n] = ch;
-            sprnwid[n] = wid;
-            sprnhei[n] = hei;
-            sprnbwid[n] = bwid;
-            sprnbhei[n] = bhei;
+            newSpriteChar[n] = ch;
+            newSpriteWidth[n] = wid;
+            newSpriteHeigth[n] = hei;
+            newSpriteBorderWidth[n] = bwid;
+            newSpriteBorderHeight[n] = bhei;
         }
 
-        public void initmiscspr(int x, int y, int wid, int hei)
+        public void InitializeMiscSprites(int x, int y, int wid, int hei)
         {
-            sprx[SPRITES] = x;
-            spry[SPRITES] = y;
-            sprwid[SPRITES] = wid;
-            sprhei[SPRITES] = hei;
-            clearrdrwf();
-            setrdrwflgs(SPRITES);
-            putis();
+            spriteX[SPRITES] = x;
+            spriteY[SPRITES] = y;
+            spriteWidth[SPRITES] = wid;
+            spriteHeigth[SPRITES] = hei;
+            ClearRedrawFlag();
+            SetRedrawFlags(SPRITES);
+            RedrawBackgroudImages();
         }
 
         public void getis()
         {
             for (int i = 0; i < SPRITES; i++)
-                if (sprrdrwf[i])
-                    game.video.GetImage(sprx[i], spry[i], ref sprmov[i], sprwid[i], sprhei[i]);
-            putims();
+                if (spriteNeedsRedrawFlag[i])
+                    game.video.GetImage(spriteX[i], spriteY[i], ref spriteBuffer[i], spriteWidth[i], spriteHeigth[i]);
+            DrawActualSprites();
         }
 
-        public void drawmiscspr(int x, int y, int ch, short wid, short hei)
+        public void DrawMiscSprite(int x, int y, int ch, short wid, short hei)
         {
-            sprx[SPRITES] = x & -4;
-            spry[SPRITES] = y;
-            sprch[SPRITES] = ch;
-            sprwid[SPRITES] = wid;
-            sprhei[SPRITES] = hei;
-            game.video.PutImage(sprx[SPRITES], spry[SPRITES], sprch[SPRITES], sprwid[SPRITES], sprhei[SPRITES]);
+            spriteX[SPRITES] = x & -4;
+            spriteY[SPRITES] = y;
+            spriteChar[SPRITES] = ch;
+            spriteWidth[SPRITES] = wid;
+            spriteHeigth[SPRITES] = hei;
+            game.video.PutImage(spriteX[SPRITES], spriteY[SPRITES], spriteChar[SPRITES], spriteWidth[SPRITES], spriteHeigth[SPRITES]);
         }
 
-        public void clearrdrwf()
+        public void ClearRedrawFlag()
         {
-            short i;
-            clearrecf();
-            for (i = 0; i < SPRITES + 1; i++)
-                sprrdrwf[i] = false;
+            ClearRecursionFlags();
+            for (int i = 0; i < SPRITES + 1; i++)
+                spriteNeedsRedrawFlag[i] = false;
         }
 
-        public void clearrecf()
+        public void ClearRecursionFlags()
         {
-            short i;
-            for (i = 0; i < SPRITES + 1; i++)
-                sprrecf[i] = false;
+            for (int i = 0; i < SPRITES + 1; i++)
+                spriteRecursionFlag[i] = false;
         }
 
-        public void setrdrwflgs(int n)
+        public void SetRedrawFlags(int n)
         {
-            if (!sprrecf[n])
+            if (!spriteRecursionFlag[n])
             {
-                sprrecf[n] = true;
+                spriteRecursionFlag[n] = true;
                 for (int i = 0; i < SPRITES; i++)
-                    if (sprenf[i] && i != n)
+                    if (spriteEnabledFlag[i] && i != n)
                     {
-                        if (collide(i, n))
+                        if (CheckCollision(i, n))
                         {
-                            sprrdrwf[i] = true;
-                            setrdrwflgs(i);
+                            spriteNeedsRedrawFlag[i] = true;
+                            SetRedrawFlags(i);
                         }
                     }
             }
         }
 
-        public bool collide(int bx, int si)
+        public bool CheckCollision(int bx, int si)
         {
-            if (sprx[bx] >= sprx[si])
+            if (spriteX[bx] >= spriteX[si])
             {
-                if (sprx[bx] > (sprwid[si] << 2) + sprx[si] - 1)
+                if (spriteX[bx] > (spriteWidth[si] << 2) + spriteX[si] - 1)
                     return false;
             }
             else
-              if (sprx[si] > (sprwid[bx] << 2) + sprx[bx] - 1)
+              if (spriteX[si] > (spriteWidth[bx] << 2) + spriteX[bx] - 1)
                 return false;
-            if (spry[bx] >= spry[si])
+            if (spriteY[bx] >= spriteY[si])
             {
-                if (spry[bx] <= sprhei[si] + spry[si] - 1)
+                if (spriteY[bx] <= spriteHeigth[si] + spriteY[si] - 1)
                     return true;
                 return false;
             }
-            if (spry[si] <= sprhei[bx] + spry[bx] - 1)
+            if (spriteY[si] <= spriteHeigth[bx] + spriteY[bx] - 1)
                 return true;
             return false;
         }
 
-        public bool bcollide(int bx, int si)
+        public bool CheckBorderCollision(int bx, int si)
         {
-            if (sprx[bx] >= sprx[si])
+            if (spriteX[bx] >= spriteX[si])
             {
-                if (sprx[bx] + sprbwid[bx] > (sprwid[si] << 2) + sprx[si] - sprbwid[si] - 1)
+                if (spriteX[bx] + spriteBorderWidth[bx] > (spriteWidth[si] << 2) + spriteX[si] - spriteBorderWidth[si] - 1)
                     return false;
             }
             else
-              if (sprx[si] + sprbwid[si] > (sprwid[bx] << 2) + sprx[bx] - sprbwid[bx] - 1)
-                return false;
-            if (spry[bx] >= spry[si])
             {
-                if (spry[bx] + sprbhei[bx] <= sprhei[si] + spry[si] - sprbhei[si] - 1)
+                if (spriteX[si] + spriteBorderWidth[si] > (spriteWidth[bx] << 2) + spriteX[bx] - spriteBorderWidth[bx] - 1)
+                    return false;
+            }
+
+            if (spriteY[bx] >= spriteY[si])
+            {
+                if (spriteY[bx] + spriteBorderHeigth[bx] <= spriteHeigth[si] + spriteY[si] - spriteBorderHeigth[si] - 1)
                     return true;
                 return false;
             }
-            if (spry[si] + sprbhei[si] <= sprhei[bx] + spry[bx] - sprbhei[bx] - 1)
-                return true;
-            return false;
+
+            return spriteY[si] + spriteBorderHeigth[si] <= spriteHeigth[bx] + spriteY[bx] - spriteBorderHeigth[bx] - 1;
         }
 
-        public void putims()
+        public void DrawActualSprites()
         {
             for (int i = 0; i < SPRITES; i++)
-                if (sprrdrwf[i])
-                    game.video.PutImage(sprx[i], spry[i], sprch[i], sprwid[i], sprhei[i]);
+                if (spriteNeedsRedrawFlag[i])
+                    game.video.PutImage(spriteX[i], spriteY[i], spriteChar[i], spriteWidth[i], spriteHeigth[i]);
         }
 
-        public void putis()
+        public void RedrawBackgroudImages()
         {
             for (int i = 0; i < SPRITES; i++)
-                if (sprrdrwf[i])
-                    game.video.PutImage(sprx[i], spry[i], sprmov[i], sprwid[i], sprhei[i]);
+                if (spriteNeedsRedrawFlag[i])
+                    game.video.PutImage(spriteX[i], spriteY[i], spriteBuffer[i], spriteWidth[i], spriteHeigth[i]);
         }
 
-        public int[] first = new int[Const.TYPES];
-        public int[] coll = new int[SPRITES];
-        public int[] firstt = { Const.FIRSTBONUS, Const.FIRSTBAG, Const.FIRSTMONSTER, Const.FIRSTFIREBALL, Const.FIRSTDIGGER };
-        public int[] lastt = { Const.LASTBONUS, Const.LASTBAG, Const.LASTMONSTER, Const.LASTFIREBALL, Const.LASTDIGGER };
-
-        public void bcollides(int spr)
+        public void CreateCollisionLinkedList(int spr)
         {
-            int spc, next, i;
-            for (next = 0; next < Const.TYPES; next++)
+            for (int next = 0; next < Const.TYPES; next++)
                 first[next] = -1;
-            for (next = 0; next < SPRITES; next++)
+
+            for (int next = 0; next < SPRITES; next++)
                 coll[next] = -1;
-            for (i = 0; i < Const.TYPES; i++)
+
+            for (int i = 0; i < Const.TYPES; i++)
             {
-                next = -1;
-                for (spc = firstt[i]; spc < lastt[i]; spc++)
-                    if (sprenf[spc] && spc != spr)
-                        if (bcollide(spr, spc))
+                int next = -1;
+                for (int spc = firstt[i]; spc < lastt[i]; spc++)
+                {
+                    if (spriteEnabledFlag[spc] && spc != spr)
+                    {
+                        if (CheckBorderCollision(spr, spc))
                         {
                             if (next == -1)
                                 first[i] = next = spc;
                             else
                                 coll[next = (coll[next] = spc)] = -1;
                         }
+                    }
+                }
             }
         }
 

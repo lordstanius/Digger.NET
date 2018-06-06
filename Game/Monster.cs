@@ -28,8 +28,6 @@
  */
 // C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
-using System;
-
 namespace Digger.Net
 {
     public struct Position
@@ -37,25 +35,6 @@ namespace Digger.Net
         public int dir;
         public short x;
         public short y;
-
-        public string DIR2STR()
-        {
-            switch (dir)
-            {
-                case Const.DIR_NONE:
-                    return "NONE";
-                case Const.DIR_RIGHT:
-                    return "RIGHT";
-                case Const.DIR_UP:
-                    return "UP";
-                case Const.DIR_LEFT:
-                    return "LEFT";
-                case Const.DIR_DOWN:
-                    return "DOWN";
-                default:
-                    throw new NotImplementedException();
-            }
-        }
     }
 
 
@@ -67,7 +46,7 @@ namespace Digger.Net
         private const int DIR_LEFT = Const.DIR_LEFT;
         private const int DIR_DOWN = Const.DIR_DOWN;
 
-        private int id;
+        private readonly int id;
         private Position pos;
         private bool isZombie;
         private int monsterSprite;
