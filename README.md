@@ -18,6 +18,7 @@ Numpad-     Decrease game speed
 F7          Toggle sound
 F8          Save recorded game (every game is being recorded from the start)
 F9          Toggle music
+Alt+Enter   Toggle full screen/window
 F10         Exit
 ```
 Command line syntax:
