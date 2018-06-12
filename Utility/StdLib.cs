@@ -51,12 +51,12 @@ public static class StdLib
         _memcpyDelegate.Invoke(destination, source, lenght);
     }
 
-    public static T ToStruct<T>(this IntPtr ptr) where T: struct
+    public static T ToStruct<T>(this IntPtr ptr) where T : struct
     {
         return (T)Marshal.PtrToStructure(ptr, typeof(T));
     }
 
-    public static IntPtr ToPointer<T>(this T structure) where T: struct
+    public static IntPtr ToPointer<T>(this T structure) where T : struct
     {
         IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(T)));
         Marshal.StructureToPtr(structure, ptr, false);
@@ -70,13 +70,5 @@ public static class StdLib
         {
             _memcpyDelegate.Invoke(destination, new IntPtr(pSource), source.Length * sizeof(uint));
         }
-    }
-
-    public static int RandFrom0To(int n)
-    {
-        Random r = new Random((int)DateTime.Now.Ticks);
-        int randv = r.Next() * 0x15A4E35 + 1;
-
-        return (randv & 0x7FFFFFFF) % n;
     }
 }

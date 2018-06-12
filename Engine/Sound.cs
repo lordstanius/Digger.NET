@@ -81,6 +81,7 @@ namespace Digger.Net
 
         private readonly Game game;
         private readonly SDL_Sound device = new SDL_Sound();
+        private int randvs;
 
         public Sound(Game game)
         {
@@ -347,8 +348,14 @@ namespace Digger.Net
                     if (soundfirew == Const.FIREBALLS)
                         soundfirew = 0;
                 } while (!sff[n]);
-                t2val = (ushort)(soundfirevalue[n] + game.Random(soundfirevalue[n] >> 3));
+                t2val = (ushort)(soundfirevalue[n] + RandNo((short)(soundfirevalue[n] >> 3)));
             }
+        }
+
+        private short RandNo(short n)
+        {
+            randvs = randvs * 0x15a4e35 + 1;
+            return (short)((randvs & 0x7fffffff) % n);
         }
 
         public void SoundExplode(int n)

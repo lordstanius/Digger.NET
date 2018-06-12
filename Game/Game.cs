@@ -128,10 +128,10 @@ namespace Digger.Net
             bags = new Bags(this);
         }
 
-        public uint Random(int n)
+        public short RandNo(int n)
         {
             randVal = randVal * 0x15a4e35 + 1;
-            return (uint)((randVal & 0x7fffffff) % n);
+            return (short)((randVal & 0x7fffffff) % n);
         }
 
         public int LevelNo => gameData[currentPlayer].level;

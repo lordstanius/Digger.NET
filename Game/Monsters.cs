@@ -99,7 +99,6 @@ namespace Digger.Net
                 if (!mondat[i].Exists)
                     continue;
 
-                Log.Write(string.Format("Monster{0} ({1}, {2})", i, mondat[i].monstr.Position.x, mondat[i].monstr.Position.y)); //!!DEBUG
                 if (mondat[i].hnt > 10 - game.level.LevelOf10())
                 {
                     if (mondat[i].monstr.IsNobbin)
@@ -114,8 +113,8 @@ namespace Digger.Net
                     if (mondat[i].time == 0)
                     {
                         MonsterAI(i);
-                        if (StdLib.RandFrom0To(15 - game.level.LevelOf10()) == 0) /* Need to split for determinism */
-                            if (!mondat[i].monstr.IsNobbin && mondat[i].monstr.IsAlive)
+                        if (game.RandNo(15 - game.level.LevelOf10()) == 0) /* Need to split for determinism */
+                            if (mondat[i].monstr.IsNobbin && mondat[i].monstr.IsAlive)
                                 MonsterAI(i);
                     }
                     else
@@ -240,7 +239,7 @@ namespace Digger.Net
 
                 /* Introduce a random element on levels <6 : occasionally swap p1 and p3 */
 
-                if (StdLib.RandFrom0To(game.level.LevelOf10() + 5) == 1) /* Need to split for determinism */
+                if (game.RandNo(game.level.LevelOf10() + 5) == 1) /* Need to split for determinism */
                     if (game.level.LevelOf10() < 6)
                     {
                         t = mdirp1;
