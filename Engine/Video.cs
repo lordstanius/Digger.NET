@@ -9,11 +9,6 @@ namespace Digger.Net
 {
     public class Video
     {
-        private const int DIR_NONE = Const.DIR_NONE;
-        private const int DIR_RIGHT = Const.DIR_RIGHT;
-        private const int DIR_UP = Const.DIR_UP;
-        private const int DIR_LEFT = Const.DIR_LEFT;
-        private const int DIR_DOWN = Const.DIR_DOWN;
         private const int BONUSES = Const.BONUSES;
         private const int BAGS = Const.BAGS;
         private const int FIREBALLS = Const.FIREBALLS;
@@ -270,14 +265,14 @@ namespace Digger.Net
 
             switch (dir)
             {
-                case DIR_RIGHT:
+                case Dir.Right:
                     h++;
                     field[v * MWIDTH + h] &= bitmasks[xr];
                     if ((field[v * MWIDTH + h] & 0x1f) != 0)
                         break;
                     field[v * MWIDTH + h] &= 0xdfff;
                     break;
-                case DIR_UP:
+                case Dir.Up:
                     yr--;
                     if (yr < 0)
                     {
@@ -289,7 +284,7 @@ namespace Digger.Net
                         break;
                     field[v * MWIDTH + h] &= 0xdfff;
                     break;
-                case DIR_LEFT:
+                case Dir.Left:
                     xr--;
                     if (xr < 0)
                     {
@@ -301,7 +296,7 @@ namespace Digger.Net
                         break;
                     field[v * MWIDTH + h] &= 0xdfff;
                     break;
-                case DIR_DOWN:
+                case Dir.Down:
                     v++;
                     field[v * MWIDTH + h] &= bitmasks[6 + yr];
                     if ((field[v * MWIDTH + h] & 0xfc0) != 0)

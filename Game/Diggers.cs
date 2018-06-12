@@ -18,11 +18,6 @@ namespace Digger.Net
     public class Diggers
     {
         private const int MONSTERS = Const.MONSTERS;
-        private const int DIR_NONE = Const.DIR_NONE;
-        private const int DIR_RIGHT = Const.DIR_RIGHT;
-        private const int DIR_UP = Const.DIR_UP;
-        private const int DIR_LEFT = Const.DIR_LEFT;
-        private const int DIR_DOWN = Const.DIR_DOWN;
         private const int TYPES = Const.TYPES;
         private const int SPRITES = Const.SPRITES;
         private const int DIGGERS = Const.DIGGERS;
@@ -61,7 +56,7 @@ namespace Digger.Net
                 diggerData[dig].mdir = 4;
                 diggerData[dig].h = (game.diggerCount == 1) ? 7 : (8 - dig * 2);
                 int x = diggerData[dig].h * 20 + 12;
-                int dir = (dig == 0) ? DIR_RIGHT : DIR_LEFT;
+                int dir = (dig == 0) ? Dir.Right : Dir.Left;
                 int y = diggerData[dig].v * 18 + 18;
                 diggerData[dig].rx = 0;
                 diggerData[dig].ry = 0;
@@ -205,19 +200,19 @@ namespace Digger.Net
                             diggerData[n].notfiring = false;
                             switch (diggerData[n].digger.dir)
                             {
-                                case DIR_RIGHT:
+                                case Dir.Right:
                                     fx = diggerData[n].digger.x + 8;
                                     fy = diggerData[n].digger.y + 4;
                                     break;
-                                case DIR_UP:
+                                case Dir.Up:
                                     fx = diggerData[n].digger.x + 4;
                                     fy = diggerData[n].digger.y;
                                     break;
-                                case DIR_LEFT:
+                                case Dir.Left:
                                     fx = diggerData[n].digger.x;
                                     fy = diggerData[n].digger.y + 4;
                                     break;
-                                case DIR_DOWN:
+                                case Dir.Down:
                                     fx = diggerData[n].digger.x + 4;
                                     fy = diggerData[n].digger.y + 8;
                                     break;
@@ -235,24 +230,24 @@ namespace Digger.Net
                 pix = 0;
                 switch (diggerData[n].bullet.dir)
                 {
-                    case DIR_RIGHT:
+                    case Dir.Right:
                         diggerData[n].bullet.x += 8;
                         pix = game.video.GetPixel(diggerData[n].bullet.x, diggerData[n].bullet.y + 4) |
                             game.video.GetPixel(diggerData[n].bullet.x + 4, diggerData[n].bullet.y + 4);
                         break;
-                    case DIR_UP:
+                    case Dir.Up:
                         diggerData[n].bullet.y -= 7;
                         pix = 0;
                         for (i = 0; i < 7; i++)
                             pix |= game.video.GetPixel(diggerData[n].bullet.x + 4, diggerData[n].bullet.y + i);
                         pix &= 0xc0;
                         break;
-                    case DIR_LEFT:
+                    case Dir.Left:
                         diggerData[n].bullet.x -= 8;
                         pix = game.video.GetPixel(diggerData[n].bullet.x, diggerData[n].bullet.y + 4) |
                             game.video.GetPixel(diggerData[n].bullet.x + 4, diggerData[n].bullet.y + 4);
                         break;
-                    case DIR_DOWN:
+                    case Dir.Down:
                         diggerData[n].bullet.y += 7;
                         pix = 0;
                         for (i = 0; i < 7; i++)
@@ -305,7 +300,7 @@ namespace Digger.Net
                 }
                 switch (diggerData[n].bullet.dir)
                 {
-                    case DIR_RIGHT:
+                    case Dir.Right:
                         if (diggerData[n].bullet.x > 296)
                         {
                             diggerData[n].bullet.Explode();
@@ -320,7 +315,7 @@ namespace Digger.Net
                             }
                         }
                         break;
-                    case DIR_UP:
+                    case Dir.Up:
                         if (diggerData[n].bullet.y < 15)
                         {
                             diggerData[n].bullet.Explode();
@@ -335,7 +330,7 @@ namespace Digger.Net
                             }
                         }
                         break;
-                    case DIR_LEFT:
+                    case Dir.Left:
                         if (diggerData[n].bullet.x < 16)
                         {
                             diggerData[n].bullet.Explode();
@@ -350,7 +345,7 @@ namespace Digger.Net
                             }
                         }
                         break;
-                    case DIR_DOWN:
+                    case Dir.Down:
                         if (diggerData[n].bullet.y > 183)
                         {
                             diggerData[n].bullet.Explode();
@@ -406,44 +401,44 @@ namespace Digger.Net
             bool push = true, bagf;
             int[] clfirst = new int[TYPES];
             int[] clcoll = new int[SPRITES];
-            game.input.ReadDirect(n - game.currentPlayer);
+            game.input.ReadDirection(n - game.currentPlayer);
             dir = game.input.GetDirect(n - game.currentPlayer);
-            if (dir == DIR_RIGHT || dir == DIR_UP || dir == DIR_LEFT || dir == DIR_DOWN)
+            if (dir == Dir.Right || dir == Dir.Up || dir == Dir.Left || dir == Dir.Down)
                 ddir = dir;
             else
-                ddir = DIR_NONE;
-            if (diggerData[n].rx == 0 && (ddir == DIR_UP || ddir == DIR_DOWN))
+                ddir = Dir.None;
+            if (diggerData[n].rx == 0 && (ddir == Dir.Up || ddir == Dir.Down))
                 diggerData[n].digger.dir = diggerData[n].mdir = ddir;
-            if (diggerData[n].ry == 0 && (ddir == DIR_RIGHT || ddir == DIR_LEFT))
+            if (diggerData[n].ry == 0 && (ddir == Dir.Right || ddir == Dir.Left))
                 diggerData[n].digger.dir = diggerData[n].mdir = ddir;
-            if (dir == DIR_NONE)
-                diggerData[n].mdir = DIR_NONE;
+            if (dir == Dir.None)
+                diggerData[n].mdir = Dir.None;
             else
                 diggerData[n].mdir = diggerData[n].digger.dir;
-            if ((diggerData[n].digger.x == 292 && diggerData[n].mdir == DIR_RIGHT) ||
-                (diggerData[n].digger.x == 12 && diggerData[n].mdir == DIR_LEFT) ||
-                (diggerData[n].digger.y == 180 && diggerData[n].mdir == DIR_DOWN) ||
-                (diggerData[n].digger.y == 18 && diggerData[n].mdir == DIR_UP))
-                diggerData[n].mdir = DIR_NONE;
+            if ((diggerData[n].digger.x == 292 && diggerData[n].mdir == Dir.Right) ||
+                (diggerData[n].digger.x == 12 && diggerData[n].mdir == Dir.Left) ||
+                (diggerData[n].digger.y == 180 && diggerData[n].mdir == Dir.Down) ||
+                (diggerData[n].digger.y == 18 && diggerData[n].mdir == Dir.Up))
+                diggerData[n].mdir = Dir.None;
             diggerox = diggerData[n].digger.x;
             diggeroy = diggerData[n].digger.y;
-            if (diggerData[n].mdir != DIR_NONE)
+            if (diggerData[n].mdir != Dir.None)
                 game.video.EatField(diggerox, diggeroy, diggerData[n].mdir);
             switch (diggerData[n].mdir)
             {
-                case DIR_RIGHT:
+                case Dir.Right:
                     game.video.DrawRightBlob(diggerData[n].digger.x, diggerData[n].digger.y);
                     diggerData[n].digger.x += 4;
                     break;
-                case DIR_UP:
+                case Dir.Up:
                     game.video.DrawTopBlob(diggerData[n].digger.x, diggerData[n].digger.y);
                     diggerData[n].digger.y -= 3;
                     break;
-                case DIR_LEFT:
+                case Dir.Left:
                     game.video.DrawLeftBlob(diggerData[n].digger.x, diggerData[n].digger.y);
                     diggerData[n].digger.x -= 4;
                     break;
-                case DIR_DOWN:
+                case Dir.Down:
                     game.video.DrawBottomBlob(diggerData[n].digger.x, diggerData[n].digger.y);
                     diggerData[n].digger.y += 3;
                     break;
@@ -488,7 +483,7 @@ namespace Digger.Net
 
             if (bagf)
             {
-                if (diggerData[n].mdir == DIR_RIGHT || diggerData[n].mdir == DIR_LEFT)
+                if (diggerData[n].mdir == Dir.Right || diggerData[n].mdir == Dir.Left)
                 {
                     push = bags.PushBags(diggerData[n].mdir, clfirst, clcoll);
                     diggerData[n].bagtime++;
@@ -503,7 +498,7 @@ namespace Digger.Net
                     diggerData[n].digger.dir = diggerData[n].mdir;
                     DrawDigger(n);
                     game.IncreasePenalty();
-                    diggerData[n].digger.dir = ReverseDir(diggerData[n].mdir);
+                    diggerData[n].digger.dir = Dir.Reverse(diggerData[n].mdir);
                 }
             }
             if (clfirst[2] != -1 && isBonusMode && diggerData[n].digger.isAlive)
@@ -638,7 +633,7 @@ namespace Digger.Net
                                 diggerData[n].mdir = 4;
                                 diggerData[n].h = (game.diggerCount == 1) ? 7 : (8 - n * 2);
                                 diggerData[n].digger.x = diggerData[n].h * 20 + 12;
-                                diggerData[n].digger.dir = (n == 0) ? DIR_RIGHT : DIR_LEFT;
+                                diggerData[n].digger.dir = (n == 0) ? Dir.Right : Dir.Left;
                                 diggerData[n].rx = 0;
                                 diggerData[n].ry = 0;
                                 diggerData[n].bagtime = 0;
@@ -702,23 +697,11 @@ namespace Digger.Net
             game.video.SetIntensity(VideoIntensity.Normal);
         }
 
-        public int ReverseDir(int dir)
-        {
-            switch (dir)
-            {
-                case DIR_RIGHT: return DIR_LEFT;
-                case DIR_LEFT: return DIR_RIGHT;
-                case DIR_UP: return DIR_DOWN;
-                case DIR_DOWN: return DIR_UP;
-            }
-            return dir;
-        }
-
         public bool CheckIsDiggerUnderBag(int h, int v)
         {
             for (int n = game.currentPlayer; n < game.diggerCount + game.currentPlayer; n++)
                 if (diggerData[n].digger.isAlive)
-                    if (diggerData[n].mdir == DIR_UP || diggerData[n].mdir == DIR_DOWN)
+                    if (diggerData[n].mdir == Dir.Up || diggerData[n].mdir == Dir.Down)
                         if ((diggerData[n].digger.x - 12) / 20 == h)
                             if ((diggerData[n].digger.y - 18) / 18 == v || (diggerData[n].digger.y - 18) / 18 + 1 == v)
                                 return true;

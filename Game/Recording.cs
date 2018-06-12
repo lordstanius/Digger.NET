@@ -170,11 +170,11 @@ namespace Digger.Net
                 fire = false;
             switch (d)
             {
-                case 's': dir = Const.DIR_NONE; break;
-                case 'r': dir = Const.DIR_RIGHT; break;
-                case 'u': dir = Const.DIR_UP; break;
-                case 'l': dir = Const.DIR_LEFT; break;
-                case 'd': dir = Const.DIR_DOWN; break;
+                case 's': dir = Dir.None; break;
+                case 'r': dir = Dir.Right; break;
+                case 'u': dir = Dir.Up; break;
+                case 'l': dir = Dir.Left; break;
+                case 'd': dir = Dir.Down; break;
             }
         }
 
@@ -211,7 +211,7 @@ namespace Digger.Net
         public char MakeDirection(int dir, bool fire)
         {
             char d;
-            if (dir == Const.DIR_NONE)
+            if (dir == Dir.None)
                 d = 's';
             else
                 d = "ruld"[dir >> 1];
@@ -396,7 +396,7 @@ namespace Digger.Net
 
             for (int i = 0; i < 8; i++)
             {
-                char p = playBuffer[offset + i];
+                char p = playBuffer[offset++];
                 if (p >= '0' && p <= '9')
                     rand |= (uint)(p - '0') << ((7 - i) << 2);
                 if (p >= 'A' && p <= 'F')
@@ -405,6 +405,7 @@ namespace Digger.Net
                     rand |= (uint)(p - 'a' + 10) << ((7 - i) << 2);
             }
 
+            playBuffer = playBuffer.Substring(offset);
             return rand;
         }
 

@@ -6,12 +6,6 @@
         private const int MHEIGHT = Const.MHEIGHT;
         private const int MSIZE = Const.MSIZE;
 
-        private const int DIR_NONE = Const.DIR_NONE;
-        private const int DIR_RIGHT = Const.DIR_RIGHT;
-        private const int DIR_UP = Const.DIR_UP;
-        private const int DIR_LEFT = Const.DIR_LEFT;
-        private const int DIR_DOWN = Const.DIR_DOWN;
-
         private int emmask = 0;
         private readonly short[] emeraldBox = { 8, 12, 12, 9, 16, 12, 6, 9 };
         private readonly byte[] emeraldField = new byte[MSIZE];
@@ -47,17 +41,17 @@
 
         public bool HitEmerald(int x, int y, int rx, int ry, int dir)
         {
-            if (dir != DIR_RIGHT && dir != DIR_UP && dir != DIR_LEFT && dir != DIR_DOWN)
+            if (dir != Dir.Right && dir != Dir.Up && dir != Dir.Left && dir != Dir.Down)
                 return false;
 
-            if (dir == DIR_RIGHT && rx != 0)
+            if (dir == Dir.Right && rx != 0)
                 x++;
 
-            if (dir == DIR_DOWN && ry != 0)
+            if (dir == Dir.Down && ry != 0)
                 y++;
 
             int r;
-            if (dir == DIR_RIGHT || dir == DIR_LEFT)
+            if (dir == Dir.Right || dir == Dir.Left)
                 r = rx;
             else
                 r = ry;

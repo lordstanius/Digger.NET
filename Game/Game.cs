@@ -14,11 +14,6 @@ namespace Digger.Net
 
     public class Game
     {
-        private const int DIR_NONE = Const.DIR_NONE;
-        private const int DIR_RIGHT = Const.DIR_RIGHT;
-        private const int DIR_UP = Const.DIR_UP;
-        private const int DIR_LEFT = Const.DIR_LEFT;
-        private const int DIR_DOWN = Const.DIR_DOWN;
         private const int TYPES = Const.TYPES;
         private const int SPRITES = Const.SPRITES;
         private const int MONSTERS = Const.MONSTERS;
@@ -114,6 +109,8 @@ namespace Digger.Net
 
         private bool quiet = false;
         private int penalty = 0;
+        private uint randVal;
+        private bool flashplayer;
 
         public Game()
         {
@@ -129,6 +126,12 @@ namespace Digger.Net
             record = new Recording(this);
             monsters = new Monsters(this);
             bags = new Bags(this);
+        }
+
+        public uint Random(int n)
+        {
+            randVal = randVal * 0x15a4e35 + 1;
+            return (uint)((randVal & 0x7fffffff) % n);
         }
 
         public int LevelNo => gameData[currentPlayer].level;
@@ -456,7 +459,7 @@ namespace Digger.Net
             gameData = new[] { new GameData(), new GameData() };
             foreach (var game in gameData)
                 game.level = startingLevel;
-            
+
             Calibrate();
             video.Initialize();
             sound.Initialize();
@@ -464,7 +467,7 @@ namespace Digger.Net
             isInitialized = true;
         }
 
-        public void Play()
+        public void Start()
         {
             if (isGameCycleEnded)
                 return;
@@ -507,7 +510,7 @@ namespace Digger.Net
 
                     if (frame == 50)
                     {
-                        nobbin = new Monster(this, 0, DIR_LEFT, 292, 63);
+                        nobbin = new Monster(this, 0, Dir.Left, 292, 63);
                         nobbin.Put();
                     }
 
@@ -516,7 +519,7 @@ namespace Digger.Net
                         newpos = nobbin.Position;
                         newpos.x -= 4;
                         if (frame == 77)
-                            newpos.dir = DIR_RIGHT;
+                            newpos.dir = Dir.Right;
 
                         nobbin.Position = newpos;
                     }
@@ -529,7 +532,7 @@ namespace Digger.Net
 
                     if (frame == 90)
                     {
-                        hobbin = new Monster(this, 1, DIR_LEFT, 292, 82);
+                        hobbin = new Monster(this, 1, Dir.Left, 292, 82);
                         hobbin.Put();
                     }
 
@@ -538,7 +541,7 @@ namespace Digger.Net
                         newpos = hobbin.Position;
                         newpos.x -= 4;
                         if (frame == 117)
-                            newpos.dir = DIR_RIGHT;
+                            newpos.dir = Dir.Right;
 
                         hobbin.Position = newpos;
                     }
@@ -554,7 +557,7 @@ namespace Digger.Net
 
                     if (frame == 130)
                     {
-                        odigger = new Digger(this, 0, DIR_LEFT, 292, 101);
+                        odigger = new Digger(this, 0, Dir.Left, 292, 101);
                         odigger.Put();
                     }
 
@@ -562,7 +565,7 @@ namespace Digger.Net
                         odigger.x -= 4;
 
                     if (frame > 157)
-                        odigger.dir = DIR_RIGHT;
+                        odigger.dir = Dir.Right;
 
                     if (frame >= 130)
                         odigger.Animate();
@@ -675,109 +678,9 @@ namespace Digger.Net
                 while (!isEverybodyDead && !isGameCycleEnded && !isTimeOut && !isVideoModeChanged)
                 {
                     video.InitMonsterBagSprites();
-
-                    uint randVal = record.IsPlaying ? record.PlayGetRand() : 0;
-                    record.RecordPutRandom(randVal);
-                    if (levelNotDrawn)
-                    {
-                        levelNotDrawn = false;
-                        DrawScreen();
-                        if (flashplayer)
-                        {
-                            flashplayer = false;
-                            playerName = "PLAYER " + (currentPlayer == 0 ? "1" : "2");
-                            ClearTopLine();
-                            for (int j = 0; j < 15; j++)
-                            {
-                                for (int c = 1; c <= 3; c++)
-                                {
-                                    video.TextOut(playerName, 108, 0, c);
-                                    scores.WriteCurrentScore(c);
-                                    NewFrame();
-                                    if (isGameCycleEnded)
-                                        return;
-                                }
-                            }
-                            scores.DrawScores();
-                            for (int i = 0; i < diggerCount; i++)
-                                scores.AddScore(i, 0);
-                        }
-                    }
-                    else
-                        InitializeChars();
-
-                    video.EraseText(8, 108, 0, 3);
-                    scores.InitializeScores();
-                    diggers.DrawLives();
-                    sound.Music(1);
-
-                    input.FlushKeyBuffer();
-                    for (int i = 0; i < diggerCount; i++)
-                        input.ReadDirect(i);
-
-                    while (!isEverybodyDead && !gameData[currentPlayer].isLevelDone && !isGameCycleEnded && !isTimeOut && !isVideoModeChanged)
-                    {
-                        penalty = 0;
-                        diggers.DoDiggers(bags, monsters, scores);
-                        monsters.DoMonsters();
-                        bags.DoBags();
-                        if (penalty > 8)
-                            monsters.IncreaseMonstersTime(penalty - 8);
-
-                        TestPause();
-                        CheckIsLevelDone();
-                    }
-                    diggers.EraseDiggers();
-                    sound.MusicOff();
-                    int t = 20;
-                    while ((bags.GetNotMovingBags() != 0 || t != 0) && !isGameCycleEnded && !isTimeOut)
-                    {
-                        if (t != 0)
-                            t--;
-                        penalty = 0;
-                        bags.DoBags();
-                        diggers.DoDiggers(bags, monsters, scores);
-                        monsters.DoMonsters();
-                        if (penalty < 8)
-                            t = 0;
-                    }
-                    sound.StopSound();
-                    for (int i = 0; i < diggerCount; i++)
-                        diggers.KillFire(i);
-
-                    diggers.EraseBonus();
-                    bags.Cleanup();
-                    video.SaveField();
-                    monsters.EraseMonsters();
-                    record.PutEndOfLevel();
-                    if (record.IsPlaying)
-                        record.PlaySkipEOL();
-                    if (isGameCycleEnded)
-                        record.PutEndOfGame();
-                    if (gameData[currentPlayer].isLevelDone)
-                        sound.SoundLevelDone(input);
-                    if (emeralds.Count() == 0 || gameData[currentPlayer].isLevelDone)
-                    {
-                        for (int i = currentPlayer; i < diggerCount + currentPlayer; i++)
-                            if (diggers.GetLives(i) > 0 && !diggers.IsDiggerAlive(i))
-                                diggers.DecreaseLife(i);
-
-                        diggers.DrawLives();
-                        gameData[currentPlayer].level++;
-                        if (gameData[currentPlayer].level > 1000)
-                            gameData[currentPlayer].level = 1000;
-                        InitalizeLevel();
-                    }
-                    else if (isEverybodyDead)
-                    {
-                        for (int i = currentPlayer; i < currentPlayer + diggerCount; i++)
-                            if (diggers.GetLives(i) > 0)
-                                diggers.DecreaseLife(i);
-                        diggers.DrawLives();
-                    }
-                    if ((isEverybodyDead && GetAllLives() == 0 && !isGauntletMode && !isGameCycleEnded) || isTimeOut)
-                        scores.EndOfGame();
+                    Play();
                 }
+
                 isEverybodyDead = false;
                 if (playerCount == 2 && diggers.GetLives(1 - currentPlayer) != 0)
                 {
@@ -785,6 +688,115 @@ namespace Digger.Net
                     flashplayer = levelNotDrawn = true;
                 }
             }
+        }
+
+        private void Play()
+        {
+            randVal = record.IsPlaying ? record.PlayGetRand() : 0;
+            record.RecordPutRandom(randVal);
+            if (levelNotDrawn)
+            {
+                levelNotDrawn = false;
+                DrawScreen();
+                if (flashplayer)
+                {
+                    flashplayer = false;
+                    playerName = "PLAYER " + (currentPlayer == 0 ? "1" : "2");
+                    ClearTopLine();
+                    for (int j = 0; j < 15; j++)
+                    {
+                        for (int c = 1; c <= 3; c++)
+                        {
+                            video.TextOut(playerName, 108, 0, c);
+                            scores.WriteCurrentScore(c);
+                            NewFrame();
+                            if (isGameCycleEnded)
+                                return;
+                        }
+                    }
+                    scores.DrawScores();
+                    for (int i = 0; i < diggerCount; i++)
+                        scores.AddScore(i, 0);
+                }
+            }
+            else
+                InitializeChars();
+
+            video.EraseText(8, 108, 0, 3);
+            scores.InitializeScores();
+            diggers.DrawLives();
+            sound.Music(1);
+
+            input.FlushKeyBuffer();
+            for (int i = 0; i < diggerCount; i++)
+                input.ReadDirection(i);
+
+            while (!isEverybodyDead && !gameData[currentPlayer].isLevelDone && !isGameCycleEnded && !isTimeOut && !isVideoModeChanged)
+            {
+                penalty = 0;
+                diggers.DoDiggers(bags, monsters, scores);
+                monsters.DoMonsters();
+                bags.DoBags();
+                if (penalty > 8)
+                    monsters.IncreaseMonstersTime(penalty - 8);
+
+                TestPause();
+                CheckIsLevelDone();
+            }
+            diggers.EraseDiggers();
+            sound.MusicOff();
+            int t = 20;
+            while ((bags.GetNotMovingBags() != 0 || t != 0) && !isGameCycleEnded && !isTimeOut)
+            {
+                if (t != 0)
+                    t--;
+                penalty = 0;
+                bags.DoBags();
+                diggers.DoDiggers(bags, monsters, scores);
+                monsters.DoMonsters();
+                if (penalty < 8)
+                    t = 0;
+            }
+            sound.StopSound();
+            for (int i = 0; i < diggerCount; i++)
+                diggers.KillFire(i);
+
+            diggers.EraseBonus();
+            bags.Cleanup();
+            video.SaveField();
+            monsters.EraseMonsters();
+            record.PutEndOfLevel();
+            if (record.IsPlaying)
+                record.PlaySkipEOL();
+
+            if (isGameCycleEnded)
+                record.PutEndOfGame();
+
+            if (gameData[currentPlayer].isLevelDone)
+                sound.SoundLevelDone(input);
+
+            if (emeralds.Count() == 0 || gameData[currentPlayer].isLevelDone)
+            {
+                for (int i = currentPlayer; i < diggerCount + currentPlayer; i++)
+                    if (diggers.GetLives(i) > 0 && !diggers.IsDiggerAlive(i))
+                        diggers.DecreaseLife(i);
+
+                diggers.DrawLives();
+                gameData[currentPlayer].level++;
+                if (gameData[currentPlayer].level > 1000)
+                    gameData[currentPlayer].level = 1000;
+                InitalizeLevel();
+            }
+            else if (isEverybodyDead)
+            {
+                for (int i = currentPlayer; i < currentPlayer + diggerCount; i++)
+                    if (diggers.GetLives(i) > 0)
+                        diggers.DecreaseLife(i);
+                diggers.DrawLives();
+            }
+
+            if ((isEverybodyDead && GetAllLives() == 0 && !isGauntletMode && !isGameCycleEnded) || isTimeOut)
+                scores.EndOfGame();
         }
 
         private int GetNMode()

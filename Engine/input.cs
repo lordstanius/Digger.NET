@@ -204,7 +204,7 @@ namespace Digger.Net
                 isF12Pressed = false;
         }
 
-        public void ReadDirect(int n)
+        public void ReadDirection(int n)
         {
             bool u = false, d = false, l = false, r = false;
             bool u2 = false, d2 = false, l2 = false, r2 = false;
@@ -223,19 +223,19 @@ namespace Digger.Net
                 else
                     firepflag = false;
                 if (u && !oupressed)
-                    dir = dynamicdir = Const.DIR_UP;
+                    dir = dynamicdir = Dir.Up;
                 if (d && !odpressed)
-                    dir = dynamicdir = Const.DIR_DOWN;
+                    dir = dynamicdir = Dir.Down;
                 if (l && !olpressed)
-                    dir = dynamicdir = Const.DIR_LEFT;
+                    dir = dynamicdir = Dir.Left;
                 if (r && !orpressed)
-                    dir = dynamicdir = Const.DIR_RIGHT;
-                if ((oupressed && !u && dynamicdir == Const.DIR_UP) ||
-                    (odpressed && !d && dynamicdir == Const.DIR_DOWN) ||
-                    (olpressed && !l && dynamicdir == Const.DIR_LEFT) ||
-                    (orpressed && !r && dynamicdir == Const.DIR_RIGHT))
+                    dir = dynamicdir = Dir.Right;
+                if ((oupressed && !u && dynamicdir == Dir.Up) ||
+                    (odpressed && !d && dynamicdir == Dir.Down) ||
+                    (olpressed && !l && dynamicdir == Dir.Left) ||
+                    (orpressed && !r && dynamicdir == Dir.Right))
                 {
-                    dynamicdir = Const.DIR_NONE;
+                    dynamicdir = Dir.None;
                     if (u) dynamicdir = dir = 2;
                     if (d) dynamicdir = dir = 6;
                     if (l) dynamicdir = dir = 4;
@@ -246,9 +246,9 @@ namespace Digger.Net
                 olpressed = l;
                 orpressed = r;
                 keydir = dir;
-                if (dynamicdir != Const.DIR_NONE)
+                if (dynamicdir != Dir.None)
                     keydir = dynamicdir;
-                dir = Const.DIR_NONE;
+                dir = Dir.None;
             }
             else
             {
@@ -264,19 +264,19 @@ namespace Digger.Net
                 else
                     fire2pflag = false;
                 if (u2 && !ou2pressed)
-                    dir2 = dynamicdir2 = Const.DIR_UP;
+                    dir2 = dynamicdir2 = Dir.Up;
                 if (d2 && !od2pressed)
-                    dir2 = dynamicdir2 = Const.DIR_DOWN;
+                    dir2 = dynamicdir2 = Dir.Down;
                 if (l2 && !ol2pressed)
-                    dir2 = dynamicdir2 = Const.DIR_LEFT;
+                    dir2 = dynamicdir2 = Dir.Left;
                 if (r2 && !or2pressed)
-                    dir2 = dynamicdir2 = Const.DIR_RIGHT;
-                if ((ou2pressed && !u2 && dynamicdir2 == Const.DIR_UP) ||
-                    (od2pressed && !d2 && dynamicdir2 == Const.DIR_DOWN) ||
-                    (ol2pressed && !l2 && dynamicdir2 == Const.DIR_LEFT) ||
-                    (or2pressed && !r2 && dynamicdir2 == Const.DIR_RIGHT))
+                    dir2 = dynamicdir2 = Dir.Right;
+                if ((ou2pressed && !u2 && dynamicdir2 == Dir.Up) ||
+                    (od2pressed && !d2 && dynamicdir2 == Dir.Down) ||
+                    (ol2pressed && !l2 && dynamicdir2 == Dir.Left) ||
+                    (or2pressed && !r2 && dynamicdir2 == Dir.Right))
                 {
-                    dynamicdir2 = Const.DIR_NONE;
+                    dynamicdir2 = Dir.None;
                     if (u2) dynamicdir2 = dir2 = 2;
                     if (d2) dynamicdir2 = dir2 = 6;
                     if (l2) dynamicdir2 = dir2 = 4;
@@ -287,9 +287,9 @@ namespace Digger.Net
                 ol2pressed = l2;
                 or2pressed = r2;
                 keydir2 = dir2;
-                if (dynamicdir2 != Const.DIR_NONE)
+                if (dynamicdir2 != Dir.None)
                     keydir2 = dynamicdir2;
-                dir2 = Const.DIR_NONE;
+                dir2 = Dir.None;
             }
         }
 

@@ -14,11 +14,6 @@ namespace Digger.Net
         }
 
         private const int MONSTERS = Const.MONSTERS;
-        private const int DIR_NONE = Const.DIR_NONE;
-        private const int DIR_RIGHT = Const.DIR_RIGHT;
-        private const int DIR_UP = Const.DIR_UP;
-        private const int DIR_LEFT = Const.DIR_LEFT;
-        private const int DIR_DOWN = Const.DIR_DOWN;
         private const int TYPES = Const.TYPES;
         private const int SPRITES = Const.SPRITES;
         private const int FIRSTMONSTER = Const.FIRSTMONSTER;
@@ -104,6 +99,7 @@ namespace Digger.Net
                 if (!mondat[i].Exists)
                     continue;
 
+                Log.Write(string.Format("Monster{0} ({1}, {2})", i, mondat[i].monstr.Position.x, mondat[i].monstr.Position.y)); //!!DEBUG
                 if (mondat[i].hnt > 10 - game.level.LevelOf10())
                 {
                     if (mondat[i].monstr.IsNobbin)
@@ -145,9 +141,9 @@ namespace Digger.Net
                     mondat[i].v = 0;
                     mondat[i].xr = 0;
                     mondat[i].yr = 0;
-                    mondat[i].dir = DIR_LEFT;
+                    mondat[i].dir = Dir.Left;
                     mondat[i].chase = chase + game.currentPlayer;
-                    mondat[i].monstr = new Monster(game, i, DIR_LEFT, 292, 18);
+                    mondat[i].monstr = new Monster(game, i, Dir.Left, 292, 18);
                     chase = (chase + 1) % game.diggerCount;
                     nextmonster++;
                     nextmontime = mongaptime;
@@ -198,34 +194,17 @@ namespace Digger.Net
 
                 if (System.Math.Abs(game.diggers.DiggerY(dig) - mopos.y) > System.Math.Abs(game.diggers.DiggerX(dig) - mopos.x))
                 {
-                    if (game.diggers.DiggerY(dig) < mopos.y)
-                    {
-                        mdirp1 = DIR_UP;
-                        mdirp4 = DIR_DOWN;
-                    }
-                    else
-                    {
-                        mdirp1 = DIR_DOWN;
-                        mdirp4 = DIR_UP;
-                    }
-
-                    if (game.diggers.DiggerX(dig) < mopos.x)
-                    {
-                        mdirp2 = DIR_LEFT;
-                        mdirp3 = DIR_RIGHT;
-                    }
-                    else
-                    {
-                        mdirp2 = DIR_RIGHT;
-                        mdirp3 = DIR_LEFT;
-                    }
+                    if (game.diggers.DiggerY(dig) < mopos.y) { mdirp1 = Dir.Up; mdirp4 = Dir.Down; }
+                    else { mdirp1 = Dir.Down; mdirp4 = Dir.Up; }
+                    if (game.diggers.DiggerX(dig) < mopos.x) { mdirp2 = Dir.Left; mdirp3 = Dir.Right; }
+                    else { mdirp2 = Dir.Right; mdirp3 = Dir.Left; }
                 }
                 else
                 {
-                    if (game.diggers.DiggerX(dig) < mopos.x) { mdirp1 = DIR_LEFT; mdirp4 = DIR_RIGHT; }
-                    else { mdirp1 = DIR_RIGHT; mdirp4 = DIR_LEFT; }
-                    if (game.diggers.DiggerY(dig) < mopos.y) { mdirp2 = DIR_UP; mdirp3 = DIR_DOWN; }
-                    else { mdirp2 = DIR_DOWN; mdirp3 = DIR_UP; }
+                    if (game.diggers.DiggerX(dig) < mopos.x) { mdirp1 = Dir.Left; mdirp4 = Dir.Right; }
+                    else { mdirp1 = Dir.Right; mdirp4 = Dir.Left; }
+                    if (game.diggers.DiggerY(dig) < mopos.y) { mdirp2 = Dir.Up; mdirp3 = Dir.Down; }
+                    else { mdirp2 = Dir.Down; mdirp3 = Dir.Up; }
                 }
 
                 /* In bonus mode, run away from Digger */
@@ -239,7 +218,7 @@ namespace Digger.Net
                 /* Adjust priorities so that monsters don't reverse direction unless they
                    really have to */
 
-                dir = game.diggers.ReverseDir(mondat[mon].dir);
+                dir = Dir.Reverse(mondat[mon].dir);
                 if (dir == mdirp1)
                 {
                     mdirp1 = mdirp2;
@@ -271,16 +250,16 @@ namespace Digger.Net
 
                 /* Check field and find direction */
 
-                if (ClearField(mdirp1, mondat[mon].h, mondat[mon].v))
+                if (FieldClear(mdirp1, mondat[mon].h, mondat[mon].v))
                     dir = mdirp1;
                 else
-                  if (ClearField(mdirp2, mondat[mon].h, mondat[mon].v))
+                  if (FieldClear(mdirp2, mondat[mon].h, mondat[mon].v))
                     dir = mdirp2;
                 else
-                    if (ClearField(mdirp3, mondat[mon].h, mondat[mon].v))
+                    if (FieldClear(mdirp3, mondat[mon].h, mondat[mon].v))
                     dir = mdirp3;
                 else
-                      if (ClearField(mdirp4, mondat[mon].h, mondat[mon].v))
+                      if (FieldClear(mdirp4, mondat[mon].h, mondat[mon].v))
                     dir = mdirp4;
 
                 /* Hobbins don't care about the field: they go where they want. */
@@ -299,15 +278,15 @@ namespace Digger.Net
 
             /* If monster is about to go off edge of screen, stop it. */
 
-            if ((mopos.x == 292 && mondat[mon].dir == DIR_RIGHT) ||
-                (mopos.x == 12 && mondat[mon].dir == DIR_LEFT) ||
-                (mopos.y == 180 && mondat[mon].dir == DIR_DOWN) ||
-                (mopos.y == 18 && mondat[mon].dir == DIR_UP))
-                mondat[mon].dir = DIR_NONE;
+            if ((mopos.x == 292 && mondat[mon].dir == Dir.Right) ||
+                (mopos.x == 12 && mondat[mon].dir == Dir.Left) ||
+                (mopos.y == 180 && mondat[mon].dir == Dir.Down) ||
+                (mopos.y == 18 && mondat[mon].dir == Dir.Up))
+                mondat[mon].dir = Dir.None;
 
             /* Change hdir for hobbin */
 
-            if (mondat[mon].dir == DIR_LEFT || mondat[mon].dir == DIR_RIGHT)
+            if (mondat[mon].dir == Dir.Left || mondat[mon].dir == Dir.Right)
             {
                 mopos.dir = mondat[mon].dir;
                 mondat[mon].monstr.Position = mopos;
@@ -322,22 +301,22 @@ namespace Digger.Net
             mopos_changed = true;
             switch (mondat[mon].dir)
             {
-                case DIR_RIGHT:
+                case Dir.Right:
                     if (!mondat[mon].monstr.IsNobbin)
                         video.DrawRightBlob(mopos.x, mopos.y);
                     mopos.x += 4;
                     break;
-                case DIR_UP:
+                case Dir.Up:
                     if (!mondat[mon].monstr.IsNobbin)
                         video.DrawTopBlob(mopos.x, mopos.y);
                     mopos.y -= 3;
                     break;
-                case DIR_LEFT:
+                case Dir.Left:
                     if (!mondat[mon].monstr.IsNobbin)
                         video.DrawLeftBlob(mopos.x, mopos.y);
                     mopos.x -= 4;
                     break;
-                case DIR_DOWN:
+                case Dir.Down:
                     if (!mondat[mon].monstr.IsNobbin)
                         video.DrawBottomBlob(mopos.x, mopos.y);
                     mopos.y += 3;
@@ -349,9 +328,7 @@ namespace Digger.Net
 
             /* Hobbins can eat emeralds */
             if (!mondat[mon].monstr.IsNobbin)
-                game.emeralds.HitEmerald((mopos.x - 12) / 20, (mopos.y - 18) / 18,
-                           (mopos.x - 12) % 20, (mopos.y - 18) % 18,
-                           mondat[mon].dir);
+                game.emeralds.HitEmerald((mopos.x - 12) / 20, (mopos.y - 18) / 18, (mopos.x - 12) % 20, (mopos.y - 18) % 18, mondat[mon].dir);
 
             /* If Digger's gone, don't bother */
             if (!game.diggers.IsAnyAlive() && mopos_changed)
@@ -405,7 +382,7 @@ namespace Digger.Net
                     int m = i - FIRSTMONSTER;
                     if (mondat[mon].dir == mondat[m].dir && mondat[m].stime == 0 &&
                         mondat[mon].stime == 0)
-                        mondat[m].dir = game.diggers.ReverseDir(mondat[m].dir);
+                        mondat[m].dir = Dir.Reverse(mondat[m].dir);
                     /* The kludge here is to preserve playback for a bug in previous
                        versions. */
                     if (!game.record.Kludge)
@@ -438,13 +415,12 @@ namespace Digger.Net
             {
                 mondat[mon].time++; /* Time penalty */
                 mongotgold = false;
-                if (mondat[mon].dir == DIR_RIGHT || mondat[mon].dir == DIR_LEFT)
+                if (mondat[mon].dir == Dir.Right || mondat[mon].dir == Dir.Left)
                 {
                     push = game.bags.PushBags(mondat[mon].dir, clfirst, clcoll);      /* Horizontal push */
                     mondat[mon].time++; /* Time penalty */
                 }
-                else
-                  if (!game.bags.PushBagsUp(clfirst, clcoll)) /* Vertical push */
+                else if (!game.bags.PushBagsUp(clfirst, clcoll)) /* Vertical push */
                     push = false;
                 if (mongotgold) /* No time penalty if monster eats gold */
                     mondat[mon].time = 0;
@@ -472,9 +448,9 @@ namespace Digger.Net
                 game.IncreasePenalty();
                 if (mondat[mon].monstr.IsNobbin) /* The other way to create hobbin: stuck on h-bag */
                     mondat[mon].hnt++;
-                if ((mondat[mon].dir == DIR_UP || mondat[mon].dir == DIR_DOWN) &&
+                if ((mondat[mon].dir == Dir.Up || mondat[mon].dir == Dir.Down) &&
                     mondat[mon].monstr.IsNobbin)
-                    mondat[mon].dir = game.diggers.ReverseDir(mondat[mon].dir); /* If vertical, give up */
+                    mondat[mon].dir = Dir.Reverse(mondat[mon].dir); /* If vertical, give up */
             }
 
             /* Collision with Digger */
@@ -548,29 +524,29 @@ namespace Digger.Net
             }
         }
 
-        private bool ClearField(int dir, int x, int y)
+        private bool FieldClear(int dir, int x, int y)
         {
             switch (dir)
             {
-                case DIR_RIGHT:
+                case Dir.Right:
                     if (x < 14)
                         if ((GetField(x + 1, y) & 0x2000) == 0)
                             if ((GetField(x + 1, y) & 1) == 0 || (GetField(x, y) & 0x10) == 0)
                                 return true;
                     break;
-                case DIR_UP:
+                case Dir.Up:
                     if (y > 0)
                         if ((GetField(x, y - 1) & 0x2000) == 0)
                             if ((GetField(x, y - 1) & 0x800) == 0 || (GetField(x, y) & 0x40) == 0)
                                 return true;
                     break;
-                case DIR_LEFT:
+                case Dir.Left:
                     if (x > 0)
                         if ((GetField(x - 1, y) & 0x2000) == 0)
                             if ((GetField(x - 1, y) & 0x10) == 0 || (GetField(x, y) & 1) == 0)
                                 return true;
                     break;
-                case DIR_DOWN:
+                case Dir.Down:
                     if (y < 9)
                         if ((GetField(x, y + 1) & 0x2000) == 0)
                             if ((GetField(x, y + 1) & 0x40) == 0 || (GetField(x, y) & 0x800) == 0)
@@ -583,8 +559,8 @@ namespace Digger.Net
         public void CheckIsMonsterScared(int h)
         {
             for (int i = 0; i < MONSTERS; i++)
-                if (h == mondat[i].h && mondat[i].dir == DIR_UP)
-                    mondat[i].dir = DIR_DOWN;
+                if (h == mondat[i].h && mondat[i].dir == Dir.Up)
+                    mondat[i].dir = Dir.Down;
         }
 
         public void KillMonster(int mon)

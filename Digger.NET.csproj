@@ -80,13 +80,13 @@
     <Compile Include="Game\Game.cs" />
     <Content Include="digger.ico" />
     <Compile Include="Game\Monster.cs" />
-    <Compile Include="Engine\Recording.cs" />
+    <Compile Include="Game\Recording.cs" />
     <Compile Include="Game\Scores.cs" />
     <Compile Include="Engine\SDL_Input.cs" />
     <Compile Include="Engine\SDL_Sound.cs" />
     <Compile Include="Engine\SDL_Timer.cs" />
     <Compile Include="Engine\Sound.cs" />
-    <Compile Include="Engine\Sprites.cs" />
+    <Compile Include="Game\Sprites.cs" />
     <Compile Include="Utility\Log.cs" />
     <Compile Include="Utility\StdLib.cs" />
     <Compile Include="Data\VgaGrafx.cs" />

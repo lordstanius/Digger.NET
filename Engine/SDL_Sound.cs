@@ -23,6 +23,8 @@ namespace Digger.Net
 
         public bool SetDevice(ushort sampleRate, ushort bufferSize, Func<byte> getSample)
         {
+            return false; //!!DEBUG
+
             GetSample = getSample;
             SDL.SDL_AudioSpec wanted = new SDL.SDL_AudioSpec();
 

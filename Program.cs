@@ -9,7 +9,7 @@
             game.LoadSettings();
             game.ParseCmdLine(args);
             game.Initialize();
-            game.Play();
+            game.Start();
             game.SaveSettings();
         }
     }

@@ -22,11 +22,6 @@ namespace Digger.Net
         private const int BAGS = Const.BAGS;
         private const int MWIDTH = Const.MWIDTH;
         private const int MHEIGHT = Const.MHEIGHT;
-        private const int DIR_NONE = Const.DIR_NONE;
-        private const int DIR_RIGHT = Const.DIR_RIGHT;
-        private const int DIR_UP = Const.DIR_UP;
-        private const int DIR_LEFT = Const.DIR_LEFT;
-        private const int DIR_DOWN = Const.DIR_DOWN;
         private const int FIRSTBAG = Const.FIRSTBAG;
         private const int MAX_W = Const.MAX_W;
         private const int MAX_H = Const.MAX_H;
@@ -62,7 +57,7 @@ namespace Digger.Net
                             bagdat[bag].Exists = true;
                             bagdat[bag].gt = 0;
                             bagdat[bag].fallh = 0;
-                            bagdat[bag].dir = DIR_NONE;
+                            bagdat[bag].dir = Dir.None;
                             bagdat[bag].wobbling = false;
                             bagdat[bag].wt = 15;
                             bagdat[bag].unfallen = true;
@@ -154,9 +149,9 @@ namespace Digger.Net
 
             for (int bag = 0; bag < BAGS; bag++)
             {
-                if (bagdat[bag].dir == DIR_DOWN && bagdat[bag].Exists)
+                if (bagdat[bag].dir == Dir.Down && bagdat[bag].Exists)
                     soundfalloffflag = false;
-                if (bagdat[bag].dir != DIR_DOWN && bagdat[bag].wobbling && bagdat[bag].Exists)
+                if (bagdat[bag].dir != Dir.Down && bagdat[bag].wobbling && bagdat[bag].Exists)
                     soundwobbleoffflag = false;
             }
 
@@ -177,14 +172,14 @@ namespace Digger.Net
             yr = bagdat[bag].yr;
             switch (bagdat[bag].dir)
             {
-                case DIR_NONE:
+                case Dir.None:
                     if (y < 180 && xr == 0)
                     {
                         if (bagdat[bag].wobbling)
                         {
                             if (bagdat[bag].wt == 0)
                             {
-                                bagdat[bag].dir = DIR_DOWN;
+                                bagdat[bag].dir = Dir.Down;
                                 game.sound.SoundFall();
                                 break;
                             }
@@ -208,13 +203,13 @@ namespace Digger.Net
                         bagdat[bag].wobbling = false;
                     }
                     break;
-                case DIR_RIGHT:
-                case DIR_LEFT:
+                case Dir.Right:
+                case Dir.Left:
                     if (xr == 0)
                     {
                         if (y < 180 && (game.monsters.GetField(h, v + 1) & 0xfdf) != 0xfdf)
                         {
-                            bagdat[bag].dir = DIR_DOWN;
+                            bagdat[bag].dir = Dir.Down;
                             bagdat[bag].wt = 0;
                             game.sound.SoundFall();
                         }
@@ -222,7 +217,7 @@ namespace Digger.Net
                             OnBagHitsTheGround(bag);
                     }
                     break;
-                case DIR_DOWN:
+                case Dir.Down:
                     if (yr == 0)
                         bagdat[bag].fallh++;
 
@@ -236,9 +231,9 @@ namespace Digger.Net
                     game.monsters.CheckIsMonsterScared(bagdat[bag].h);
                     break;
             }
-            if (bagdat[bag].dir != DIR_NONE)
+            if (bagdat[bag].dir != Dir.None)
             {
-                if (bagdat[bag].dir != DIR_DOWN && pushcount != 0)
+                if (bagdat[bag].dir != Dir.Down && pushcount != 0)
                     pushcount--;
                 else
                     PushBag(bag, bagdat[bag].dir);
@@ -249,12 +244,12 @@ namespace Digger.Net
         {
             int[] clfirst = new int[TYPES];
             int[] clcoll = new int[SPRITES];
-            if (bagdat[bag].dir == DIR_DOWN && bagdat[bag].fallh > 1)
+            if (bagdat[bag].dir == Dir.Down && bagdat[bag].fallh > 1)
                 bagdat[bag].gt = 1;
             else
                 bagdat[bag].fallh = 0;
 
-            bagdat[bag].dir = DIR_NONE;
+            bagdat[bag].dir = Dir.None;
             bagdat[bag].wt = 15;
             bagdat[bag].wobbling = false;
             game.video.DrawGold(bag, 0, bagdat[bag].x, bagdat[bag].y);
@@ -291,7 +286,7 @@ namespace Digger.Net
                 return true;
             }
 
-            if (bagdat[bag].dir == DIR_DOWN && (dir == DIR_RIGHT || dir == DIR_LEFT))
+            if (bagdat[bag].dir == Dir.Down && (dir == Dir.Right || dir == Dir.Left))
             {
                 game.video.DrawGold(bag, 3, x, y);
                 for (i = 0; i < TYPES; i++)
@@ -315,21 +310,21 @@ namespace Digger.Net
                 return true;
             }
 
-            if ((x == 292 && dir == DIR_RIGHT) || (x == 12 && dir == DIR_LEFT) ||
-                (y == 180 && dir == DIR_DOWN) || (y == 18 && dir == DIR_UP))
+            if ((x == 292 && dir == Dir.Right) || (x == 12 && dir == Dir.Left) ||
+                (y == 180 && dir == Dir.Down) || (y == 18 && dir == Dir.Up))
                 push = false;
 
             if (push)
             {
                 switch (dir)
                 {
-                    case DIR_RIGHT:
+                    case Dir.Right:
                         x += 4;
                         break;
-                    case DIR_LEFT:
+                    case Dir.Left:
                         x -= 4;
                         break;
-                    case DIR_DOWN:
+                    case Dir.Down:
                         if (bagdat[bag].unfallen)
                         {
                             bagdat[bag].unfallen = false;
@@ -345,7 +340,7 @@ namespace Digger.Net
                 }
                 switch (dir)
                 {
-                    case DIR_DOWN:
+                    case Dir.Down:
                         game.video.DrawGold(bag, 3, x, y);
                         for (i = 0; i < TYPES; i++)
                             clfirst[i] = game.sprites.first[i];
@@ -362,8 +357,8 @@ namespace Digger.Net
                         if (clfirst[2] != -1)
                             game.monsters.SquashMonsters(bag, clfirst, clcoll);
                         break;
-                    case DIR_RIGHT:
-                    case DIR_LEFT:
+                    case Dir.Right:
+                    case Dir.Left:
                         bagdat[bag].wt = 15;
                         bagdat[bag].wobbling = false;
                         game.video.DrawGold(bag, 0, x, y);
@@ -403,7 +398,7 @@ namespace Digger.Net
                 if (push)
                     bagdat[bag].dir = dir;
                 else
-                    bagdat[bag].dir = game.diggers.ReverseDir(dir);
+                    bagdat[bag].dir = Dir.Reverse(dir);
                 bagdat[bag].x = x;
                 bagdat[bag].y = y;
                 bagdat[bag].h = (x - 12) / 20;

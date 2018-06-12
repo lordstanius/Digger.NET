@@ -71,7 +71,6 @@ namespace Digger.Net
 
         private byte[] buffer;
         private ushort size;           /* data available to output device */
-        private uint randvs = 0;
 
         private int rate;
         private ushort t0rate, t2rate, t2new, t0v, t2v;
@@ -86,12 +85,6 @@ namespace Digger.Net
         public Sound(Game game)
         {
             this.game = game;
-        }
-
-        public uint Randnos(int n)
-        {
-            randvs = randvs * 0x15a4e35 + 1;
-            return (uint)((randvs & 0x7fffffff) % n);
         }
 
         public void SetT2Val(ushort t2v)
@@ -354,7 +347,7 @@ namespace Digger.Net
                     if (soundfirew == Const.FIREBALLS)
                         soundfirew = 0;
                 } while (!sff[n]);
-                t2val = (ushort)(soundfirevalue[n] + Randnos(soundfirevalue[n] >> 3));
+                t2val = (ushort)(soundfirevalue[n] + game.Random(soundfirevalue[n] >> 3));
             }
         }
 
@@ -793,7 +786,6 @@ namespace Digger.Net
             SetupSound();
             timerrate = 0x4000;
             SetTimer0(0x4000);
-            randvs = 0;
         }
 
         public void KillSound()

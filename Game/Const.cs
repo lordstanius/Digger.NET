@@ -1,13 +1,28 @@
 ﻿namespace Digger.Net
 {
+    public static class Dir
+    {
+        public const int None = -1;
+        public const int Right = 0;
+        public const int Up = 2;
+        public const int Left = 4;
+        public const int Down = 6;
+
+        public static int Reverse(int dir)
+        {
+            switch (dir)
+            {
+                case Right: return Left;
+                case Left: return Right;
+                case Up: return Down    ;
+                case Down: return Up;
+            }
+            return dir;
+        }
+    }
+
     public static class Const
     {
-        public const int DIR_NONE = -1;
-        public const int DIR_RIGHT = 0;
-        public const int DIR_UP = 2;
-        public const int DIR_LEFT = 4;
-        public const int DIR_DOWN = 6;
-
         public const int TYPES = 5;
         public const int SPRITES = (BONUSES + BAGS + MONSTERS + FIREBALLS + DIGGERS);
         public const int BONUSES = 1;

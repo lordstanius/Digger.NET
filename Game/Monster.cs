@@ -41,10 +41,6 @@ namespace Digger.Net
     public class Monster
     {
         private const int FIRSTMONSTER = Const.FIRSTMONSTER;
-        private const int DIR_RIGHT = Const.DIR_RIGHT;
-        private const int DIR_UP = Const.DIR_UP;
-        private const int DIR_LEFT = Const.DIR_LEFT;
-        private const int DIR_DOWN = Const.DIR_DOWN;
 
         private readonly int id;
         private Position pos;
@@ -111,10 +107,10 @@ namespace Digger.Net
                 {
                     switch (pos.dir)
                     {
-                        case DIR_RIGHT:
+                        case Dir.Right:
                             game.sprites.InitializeSprite(SpriteID, monsterSprite + 73, 4, 15, 0, 0);
                             break;
-                        case DIR_LEFT:
+                        case Dir.Left:
                             game.sprites.InitializeSprite(SpriteID, monsterSprite + 77, 4, 15, 0, 0);
                             break;
                     }
@@ -130,10 +126,10 @@ namespace Digger.Net
                 {
                     switch (pos.dir)
                     {
-                        case DIR_RIGHT:
+                        case Dir.Right:
                             game.sprites.InitializeSprite(SpriteID, 76, 4, 15, 0, 0);
                             break;
-                        case DIR_LEFT:
+                        case Dir.Left:
                             game.sprites.InitializeSprite(SpriteID, 80, 4, 14, 0, 0);
                             break;
                     }
