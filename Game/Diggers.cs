@@ -141,19 +141,19 @@ namespace Digger.Net
                         startbonustimeleft--;
                         if ((bonustimeleft & 1) != 0)
                         {
-                            game.video.SetIntensity(VideoIntensity.Normal);
+                            game.video.SetIntensity(0);
                             game.sound.SoundBonus();
                         }
                         else
                         {
-                            game.video.SetIntensity(VideoIntensity.High);
+                            game.video.SetIntensity(1);
                             game.sound.SoundBonus();
                         }
                         if (startbonustimeleft == 0)
                         {
                             game.sound.Music(0);
                             game.sound.SoundBonusOff();
-                            game.video.SetIntensity(VideoIntensity.High);
+                            game.video.SetIntensity(1);
                         }
                     }
                 }
@@ -402,7 +402,7 @@ namespace Digger.Net
             int[] clfirst = new int[TYPES];
             int[] clcoll = new int[SPRITES];
             game.input.ReadDirection(n - game.currentPlayer);
-            dir = game.input.GetDirect(n - game.currentPlayer);
+            dir = game.input.GetDirection(n - game.currentPlayer);
             if (dir == Dir.Right || dir == Dir.Up || dir == Dir.Left || dir == Dir.Down)
                 ddir = dir;
             else
@@ -674,7 +674,7 @@ namespace Digger.Net
         {
             isBonusMode = true;
             EraseBonus();
-            game.video.SetIntensity(VideoIntensity.High);
+            game.video.SetIntensity(1);
             bonustimeleft = 250 - game.level.LevelOf10() * 20;
             startbonustimeleft = 20;
             for (int i = 0; i < game.diggerCount; i++)
@@ -694,7 +694,7 @@ namespace Digger.Net
                 isBonusVisible = false;
                 game.sprites.EraseSprite(Const.FIRSTBONUS);
             }
-            game.video.SetIntensity(VideoIntensity.Normal);
+            game.video.SetIntensity(0);
         }
 
         public bool CheckIsDiggerUnderBag(int h, int v)

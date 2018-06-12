@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 namespace Digger.Net
 {
     public enum VideoMode { CGA, VGA };
-    public enum VideoIntensity { Normal, High }
 
     public class SDL_Video
     {
@@ -22,18 +21,14 @@ namespace Digger.Net
         private IntPtr roottxt;
         private Surface screen;
         private Surface screen16;
-        private SDL.SDL_Color[] palette1;
-        private SDL.SDL_Color[] palette1i;
-        private SDL.SDL_Color[] palette2;
-        private SDL.SDL_Color[] palette2i;
+        private SDL.SDL_Color[] npalette;
+        private SDL.SDL_Color[] ipalette;
         private CharSurfacePlain sprites;
         private CharSurfacePlain alphas;
-        private SDL.SDL_Color[][] npalettes;
-        private SDL.SDL_Color[][] ipalettes;
+        private SDL.SDL_Color[][] palettes;
         private Bitmap backBitmap;
         private int screenRatio;
 
-        private int curPalette = 0;
         private Func<byte, int, byte> GetPixelColorFromMask;
 
         public SDL_Video(VideoMode mode)
@@ -46,7 +41,6 @@ namespace Digger.Net
             CreateCaches();
             CreateWindow();
             CreateGraphics();
-            SetPalette(0);
         }
 
         public VideoMode VideoMode { get; private set; }
@@ -94,6 +88,8 @@ namespace Digger.Net
             screen16 = Surface.CreateRGBSurface(0, Virtual2ScreenW(80), Virtual2ScreenH(200), 8, 0, 0, 0, 0);
             if (screen16 == null)
                 throw new SystemException($"SDL_CreateRGBSurface() failed: {SDL.SDL_GetError()}");
+
+            SetPallete(npalette);
         }
 
         private SDL.SDL_Color[] CreatePaletteRGB(byte[,] colors)
@@ -116,20 +112,9 @@ namespace Digger.Net
             SDL.SDL_FillRect(screen16, IntPtr.Zero, 0);
         }
 
-        public void SetHighIntensity()
+        public void SetIntensity(int inten)
         {
-            SetPallete(ipalettes[curPalette]);
-        }
-
-        public void SetNormalIntensity()
-        {
-            SetPallete(npalettes[curPalette]);
-        }
-
-        public void SetPalette(int palette)
-        {
-            SetPallete(npalettes[palette]);
-            curPalette = palette;
+            SetPallete(palettes[inten & 1]);
         }
 
         public bool SetDisplayMode(bool isFullScreen)
@@ -165,7 +150,7 @@ namespace Digger.Net
 
             CreateGraphics();
             CreateCaches();
-            SetPalette(0);
+            SetIntensity(0);
 
             return true;
         }
@@ -306,7 +291,7 @@ namespace Digger.Net
             var bitmapData = backBitmap.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format8bppIndexed);
             int[] lookup = new int[backBitmap.Palette.Entries.Length];
             for (int i = 0; i < lookup.Length; i++)
-                lookup[i] = GetColorIndex(palette1, backBitmap.Palette.Entries[i]);
+                lookup[i] = GetColorIndex(npalette, backBitmap.Palette.Entries[i]);
             
             byte[] pixels = new byte[backBitmap.Width * backBitmap.Height];
             for (int i = 0; i < pixels.Length; i++)
@@ -330,13 +315,9 @@ namespace Digger.Net
 
         private void InitializeVGA()
         {
-            palette1 = CreatePaletteRGB(VgaGrafx.Palette1);
-            palette1i = CreatePaletteRGB(VgaGrafx.Palette1i);
-            palette2 = CreatePaletteRGB(VgaGrafx.Palette2);
-            palette2i = CreatePaletteRGB(VgaGrafx.Palette2i);
-
-            npalettes = new[] { palette1, palette2 };
-            ipalettes = new[] { palette1i, palette2i };
+            npalette = CreatePaletteRGB(VgaGrafx.Palette1);
+            ipalette = CreatePaletteRGB(VgaGrafx.Palette1i);
+            palettes = new SDL.SDL_Color[][] { npalette, ipalette };
 
             alphas.sprites = DecompressAlpha(Alpha.ascii2vga);
             sprites.sprites = VgaGrafx.SpriteTable;
@@ -349,13 +330,9 @@ namespace Digger.Net
 
         private void InitializeCGA()
         {
-            palette1 = CreatePaletteRGB(CgaGrafx.Palette1);
-            palette1i = CreatePaletteRGB(CgaGrafx.Pallette1i);
-            palette2 = CreatePaletteRGB(CgaGrafx.Paletter2);
-            palette2i = CreatePaletteRGB(CgaGrafx.Palette2i);
-
-            npalettes = new[] { palette1, palette2 };
-            ipalettes = new[] { palette1i, palette2i };
+            npalette = CreatePaletteRGB(CgaGrafx.Palette1);
+            ipalette = CreatePaletteRGB(CgaGrafx.Pallette1i);
+            palettes = new SDL.SDL_Color[][] { npalette, ipalette };
 
             alphas.sprites = DecompressAlpha(Alpha.ascii2cga);
             sprites.sprites = DecompressSprites(CgaGrafx.SpriteTable);
@@ -432,7 +409,7 @@ namespace Digger.Net
             IntPtr pixels = Marshal.AllocHGlobal(size);
             Marshal.Copy(planep.sprites[sprite], 0, pixels, size);
             Surface surface = Surface.CreateRGBSurfaceFrom(pixels, realw, realh, 8, realw, 0, 0, 0, 0);
-            SDL.SDL_SetPaletteColors(surface.Format.palette, npalettes[0], 0, 16);
+            SDL.SDL_SetPaletteColors(surface.Format.palette, npalette, 0, 16);
             planep.caches[sprite] = surface;
 
             return surface;

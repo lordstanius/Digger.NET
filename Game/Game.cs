@@ -732,6 +732,7 @@ namespace Digger.Net
 
             while (!isEverybodyDead && !gameData[currentPlayer].isLevelDone && !isGameCycleEnded && !isTimeOut && !isVideoModeChanged)
             {
+                NewFrame();
                 penalty = 0;
                 diggers.DoDiggers(bags, monsters, scores);
                 monsters.DoMonsters();
@@ -900,6 +901,7 @@ namespace Digger.Net
                 sound.SetSoundT2();
                 ClearTopLine();
                 video.TextOut("PRESS ANY KEY", 80, 0, 1);
+                NewFrame();
                 input.GetKey(true);
                 ClearTopLine();
                 scores.DrawScores();
@@ -907,8 +909,6 @@ namespace Digger.Net
                     scores.AddScore(i, 0);
 
                 diggers.DrawLives();
-                timer.SyncFrame();
-                video.UpdateScreen();
                 input.pausef = false;
             }
             else

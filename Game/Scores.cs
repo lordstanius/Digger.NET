@@ -252,8 +252,8 @@ namespace Digger.Net
         {
             int k, i;
             game.NewFrame();
-            video.TextOut("ENTER YOUR", 100, 70, 3);
-            video.TextOut(" INITIALS", 100, 90, 3);
+            video.TextOutCentered("ENTER YOUR", 70, 3);
+            video.TextOutCentered("INITIALS", 90, 3);
             video.TextOut("_ _ _", 128, 130, 3);
             scoreinit[0] = "...";
             game.sound.KillSound();
@@ -273,25 +273,17 @@ namespace Digger.Net
                 }
                 if (k != 0)
                 {
-                    video.WriteChar(i * 24 + 128, 130, (char)k, 3);
+                    video.WriteChar(i * 24 + 128, 130, (char)k, 1);
                     initials[i] = (char)k;
                 }
             }
             scoreinit[0] = new string(initials);
-            for (i = 0; i < 20; i++)
-                FlashyWait(15);
+            video.FlashyWait(15);
 
             game.sound.SetupSound();
             video.Clear();
-            video.ResetPalette();
+            video.SetIntensity(0);
             game.record.PutInitials(scoreinit[0]);
-        }
-
-        public void FlashyWait(int n)
-        {
-            game.timer.SyncFrame();
-
-            video.FlashyWait(n);
         }
 
         public int GetInitial(int x, int y)
@@ -309,7 +301,7 @@ namespace Digger.Net
                             continue;
                         return key;
                     }
-                    FlashyWait(15);
+                    video.FlashyWait(15);
                 }
 
                 for (int i = 0; i < 40; i++)
@@ -319,7 +311,7 @@ namespace Digger.Net
                         video.WriteChar(x, y, '_', 3);
                         return game.input.GetKey(false);
                     }
-                    FlashyWait(15);
+                    video.FlashyWait(15);
                 }
             } while (true);
         }

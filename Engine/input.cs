@@ -311,7 +311,7 @@ namespace Digger.Net
 
         /* Why the joystick reading is split between readdirect and getdir like this is a
            mystery to me. */
-        public int GetDirect(int n)
+        public int GetDirection(int n)
         {
             int dir = ((n == 0) ? keydir : keydir2);
             if (n == 0)

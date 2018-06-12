@@ -76,12 +76,6 @@ namespace Digger.Net
                 gfx.SetDisplayMode(isFullScreen);
         }
 
-        public void ResetPalette()
-        {
-            gfx.SetPalette(0);
-            gfx.SetNormalIntensity();
-        }
-
         public void UpdateScreen()
         {
             gfx.UpdateScreen();
@@ -187,23 +181,14 @@ namespace Digger.Net
                         field[y * MWIDTH + x] = field1[y * MWIDTH + x];
                     else
                         field[y * MWIDTH + x] = field2[y * MWIDTH + x];
-            gfx.SetPalette(0);
-            gfx.SetNormalIntensity();
+            gfx.SetIntensity(0);
             DrawBackground(level.LevelPlan());
             DrawField();
         }
 
-        public void SetIntensity(VideoIntensity intensity)
+        public void SetIntensity(int intensity)
         {
-            if (intensity == VideoIntensity.High)
-                gfx.SetHighIntensity();
-            else
-                gfx.SetNormalIntensity();
-        }
-
-        public void SetPalette(int p)
-        {
-            gfx.SetPalette(p);
+            gfx.SetIntensity(intensity);
         }
 
         public void SaveField()
@@ -312,7 +297,8 @@ namespace Digger.Net
             for (int i = 0; i < n; i++)
             {
                 p = 1 - p;
-                gfx.SetPalette(p);
+                gfx.SetIntensity(p);
+                game.timer.SyncFrame();
                 gfx.UpdateScreen();
             }
         }

@@ -133,10 +133,7 @@ namespace Digger.Net
         public int GetKey(bool scancode)
         {
             while (!IsKeyboardHit() && !game.shouldExit)
-            {
                 game.timer.SyncFrame();
-                game.video.UpdateScreen();
-            }
 
             int result = scancode ?
                 (int)kbuffer[0].scancode :
