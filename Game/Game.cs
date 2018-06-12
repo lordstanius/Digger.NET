@@ -460,7 +460,6 @@ namespace Digger.Net
             foreach (var game in gameData)
                 game.level = startingLevel;
 
-            Calibrate();
             video.Initialize();
             sound.Initialize();
 
@@ -914,11 +913,6 @@ namespace Digger.Net
             }
             else
                 sound.SoundPauseOff();
-        }
-
-        public void Calibrate()
-        {
-            sound.volume = 1;
         }
 
         private int GetArgument(char argch, string allargs, ref bool hasopt)

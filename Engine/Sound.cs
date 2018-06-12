@@ -9,7 +9,7 @@ namespace Digger.Net
         private const int SOUND_BUFFER_SIZE = 4096;
         private const int SAMPLE_RATE = 44100;
 
-        public int volume = 0;
+        public int volume = 1;
         public bool isSoundEnabled = true;
         public bool isMusicEnabled = true;
 

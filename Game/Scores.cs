@@ -69,7 +69,7 @@ namespace Digger.Net
             }
             else
             {
-                using (var inFile = File.OpenRead(game.level.LevelFileName))
+                using (var inFile = File.OpenWrite(game.level.LevelFileName))
                 {
                     inFile.Seek(1202, SeekOrigin.Begin);
                     inFile.Write(scorebuf, 0, 512);

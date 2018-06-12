@@ -6,7 +6,7 @@ namespace Digger.Net
 {
     public static class Alpha
     {
-        public static string copyright = "Portions Copyright(c) 1983 Windmill Software Inc.";
+        // Portions Copyright(c) 1983 Windmill Software Inc.;
 
         public static byte[] cgaletA = {
             0x00,0xff,0xff,0xff,0x00,0x00,
