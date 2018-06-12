@@ -109,7 +109,7 @@ namespace Digger.Net
 
         private bool quiet = false;
         private int penalty = 0;
-        private uint randVal;
+        private int randVal;
         private bool flashplayer;
 
         public Game()

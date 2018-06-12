@@ -316,7 +316,7 @@ namespace Digger.Net
             recordCharCount = recordRunLenght = 0;
         }
 
-        public void RecordPutRandom(uint randv)
+        public void RecordPutRandom(int randv)
         {
             recordingBuffer.AppendFormat("{0:X8}\n", randv);
             recordCharCount = recordRunLenght = 0;
@@ -387,9 +387,9 @@ namespace Digger.Net
             playBuffer = playBuffer.Substring(3);
         }
 
-        public uint PlayGetRand()
+        public int PlayGetRand()
         {
-            uint rand = 0;
+            int rand = 0;
             int offset = 0;
             if (playBuffer[offset] == '*')
                 offset += 4;
@@ -398,11 +398,11 @@ namespace Digger.Net
             {
                 char p = playBuffer[offset++];
                 if (p >= '0' && p <= '9')
-                    rand |= (uint)(p - '0') << ((7 - i) << 2);
+                    rand |= (p - '0') << ((7 - i) << 2);
                 if (p >= 'A' && p <= 'F')
-                    rand |= (uint)(p - 'A' + 10) << ((7 - i) << 2);
+                    rand |= (p - 'A' + 10) << ((7 - i) << 2);
                 if (p >= 'a' && p <= 'f')
-                    rand |= (uint)(p - 'a' + 10) << ((7 - i) << 2);
+                    rand |= (p - 'a' + 10) << ((7 - i) << 2);
             }
 
             playBuffer = playBuffer.Substring(offset);
