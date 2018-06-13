@@ -44,14 +44,18 @@ namespace Digger.Net
         {
             short bag, x, y;
             pushcount = 0;
-            goldtime = 150 - game.level.LevelOf10() * 10;
+            goldtime = 150 - Level.LevelOf10(game.LevelNo) * 10;
             bagdat = new Bag[BAGS];
             for (bag = 0; bag < BAGS; bag++)
                 bagdat[bag].Exists = false;
+
             bag = 0;
             for (x = 0; x < MWIDTH; x++)
+            {
                 for (y = 0; y < MHEIGHT; y++)
-                    if (game.level.GetLevelChar(x, y, game.level.LevelPlan()) == 'B')
+                {
+                    if (Level.GetLevelChar(x, y, game.LevelNo, game.diggerCount) == 'B')
+                    {
                         if (bag < BAGS)
                         {
                             bagdat[bag].Exists = true;
@@ -68,6 +72,10 @@ namespace Digger.Net
                             bagdat[bag].xr = 0;
                             bagdat[bag++].yr = 0;
                         }
+                    }
+                }
+            }
+
             if (game.currentPlayer == 0)
                 bagdat.CopyTo(bagdat1, 0);
             else

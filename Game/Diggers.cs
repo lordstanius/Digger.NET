@@ -196,7 +196,7 @@ namespace Digger.Net
                         if (diggerData[n].digger.isAlive)
                         {
                             diggerData[n].digger.Discharge();
-                            diggerData[n].rechargetime = game.level.LevelOf10() * 3 + 60;
+                            diggerData[n].rechargetime = Level.LevelOf10(game.LevelNo) * 3 + 60;
                             diggerData[n].notfiring = false;
                             switch (diggerData[n].digger.dir)
                             {
@@ -675,7 +675,7 @@ namespace Digger.Net
             isBonusMode = true;
             EraseBonus();
             game.video.SetIntensity(1);
-            bonustimeleft = 250 - game.level.LevelOf10() * 20;
+            bonustimeleft = 250 - Level.LevelOf10(game.LevelNo) * 20;
             startbonustimeleft = 20;
             for (int i = 0; i < game.diggerCount; i++)
                 diggerData[i].msc = 1;

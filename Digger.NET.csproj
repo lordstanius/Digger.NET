@@ -90,8 +90,7 @@
     <Compile Include="Utility\Log.cs" />
     <Compile Include="Utility\StdLib.cs" />
     <Compile Include="Data\VgaGrafx.cs" />
-    <None Include="Resources\ctitle.png" />
-    <None Include="Resources\vtitle.png" />
+    <None Include="Resources\title.png" />
     <Content Include="SDL2.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

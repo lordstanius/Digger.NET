@@ -7,12 +7,12 @@ using System.Text;
 
 namespace Digger.Net
 {
-    public class Level
+    public static class Level
     {
-        public string LevelFileName;
-        public bool IsUsingLevelFile = false;
+        public static string LevelFileName;
+        public static bool IsUsingLevelFile;
 
-        public readonly string[,] leveldat = {
+        public static readonly string[,] Data = {
             { "S   B     HHHHS",
               "V  CC  C  V B  ",
               "VB CC  C  V    ",
@@ -95,31 +95,28 @@ namespace Digger.Net
               "HHHHHHHHHHHHHHH" }
         };
 
-        private readonly Game game;
-
-        public Level(Game game)
+        public static int LevelOf10(int level)
         {
-            this.game = game;
+            return level > 10 ? 10 : level;
         }
 
-        public int LevelOf10() => game.LevelNo > 10 ? 10 : game.LevelNo;
-
-        public char GetLevelChar(int x, int y, int l)
+        public static char GetLevelChar(int x, int y, int level, int diggerCount)
         {
-            if ((l == 3 || l == 4) && !IsUsingLevelFile && game.diggerCount == 2 && y == 9 && (x == 6 || x == 8))
+            level = LevelPlan(level);
+            if ((level == 3 || level == 4) && !IsUsingLevelFile && diggerCount == 2 && y == 9 && (x == 6 || x == 8))
                 return 'H';
-            return leveldat[l - 1, y][x];
+            return Data[level - 1, y][x];
         }
 
-        public int LevelPlan()
+        public static int LevelPlan(int level)
         {
-            int l = game.LevelNo;
-            if (l > 8)
-                l = (l & 3) + 5; /* Level plan: 12345678, 678, (5678) 247 times, 5 forever */
-            return l;
+            if (level > 8)
+                return (level & 3) + 5; /* Level plan: 12345678, 678, (5678) 247 times, 5 forever */
+
+            return level;
         }
 
-        public void ReadLevelFile()
+        public static void ReadLevelFile(ref int bonusScore)
         {
             if (!File.Exists(LevelFileName))
             {
@@ -132,7 +129,7 @@ namespace Digger.Net
             {
                 using (var br = new BinaryReader(levf, Encoding.ASCII, true))
                 {
-                    game.scores.bonusscore = br.ReadInt32();
+                    bonusScore = br.ReadInt32();
                 }
 
                 byte[] buff = new byte[15];
@@ -141,7 +138,7 @@ namespace Digger.Net
                     for (int j = 0; j < 10; j++)
                     {
                         levf.Read(buff, 0, 15);
-                        leveldat[i, j] = Encoding.ASCII.GetString(buff);
+                        Data[i, j] = Encoding.ASCII.GetString(buff);
                     }
                 }
             }

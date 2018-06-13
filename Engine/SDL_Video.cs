@@ -26,7 +26,6 @@ namespace Digger.Net
         private CharSurfacePlain sprites;
         private CharSurfacePlain alphas;
         private SDL.SDL_Color[][] palettes;
-        private Bitmap backBitmap;
         private int screenRatio;
 
         private Func<byte, int, byte> GetPixelColorFromMask;
@@ -282,23 +281,87 @@ namespace Digger.Net
             Marshal.FreeHGlobal(originalPixels);
         }
 
-        public void DrawTitleScreen()
+        internal void DrawTitleScreen()
         {
-            Rectangle rect = new Rectangle(0, 0, backBitmap.Width, backBitmap.Height);
+            if (VideoMode == VideoMode.CGA)
+                DrawTitleScreenCGA();
+            else
+                DrawTitleScreenVGA();
+        }
+
+        public void DrawTitleScreenVGA()
+        {
+            Rectangle rect = new Rectangle(0, 0, 640, 400);
             Surface tmp = Surface.CreateRGBSurface(0, rect.Width, rect.Height, 8, 0, 0, 0, 0);
             tmp.SetSurfacePalette(screen16.Format.palette);
 
-            var bitmapData = backBitmap.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format8bppIndexed);
-            int[] lookup = new int[backBitmap.Palette.Entries.Length];
+            var bmp = Properties.Resource.title;
+            var bitmapData = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format8bppIndexed);
+            int[] lookup = new int[bmp.Palette.Entries.Length];
             for (int i = 0; i < lookup.Length; i++)
-                lookup[i] = GetColorIndex(npalette, backBitmap.Palette.Entries[i]);
+                lookup[i] = GetColorIndex(npalette, bmp.Palette.Entries[i]);
             
-            byte[] pixels = new byte[backBitmap.Width * backBitmap.Height];
+            byte[] pixels = new byte[rect.Width * rect.Height];
             for (int i = 0; i < pixels.Length; i++)
                 pixels[i] = (byte)lookup[Marshal.ReadByte(bitmapData.Scan0, i)];
 
             Marshal.Copy(pixels, 0, tmp.pixels, pixels.Length);
-            backBitmap.UnlockBits(bitmapData);
+            bmp.UnlockBits(bitmapData);
+            tmp.Blit(IntPtr.Zero, screen16, IntPtr.Zero);
+            tmp.Free();
+        }
+
+        public void DrawTitleScreenCGA()
+        {
+            int size = 65535;
+            byte[] pixels = new byte[size];
+            int src = 0, dest = 0;
+
+            while (src < CgaGrafx.cgatitledat.Length)
+            {
+                int b = CgaGrafx.cgatitledat[src++], l, c;
+
+                if (b == 254)
+                {
+                    l = CgaGrafx.cgatitledat[src++];
+                    if (l == 0)
+                        l = 256;
+                    c = CgaGrafx.cgatitledat[src++];
+                }
+                else
+                {
+                    l = 1;
+                    c = b;
+                }
+
+                for (int i = 0; i < l; i++)
+                {
+                    int px = c, adst = 0;
+                    if (dest < 32768)
+                        adst = (dest / 320) * 640 + dest % 320;
+                    else
+                        adst = 320 + ((dest - 32768) / 320) * 640 + (dest - 32768) % 320;
+
+                    pixels[adst + 3] = (byte)(px & 3);
+                    px >>= 2;
+                    pixels[adst + 2] = (byte)(px & 3);
+                    px >>= 2;
+                    pixels[adst + 1] = (byte)(px & 3);
+                    px >>= 2;
+                    pixels[adst + 0] = (byte)(px & 3);
+                    dest += 4;
+                    if (dest >= size)
+                        break;
+                }
+
+                if (dest >= size)
+                    break;
+            }
+
+            Rectangle rect = new Rectangle(0, 0, 320, 200);
+            Surface tmp = Surface.CreateRGBSurface(0, rect.Width, rect.Height, 8, 0, 0, 0, 0);
+            tmp.SetSurfacePalette(screen16.Format.palette);
+            Marshal.Copy(pixels, 0, tmp.pixels, rect.Width * rect.Height);
             tmp.Blit(IntPtr.Zero, screen16, IntPtr.Zero);
             tmp.Free();
         }
@@ -323,7 +386,6 @@ namespace Digger.Net
             sprites.sprites = VgaGrafx.SpriteTable;
 
             GetPixelColorFromMask = GetPixelColorFromMaskVga;
-            backBitmap = Properties.Resource.vtitle;
             VideoMode = VideoMode.VGA;
             screenRatio = 2;
         }
@@ -338,7 +400,6 @@ namespace Digger.Net
             sprites.sprites = DecompressSprites(CgaGrafx.SpriteTable);
 
             GetPixelColorFromMask = GetPixelColorFromMaskCga;
-            backBitmap = Properties.Resource.ctitle;
             VideoMode = VideoMode.CGA;
             screenRatio = 1;
         }

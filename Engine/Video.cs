@@ -153,14 +153,14 @@ namespace Digger.Net
             EraseText(MAX_TEXT_LEN, 0, y, 0);
         }
 
-        public void MakeField(Level level)
+        public void MakeField()
         {
             for (int x = 0; x < MWIDTH; x++)
             {
                 for (int y = 0; y < MHEIGHT; y++)
                 {
                     field[y * MWIDTH + x] = -1;
-                    char c = level.GetLevelChar(x, y, level.LevelPlan());
+                    char c = Level.GetLevelChar(x, y, game.LevelNo, game.diggerCount);
                     if (c == 'S' || c == 'V')
                         field[y * MWIDTH + x] &= 0xd03f;
                     if (c == 'S' || c == 'H')
@@ -173,7 +173,7 @@ namespace Digger.Net
             }
         }
 
-        public void DrawStatistics(Level level)
+        public void DrawStatistics()
         {
             for (int x = 0; x < MWIDTH; x++)
                 for (int y = 0; y < MHEIGHT; y++)
@@ -182,7 +182,7 @@ namespace Digger.Net
                     else
                         field[y * MWIDTH + x] = field2[y * MWIDTH + x];
             gfx.SetIntensity(0);
-            DrawBackground(level.LevelPlan());
+            DrawBackground(Level.LevelPlan(game.LevelNo));
             DrawField();
         }
 

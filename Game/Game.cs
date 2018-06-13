@@ -94,7 +94,6 @@ namespace Digger.Net
         public bool isVideoModeChanged;
         public bool shouldExit;
 
-        public Level level;
         public Video video;
         public Sprites sprites;
         public SDL_Timer timer;
@@ -117,7 +116,6 @@ namespace Digger.Net
             timer = new SDL_Timer();
             sound = new Sound(this);
             input = new Input(this);
-            level = new Level(this);
             sprites = new Sprites(this);
             video = new Video(this);
             emeralds = new Emeralds(this);
@@ -262,8 +260,8 @@ namespace Digger.Net
 
                     if (argch == 'L')
                     {
-                        level.LevelFileName = word.Substring(3);
-                        level.IsUsingLevelFile = true;
+                        Level.LevelFileName = word.Substring(3);
+                        Level.IsUsingLevelFile = true;
                     }
 
                     if (argch == 'F')
@@ -402,22 +400,22 @@ namespace Digger.Net
                     }
                     else
                     {
-                        level.LevelFileName = word;
-                        level.IsUsingLevelFile = true;
+                        Level.LevelFileName = word;
+                        Level.IsUsingLevelFile = true;
                     }
                 }
             }
 
-            if (level.IsUsingLevelFile)
+            if (Level.IsUsingLevelFile)
             {
                 try
                 {
-                    level.ReadLevelFile();
+                    Level.ReadLevelFile(ref scores.bonusscore);
                 }
                 catch (Exception ex)
                 {
                     Log.Write(ex);
-                    level.IsUsingLevelFile = false;
+                    Level.IsUsingLevelFile = false;
                 }
             }
         }
@@ -847,7 +845,7 @@ namespace Digger.Net
         public void InitalizeLevel()
         {
             gameData[currentPlayer].isLevelDone = false;
-            video.MakeField(level);
+            video.MakeField();
             emeralds.MakeEmeraldField();
             bags.Initialize();
             levelNotDrawn = true;
@@ -856,7 +854,7 @@ namespace Digger.Net
         public void DrawScreen()
         {
             video.CreateMonsterBagSprites();
-            video.DrawStatistics(level);
+            video.DrawStatistics();
             bags.DrawBags();
             emeralds.DrawEmeralds();
             diggers.InitializeDiggers();

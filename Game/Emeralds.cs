@@ -33,7 +33,7 @@
             emmask = (short)(1 << game.currentPlayer);
             for (int x = 0; x < MWIDTH; x++)
                 for (int y = 0; y < MHEIGHT; y++)
-                    if (game.level.GetLevelChar(x, y, game.level.LevelPlan()) == 'C')
+                    if (Level.GetLevelChar(x, y, game.LevelNo, game.diggerCount) == 'C')
                         emeraldField[y * MWIDTH + x] |= (byte)emmask;
                     else
                         emeraldField[y * MWIDTH + x] &= (byte)~emmask;

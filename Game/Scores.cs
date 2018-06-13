@@ -36,7 +36,7 @@ namespace Digger.Net
 
         private void ReadScores()
         {
-            if (!game.level.IsUsingLevelFile)
+            if (!Level.IsUsingLevelFile)
             {
                 if (File.Exists(SFNAME))
                 {
@@ -49,7 +49,7 @@ namespace Digger.Net
             }
             else
             {
-                using (var inFile = File.OpenRead(game.level.LevelFileName))
+                using (var inFile = File.OpenRead(Level.LevelFileName))
                 {
                     inFile.Seek(1202, SeekOrigin.Begin);
                     if (inFile.Read(scorebuf, 0, 512) == 0)
@@ -60,7 +60,7 @@ namespace Digger.Net
 
         private void WriteScores()
         {
-            if (!game.level.IsUsingLevelFile)
+            if (!Level.IsUsingLevelFile)
             {
                 using (var inFile = File.OpenWrite(SFNAME))
                 {
@@ -69,7 +69,7 @@ namespace Digger.Net
             }
             else
             {
-                using (var inFile = File.OpenWrite(game.level.LevelFileName))
+                using (var inFile = File.OpenWrite(Level.LevelFileName))
                 {
                     inFile.Seek(1202, SeekOrigin.Begin);
                     inFile.Write(scorebuf, 0, 512);

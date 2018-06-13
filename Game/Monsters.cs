@@ -44,9 +44,9 @@ namespace Digger.Net
         {
             mondat = new monster[MONSTERS];
             nextmonster = 0;
-            mongaptime = 45 - (game.level.LevelOf10() << 1);
-            totalmonsters = game.level.LevelOf10() + 5;
-            switch (game.level.LevelOf10())
+            mongaptime = 45 - (Level.LevelOf10(game.LevelNo) << 1);
+            totalmonsters = Level.LevelOf10(game.LevelNo) + 5;
+            switch (Level.LevelOf10(game.LevelNo))
             {
                 case 1:
                     maxmononscr = 3;
@@ -99,7 +99,7 @@ namespace Digger.Net
                 if (!mondat[i].Exists)
                     continue;
 
-                if (mondat[i].hnt > 10 - game.level.LevelOf10())
+                if (mondat[i].hnt > 10 - Level.LevelOf10(game.LevelNo))
                 {
                     if (mondat[i].monstr.IsNobbin)
                     {
@@ -113,7 +113,7 @@ namespace Digger.Net
                     if (mondat[i].time == 0)
                     {
                         MonsterAI(i);
-                        if (game.RandNo(15 - game.level.LevelOf10()) == 0) /* Need to split for determinism */
+                        if (game.RandNo(15 - Level.LevelOf10(game.LevelNo)) == 0) /* Need to split for determinism */
                             if (mondat[i].monstr.IsNobbin && mondat[i].monstr.IsAlive)
                                 MonsterAI(i);
                     }
@@ -176,7 +176,7 @@ namespace Digger.Net
 
                 /* Turn hobbin back into nobbin if it's had its time */
 
-                if (mondat[mon].hnt > 30 + (game.level.LevelOf10() << 1))
+                if (mondat[mon].hnt > 30 + (Level.LevelOf10(game.LevelNo) << 1))
                 {
                     if (!mondat[mon].monstr.IsNobbin)
                     {
@@ -239,8 +239,8 @@ namespace Digger.Net
 
                 /* Introduce a random element on levels <6 : occasionally swap p1 and p3 */
 
-                if (game.RandNo(game.level.LevelOf10() + 5) == 1) /* Need to split for determinism */
-                    if (game.level.LevelOf10() < 6)
+                if (game.RandNo(Level.LevelOf10(game.LevelNo) + 5) == 1) /* Need to split for determinism */
+                    if (Level.LevelOf10(game.LevelNo) < 6)
                     {
                         t = mdirp1;
                         mdirp1 = mdirp3;
