@@ -330,8 +330,8 @@ namespace Digger.Net
 
         private void InitializeCGA()
         {
-            npalette = CreatePaletteRGB(CgaGrafx.Palette1);
-            ipalette = CreatePaletteRGB(CgaGrafx.Pallette1i);
+            npalette = CreatePaletteRGB(CgaGrafx.Palette2);
+            ipalette = CreatePaletteRGB(CgaGrafx.Palette2i);
             palettes = new SDL.SDL_Color[][] { npalette, ipalette };
 
             alphas.sprites = DecompressAlpha(Alpha.ascii2cga);
