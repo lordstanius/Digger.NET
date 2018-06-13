@@ -2,7 +2,7 @@
    Copyright (c) Andrew Jenner 1998-2004 */
 // C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public class Input
     {
@@ -154,17 +154,18 @@ namespace Digger.Net
                         game.record.SaveDrf = true;
                         break;
                     case KEY_SWITCH_TO_VGA:
-                        if (!game.record.IsPlaying && !game.isStarted)
-                            game.video.SetVideoMode(VideoMode.VGA);
+                        if (!game.record.IsPlaying && !game.isStarted && game.gfx.SetVideoMode(VideoMode.VGA))
+                            game.isVideoModeChanged = true;
                         break;
                     case KEY_SWITCH_TO_CGA:
-                        if (!game.record.IsPlaying && !game.isStarted)
-                            game.video.SetVideoMode(VideoMode.CGA);
+                        if (!game.record.IsPlaying && !game.isStarted && game.gfx.SetVideoMode(VideoMode.CGA))
+                            game.isVideoModeChanged = true;
                         break;
                 }
-
+                
+                /* Change number of players */
                 if (!mode_change)
-                    shouldStart = true;                                /* Change number of players */
+                    shouldStart = true;
             }
         }
 

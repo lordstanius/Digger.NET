@@ -2,7 +2,7 @@
    Copyright (c) Andrew Jenner 1998-2004 */
 // C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public class Monsters
     {
@@ -32,15 +32,15 @@ namespace Digger.Net
         private bool unbonusflag = false;
 
         private readonly Game game;
-        private readonly Video video;
+        private readonly Drawing video;
 
         public Monsters(Game game)
         {
             this.game = game;
-            this.video = game.video;
+            this.video = game.drawing;
         }
 
-        public void Initialize()
+        public void Init()
         {
             mondat = new monster[MONSTERS];
             nextmonster = 0;

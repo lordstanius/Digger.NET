@@ -28,7 +28,7 @@
 
 using System;
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public struct recfilter
     {

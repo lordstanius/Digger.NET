@@ -2,7 +2,7 @@
    Copyright (c) Andrew Jenner 1998-2004 */
 // C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public static class Keyboard
     {
@@ -20,10 +20,10 @@ namespace Digger.Net
 
         public static void Redefine(Game game, bool allKeys)
         {
-            game.Initialize();
+            game.Init();
 
-            game.video.TextOutCentered("D I G G E R", 2, 3);
-            game.video.TextOutCentered("REDEFINE KEYBOARD", 3 * CHR_H, 1);
+            game.drawing.TextOutCentered("D I G G E R", 2, 3);
+            game.drawing.TextOutCentered("REDEFINE KEYBOARD", 3 * CHR_H, 1);
 
             int playerrow = 5 * CHR_H;
             int keyrow = 8 * CHR_H;
@@ -33,27 +33,27 @@ namespace Digger.Net
 
             for (int i = 0; i < game.input.KeyCount; i++)
             {
-                game.video.EraseLine(playerrow);
-                game.video.EraseLine(keyrow);
+                game.drawing.EraseLine(playerrow);
+                game.drawing.EraseLine(keyrow);
 
                 if (i < 5)
-                    game.video.TextOutCentered("PLAYER 1", playerrow, 2);
+                    game.drawing.TextOutCentered("PLAYER 1", playerrow, 2);
                 else if (i < 10)
-                    game.video.TextOutCentered("PLAYER 2", playerrow, 2);
+                    game.drawing.TextOutCentered("PLAYER 2", playerrow, 2);
 
                 if (i >= 10 && !allKeys)
                     break;
 
                 if (i >= 10 && allKeys)
-                    game.video.TextOutCentered("MISELLANEOUS", playerrow, 2);
+                    game.drawing.TextOutCentered("MISELLANEOUS", playerrow, 2);
 
-                game.video.TextOutCentered(KeyNames[i], keyrow, color);
+                game.drawing.TextOutCentered(KeyNames[i], keyrow, color);
 
                 if (game.input.ProcessKey(i) == -1)
                     return;
 
-                game.video.EraseLine(errorrow1);
-                game.video.EraseLine(errorrow2);
+                game.drawing.EraseLine(errorrow1);
+                game.drawing.EraseLine(errorrow2);
                 color = 3;
 
                 for (int j = 0; j < i; j++)
@@ -63,8 +63,8 @@ namespace Digger.Net
                     {
                         i--;
                         color = 2;
-                        game.video.TextOutCentered("THIS KEY IS ALREADY USED", errorrow1, 2);
-                        game.video.TextOutCentered("CHOOSE ANOTHER KEY", errorrow2, 2);
+                        game.drawing.TextOutCentered("THIS KEY IS ALREADY USED", errorrow1, 2);
+                        game.drawing.TextOutCentered("CHOOSE ANOTHER KEY", errorrow2, 2);
                         break;
                     }
 
@@ -78,8 +78,8 @@ namespace Digger.Net
                                 k = 5;
                                 i--;
                                 color = 2;
-                                game.video.TextOutCentered("THIS KEY IS ALREADY USED", errorrow1, 2);
-                                game.video.TextOutCentered("CHOOSE ANOTHER KEY", errorrow2, 2);
+                                game.drawing.TextOutCentered("THIS KEY IS ALREADY USED", errorrow1, 2);
+                                game.drawing.TextOutCentered("CHOOSE ANOTHER KEY", errorrow2, 2);
                                 break; /* Try again if this key already used */
                             }
                         }

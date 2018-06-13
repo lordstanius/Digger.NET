@@ -3,11 +3,10 @@
 // C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
 using SDL2;
-using System;
 
-namespace Digger.Net
+namespace Digger.Source
 {
-    public class Video
+    public class Drawing
     {
         private const int BONUSES = Const.BONUSES;
         private const int BAGS = Const.BAGS;
@@ -53,66 +52,14 @@ namespace Digger.Net
         public int[] digspr = new int[DIGGERS];
         public int[] digspd = new int[DIGGERS];
         public int[] firespr = new int[FIREBALLS];
-        public bool isFullScreen;
 
         public readonly string EmptyLine = new string(' ', MAX_TEXT_LEN);
 
         private Game game;
-        private SDL_Video gfx;
 
-        public Video(Game game)
+        public Drawing(Game game)
         {
             this.game = game;
-        }
-
-        public VideoMode VideoMode { get; private set; } = Const.DEFAULT_VIDEO_MODE;
-
-        public void Initialize()
-        {
-            if (gfx == null)
-                gfx = new SDL_Video(VideoMode);
-
-            if (isFullScreen)
-                gfx.SetDisplayMode(isFullScreen);
-        }
-
-        public void UpdateScreen()
-        {
-            gfx.UpdateScreen();
-        }
-
-        public void SetVideoMode(VideoMode mode)
-        {
-            VideoMode = mode;
-            if (gfx != null && gfx.TrySetVideoMode(mode))
-                game.isVideoModeChanged = true;
-        }
-
-        public void SwitchDisplayMode()
-        {
-            isFullScreen = !isFullScreen;
-            if (!gfx.SetDisplayMode(isFullScreen))
-                throw new SystemException($"Couldn't set {(isFullScreen ? "fullscreen" : "windowed")} display.");
-        }
-
-        public void GetImage(int x, int y, ref Surface surface, int width, int heigth)
-        {
-            gfx.GetImage(x, y, ref surface, width, heigth);
-        }
-
-        public void PutImage(int x, int y, Surface surface, int width, int heigth)
-        {
-            gfx.PutImage(x, y, surface, width, heigth);
-        }
-
-        public void PutImage(int x, int y, int ch, int width, int heigth)
-        {
-            gfx.PutImage(x, y, ch, width, heigth);
-        }
-
-        public void WriteChar(int x, int y, char ch, int color)
-        {
-            gfx.WriteChar(x, y, ch, color);
         }
 
         private void TextOut(string text, int x, int y, int c, int l)
@@ -122,14 +69,9 @@ namespace Digger.Net
 #endif
             for (int i = 0; i < l; i++)
             {
-                gfx.WriteChar(x, y, Alpha.IsValidChar(text[i]) ? text[i] : ' ', c);
+                game.gfx.WriteChar(x, y, Alpha.IsValidChar(text[i]) ? text[i] : ' ', c);
                 x += CHR_W;
             }
-        }
-
-        public void Clear()
-        {
-            gfx.Clear();
         }
 
         public void TextOut(string text, int x, int y, int c)
@@ -181,14 +123,9 @@ namespace Digger.Net
                         field[y * MWIDTH + x] = field1[y * MWIDTH + x];
                     else
                         field[y * MWIDTH + x] = field2[y * MWIDTH + x];
-            gfx.SetIntensity(0);
+            game.gfx.SetIntensity(0);
             DrawBackground(Level.LevelPlan(game.LevelNo));
             DrawField();
-        }
-
-        public void SetIntensity(int intensity)
-        {
-            gfx.SetIntensity(intensity);
         }
 
         public void SaveField()
@@ -297,15 +234,10 @@ namespace Digger.Net
             for (int i = 0; i < n; i++)
             {
                 p = 1 - p;
-                gfx.SetIntensity(p);
+                game.gfx.SetIntensity(p);
                 game.timer.SyncFrame();
-                gfx.UpdateScreen();
+                game.gfx.UpdateScreen();
             }
-        }
-
-        public byte GetPixel(int x, int y)
-        {
-            return gfx.GetPixel(x, y);
         }
 
         public void CreateMonsterBagSprites()
@@ -328,11 +260,6 @@ namespace Digger.Net
                 game.sprites.InitializeSprite(FIRSTMONSTER + i, 71, 4, 15, 0, 0);
 
             InitDiggerBonusFireballSprites();
-        }
-
-        public void DrawTitleScreen()
-        {
-            gfx.DrawTitleScreen();
         }
 
         public void DrawGold(int n, int t, int x, int y)

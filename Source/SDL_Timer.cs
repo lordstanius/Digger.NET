@@ -1,6 +1,6 @@
 using SDL2;
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public class SDL_Timer
     {

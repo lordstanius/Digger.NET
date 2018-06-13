@@ -2,7 +2,7 @@ using SDL2;
 using System;
 using System.Runtime.InteropServices;
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public class SDL_Sound
     {

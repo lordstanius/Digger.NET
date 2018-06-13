@@ -4,17 +4,19 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public enum VideoMode { CGA, VGA };
 
-    public class SDL_Video
+    public class Video
     {
         private struct CharSurfacePlain
         {
             public byte[][] sprites;
             public Surface[] caches;
         };
+
+        public bool isFullScreen;
 
         private IntPtr window;
         private IntPtr renderer;
@@ -30,10 +32,15 @@ namespace Digger.Net
 
         private Func<byte, int, byte> GetPixelColorFromMask;
 
-        public SDL_Video(VideoMode mode)
+        public VideoMode VideoMode { get; private set; }
+        public CGA_Palette CgaPalette { get; private set; }
+        public IntPtr Window => window;
+
+        public void Init(VideoMode mode)
         {
+            VideoMode = mode;
             if (mode == VideoMode.CGA)
-                InitializeCGA();
+                InitializeCGA(CGA_Palette.RedGoldGreen);
             else
                 InitializeVGA();
 
@@ -41,9 +48,6 @@ namespace Digger.Net
             CreateWindow();
             CreateGraphics();
         }
-
-        public VideoMode VideoMode { get; private set; }
-        public IntPtr Window => window;
 
         private void CreateCaches()
         {
@@ -116,14 +120,6 @@ namespace Digger.Net
             SetPallete(palettes[inten & 1]);
         }
 
-        public bool SetDisplayMode(bool isFullScreen)
-        {
-            if (isFullScreen)
-                return SDL.SDL_SetWindowFullscreen(window, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) == 0;
-            else
-                return SDL.SDL_SetWindowFullscreen(window, 0) == 0;
-        }
-
         public void UpdateScreen()
         {
             SDL.SDL_BlitSurface(screen16, IntPtr.Zero, screen, IntPtr.Zero);
@@ -133,7 +129,7 @@ namespace Digger.Net
             SDL.SDL_RenderPresent(renderer);
         }
 
-        public bool TrySetVideoMode(VideoMode mode)
+        public bool SetVideoMode(VideoMode mode)
         {
             if (mode == VideoMode)
                 return false;
@@ -145,13 +141,30 @@ namespace Digger.Net
             if (mode == VideoMode.VGA)
                 InitializeVGA();
             else
-                InitializeCGA();
+                InitializeCGA(CgaPalette);
 
             CreateGraphics();
             CreateCaches();
             SetIntensity(0);
+            VideoMode = mode;
 
             return true;
+        }
+
+        public void SwitchFullscreenWindow()
+        {
+            isFullScreen = !isFullScreen;
+            bool isChanged = SetFullscreenWindow();
+            if (!isChanged) // revert
+                isFullScreen = !isFullScreen;
+        }
+
+        public bool SetFullscreenWindow()
+        {
+            if (isFullScreen)
+                return SDL.SDL_SetWindowFullscreen(window, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) == 0;
+
+            return SDL.SDL_SetWindowFullscreen(window, 0) == 0;
         }
 
         private void ReleaseCaches()
@@ -300,7 +313,7 @@ namespace Digger.Net
             int[] lookup = new int[bmp.Palette.Entries.Length];
             for (int i = 0; i < lookup.Length; i++)
                 lookup[i] = GetColorIndex(npalette, bmp.Palette.Entries[i]);
-            
+
             byte[] pixels = new byte[rect.Width * rect.Height];
             for (int i = 0; i < pixels.Length; i++)
                 pixels[i] = (byte)lookup[Marshal.ReadByte(bitmapData.Scan0, i)];
@@ -390,10 +403,20 @@ namespace Digger.Net
             screenRatio = 2;
         }
 
-        private void InitializeCGA()
+        private void InitializeCGA(CGA_Palette palette)
         {
-            npalette = CreatePaletteRGB(CgaGrafx.Palette2);
-            ipalette = CreatePaletteRGB(CgaGrafx.Palette2i);
+            switch (palette)
+            {
+                case CGA_Palette.RedGoldGreen:
+                    npalette = CreatePaletteRGB(CgaGrafx.Palette1);
+                    ipalette = CreatePaletteRGB(CgaGrafx.Palette1i);
+                    break;
+                case CGA_Palette.CyanMagentaWhite:
+                    npalette = CreatePaletteRGB(CgaGrafx.Palette2);
+                    ipalette = CreatePaletteRGB(CgaGrafx.Palette2i);
+                    break;
+            }
+
             palettes = new SDL.SDL_Color[][] { npalette, ipalette };
 
             alphas.sprites = DecompressAlpha(Alpha.ascii2cga);
@@ -514,6 +537,7 @@ namespace Digger.Net
         private int Virtual2ScreenX(int x) => x * screenRatio;
         private int Virtual2ScreenY(int y) => y * screenRatio;
         private int Virtual2ScreenW(int w) => w * screenRatio * 4;
+
         private int Virtual2ScreenH(int h) => h * screenRatio;
     }
 }

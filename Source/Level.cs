@@ -5,7 +5,7 @@
 using System.IO;
 using System.Text;
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public static class Level
     {
@@ -105,6 +105,7 @@ namespace Digger.Net
             level = LevelPlan(level);
             if ((level == 3 || level == 4) && !IsUsingLevelFile && diggerCount == 2 && y == 9 && (x == 6 || x == 8))
                 return 'H';
+
             return Data[level - 1, y][x];
         }
 

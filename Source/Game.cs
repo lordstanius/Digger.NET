@@ -2,9 +2,10 @@
    Copyright (c) Andrew Jenner 1998-2004 */
 // C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
+using Digger.Source;
 using System;
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public class GameData
     {
@@ -94,7 +95,7 @@ namespace Digger.Net
         public bool isVideoModeChanged;
         public bool shouldExit;
 
-        public Video video;
+        public Drawing drawing;
         public Sprites sprites;
         public SDL_Timer timer;
         public Scores scores;
@@ -105,11 +106,13 @@ namespace Digger.Net
         public Bags bags;
         public Diggers diggers;
         public Emeralds emeralds;
+        public Video gfx;
 
         private bool quiet = false;
         private int penalty = 0;
         private int randVal;
         private bool flashplayer;
+        private VideoMode initialVideoMode = Const.DEFAULT_VIDEO_MODE;
 
         public Game()
         {
@@ -117,13 +120,30 @@ namespace Digger.Net
             sound = new Sound(this);
             input = new Input(this);
             sprites = new Sprites(this);
-            video = new Video(this);
+            drawing = new Drawing(this);
             emeralds = new Emeralds(this);
             diggers = new Diggers(this);
             scores = new Scores(this);
             record = new Recording(this);
             monsters = new Monsters(this);
             bags = new Bags(this);
+            gfx = new Video();
+        }
+
+        public void Init()
+        {
+            if (isInitialized)
+                return;
+
+            gameData = new[] { new GameData(), new GameData() };
+            foreach (var game in gameData)
+                game.level = startingLevel;
+
+            gfx.Init(initialVideoMode);
+            gfx.SetFullscreenWindow();
+            sound.Init();
+
+            isInitialized = true;
         }
 
         public short RandNo(int n)
@@ -182,12 +202,9 @@ namespace Digger.Net
 
             string videoModeStr = Ini.GetINIString(INI_GRAPHICS_SETTINGS, "VideoMode", null, INI_FILE_NAME);
             if (videoModeStr != null)
-            {
-                var videoMode = (VideoMode)Enum.Parse(typeof(VideoMode), videoModeStr);
-                video.SetVideoMode(videoMode);
-            }
+                initialVideoMode = (VideoMode)Enum.Parse(typeof(VideoMode), videoModeStr);
 
-            video.isFullScreen = Ini.GetINIBool(INI_GRAPHICS_SETTINGS, "Fullscreen", false, INI_FILE_NAME);
+            gfx.isFullScreen = Ini.GetINIBool(INI_GRAPHICS_SETTINGS, "Fullscreen", false, INI_FILE_NAME);
             hasUnlimitedLives = Ini.GetINIBool(INI_GAME_SETTINGS, "UnlimitedLives", false, INI_FILE_NAME);
             startingLevel = Ini.GetINIInt(INI_GAME_SETTINGS, "StartLevel", 1, INI_FILE_NAME);
         }
@@ -214,11 +231,11 @@ namespace Digger.Net
             if (!sound.isMusicEnabled)
                 Ini.WriteINIBool(INI_SOUND_SETTINGS, "MusicOn", sound.isMusicEnabled, INI_FILE_NAME);
 
-            if (video.isFullScreen)
-                Ini.WriteINIBool(INI_GRAPHICS_SETTINGS, "Fullscreen", video.isFullScreen, INI_FILE_NAME);
+            if (gfx.isFullScreen)
+                Ini.WriteINIBool(INI_GRAPHICS_SETTINGS, "Fullscreen", gfx.isFullScreen, INI_FILE_NAME);
 
-            if (video.VideoMode != Const.DEFAULT_VIDEO_MODE)
-                Ini.WriteINIString(INI_GRAPHICS_SETTINGS, "VideoMode", video.VideoMode.ToString(), INI_FILE_NAME);
+            if (gfx.VideoMode != Const.DEFAULT_VIDEO_MODE)
+                Ini.WriteINIString(INI_GRAPHICS_SETTINGS, "VideoMode", gfx.VideoMode.ToString(), INI_FILE_NAME);
 
             if (hasUnlimitedLives)
                 Ini.GetINIBool(INI_GAME_SETTINGS, "UnlimitedLives", hasUnlimitedLives, INI_FILE_NAME);
@@ -265,14 +282,14 @@ namespace Digger.Net
                     }
 
                     if (argch == 'F')
-                        video.isFullScreen = true;
+                        gfx.isFullScreen = true;
 
                     if (argch == 'R')
                         record.SetRecordName(word.Substring(i));
 
                     if (argch == 'P' || argch == 'E')
                     {
-                        Initialize();
+                        Init();
                         try
                         {
                             record.OpenPlay(word.Substring(i));
@@ -338,7 +355,7 @@ namespace Digger.Net
                         diggerCount = 2;
 
                     if (argch == 'B' || argch == 'C')
-                        video.SetVideoMode(VideoMode.CGA);
+                        isVideoModeChanged = gfx.SetVideoMode(VideoMode.CGA);
 
                     if (argch == 'K')
                     {
@@ -449,21 +466,6 @@ namespace Digger.Net
             Console.WriteLine("/I = Start on a level other than 1");
         }
 
-        public void Initialize()
-        {
-            if (isInitialized)
-                return;
-
-            gameData = new[] { new GameData(), new GameData() };
-            foreach (var game in gameData)
-                game.level = startingLevel;
-
-            video.Initialize();
-            sound.Initialize();
-
-            isInitialized = true;
-        }
-
         public void Start()
         {
             if (isGameCycleEnded)
@@ -481,10 +483,10 @@ namespace Digger.Net
             do
             {
                 sound.StopSound();
-                video.CreateMonsterBagSprites();
-                video.Clear();
-                video.DrawTitleScreen();
-                video.TextOut("D I G G E R", 100, 0, 3);
+                drawing.CreateMonsterBagSprites();
+                gfx.Clear();
+                gfx.DrawTitleScreen();
+                drawing.TextOut("D I G G E R", 100, 0, 3);
                 ShownPlayers();
                 scores.ShowTable();
                 isStarted = false;
@@ -503,7 +505,7 @@ namespace Digger.Net
 
                     if (frame == 0)
                         for (t = 54; t < 174; t += 12)
-                            video.EraseText(12, 164, t, 0);
+                            drawing.EraseText(12, 164, t, 0);
 
                     if (frame == 50)
                     {
@@ -525,7 +527,7 @@ namespace Digger.Net
                         nobbin.Animate();
 
                     if (frame == 83)
-                        video.TextOut("NOBBIN", 216, 64, 2);
+                        drawing.TextOut("NOBBIN", 216, 64, 2);
 
                     if (frame == 90)
                     {
@@ -550,7 +552,7 @@ namespace Digger.Net
                         hobbin.Animate();
 
                     if (frame == 123)
-                        video.TextOut("HOBBIN", 216, 83, 2);
+                        drawing.TextOut("HOBBIN", 216, 83, 2);
 
                     if (frame == 130)
                     {
@@ -568,28 +570,28 @@ namespace Digger.Net
                         odigger.Animate();
 
                     if (frame == 163)
-                        video.TextOut("DIGGER", 216, 102, 2);
+                        drawing.TextOut("DIGGER", 216, 102, 2);
 
                     if (frame == 178)
                     {
                         sprites.MoveDrawSprite(FIRSTBAG, 184, 120);
-                        video.DrawGold(0, 0, 184, 120);
+                        drawing.DrawGold(0, 0, 184, 120);
                     }
 
                     if (frame == 183)
-                        video.TextOut("GOLD", 216, 121, 2);
+                        drawing.TextOut("GOLD", 216, 121, 2);
 
                     if (frame == 198)
-                        video.DrawEmerald(184, 141);
+                        drawing.DrawEmerald(184, 141);
 
                     if (frame == 203)
-                        video.TextOut("EMERALD", 216, 140, 2);
+                        drawing.TextOut("EMERALD", 216, 140, 2);
 
                     if (frame == 218)
-                        video.DrawBonus(184, 158);
+                        drawing.DrawBonus(184, 158);
 
                     if (frame == 223)
-                        video.TextOut("BONUS", 216, 159, 2);
+                        drawing.TextOut("BONUS", 216, 159, 2);
 
                     if (frame == 235)
                         nobbin.Damage();
@@ -645,7 +647,7 @@ namespace Digger.Net
 
             timer.SyncFrame();
             input.CheckKeyBuffer();
-            video.UpdateScreen();
+            gfx.UpdateScreen();
         }
 
         public void Run()
@@ -659,7 +661,7 @@ namespace Digger.Net
 
             diggers.InitializeLives();
             isEverybodyDead = false;
-            video.Clear();
+            gfx.Clear();
             currentPlayer = 0;
             InitalizeLevel();
             currentPlayer = 1;
@@ -674,7 +676,7 @@ namespace Digger.Net
             {
                 while (!isEverybodyDead && !isGameCycleEnded && !isTimeOut && !isVideoModeChanged)
                 {
-                    video.InitMonsterBagSprites();
+                    drawing.InitMonsterBagSprites();
                     Play();
                 }
 
@@ -704,7 +706,7 @@ namespace Digger.Net
                     {
                         for (int c = 1; c <= 3; c++)
                         {
-                            video.TextOut(playerName, 108, 0, c);
+                            drawing.TextOut(playerName, 108, 0, c);
                             scores.WriteCurrentScore(c);
                             NewFrame();
                             if (isGameCycleEnded)
@@ -719,7 +721,7 @@ namespace Digger.Net
             else
                 InitializeChars();
 
-            video.EraseText(8, 108, 0, 3);
+            drawing.EraseText(8, 108, 0, 3);
             scores.InitializeScores();
             diggers.DrawLives();
             sound.Music(1);
@@ -761,7 +763,7 @@ namespace Digger.Net
 
             diggers.EraseBonus();
             bags.Cleanup();
-            video.SaveField();
+            drawing.SaveField();
             monsters.EraseMonsters();
             record.PutEndOfLevel();
             if (record.IsPlaying)
@@ -818,11 +820,11 @@ namespace Digger.Net
 
         public void ShownPlayers()
         {
-            video.EraseText(10, 180, 25, 3);
-            video.EraseText(12, 170, 39, 3);
+            drawing.EraseText(10, 180, 25, 3);
+            drawing.EraseText(12, 170, 39, 3);
             GameMode gmp = possible_modes[GetNMode()];
-            video.TextOut(gmp.title[0].text, gmp.title[0].xpos, 25, 3);
-            video.TextOut(gmp.title[1].text, gmp.title[1].xpos, 39, 3);
+            drawing.TextOut(gmp.title[0].text, gmp.title[0].xpos, 25, 3);
+            drawing.TextOut(gmp.title[1].text, gmp.title[1].xpos, 39, 3);
         }
 
         public int GetAllLives()
@@ -845,27 +847,27 @@ namespace Digger.Net
         public void InitalizeLevel()
         {
             gameData[currentPlayer].isLevelDone = false;
-            video.MakeField();
+            drawing.MakeField();
             emeralds.MakeEmeraldField();
-            bags.Initialize();
+            bags.Init();
             levelNotDrawn = true;
         }
 
         public void DrawScreen()
         {
-            video.CreateMonsterBagSprites();
-            video.DrawStatistics();
+            drawing.CreateMonsterBagSprites();
+            drawing.DrawStatistics();
             bags.DrawBags();
             emeralds.DrawEmeralds();
             diggers.InitializeDiggers();
-            monsters.Initialize();
+            monsters.Init();
         }
 
         public void InitializeChars()
         {
-            video.InitMonsterBagSprites();
+            drawing.InitMonsterBagSprites();
             diggers.InitializeDiggers();
-            monsters.Initialize();
+            monsters.Init();
         }
 
         public void CheckIsLevelDone()
@@ -881,8 +883,8 @@ namespace Digger.Net
 
         public void ClearTopLine()
         {
-            video.EraseText(26, 0, 0, 3);
-            video.EraseText(1, 308, 0, 3);
+            drawing.EraseText(26, 0, 0, 3);
+            drawing.EraseText(1, 308, 0, 3);
         }
 
         public void SetDead(bool df)
@@ -898,7 +900,7 @@ namespace Digger.Net
                 sound.SetT2Val(40);
                 sound.SetSoundT2();
                 ClearTopLine();
-                video.TextOut("PRESS ANY KEY", 80, 0, 1);
+                drawing.TextOut("PRESS ANY KEY", 80, 0, 1);
                 NewFrame();
                 input.GetKey(true);
                 ClearTopLine();
@@ -925,7 +927,7 @@ namespace Digger.Net
                 char cp = allargs[i];
                 if (c == cp)
                 {
-                    hasopt = allargs[i + 1] == ':';
+                    hasopt = allargs.Length < i + 1 && allargs[i + 1] == ':';
                     return c;
                 }
             }

@@ -28,7 +28,7 @@
  */
 // C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public struct Position
     {

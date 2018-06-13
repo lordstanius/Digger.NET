@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public class Recording
     {

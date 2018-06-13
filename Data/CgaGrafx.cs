@@ -2,11 +2,12 @@
 Copyright (c) Andrew Jenner 1998-2004 */
 // C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public static class CgaGrafx
     {
-        /* palette1, normal intensity */
+        /* Red, Gold and Green palette
+         * normal intensity */
         public static readonly byte[,] Palette1 = {
             {0,0,0,0}, // r, g, b, a
             {0,170,0,0},
@@ -14,15 +15,16 @@ namespace Digger.Net
             {170,85,0,0}
         };
 
-        /* palette1, high intensity */
-        public static readonly byte[,] Pallette1i = {
+        /* high intensity */
+        public static readonly byte[,] Palette1i = {
             {0,0,0,0},
             {85,255,85,0},
             {255,85,85,0},
             {255,255,85,0}
         };
 
-        /* palette2, normal intensity */
+        /* Cyan, Magenta, White palette, 
+         * normal intensity */
         public static readonly byte[,] Palette2 = {
             {0,0,0,0},
             {0,128,128,0},
@@ -30,7 +32,7 @@ namespace Digger.Net
             {160,160,160,0}
         };
 
-        /* palette2, high intensity */
+        /* high intensity */
         public static readonly byte[,] Palette2i = {
             {0,0,0,0},
             {0,255,255,0},

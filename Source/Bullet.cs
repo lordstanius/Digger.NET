@@ -28,7 +28,7 @@
  */
 // C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public class Bullet
     {
@@ -61,7 +61,7 @@ namespace Digger.Net
         public void Animate()
         {
             System.Diagnostics.Debug.Assert(expsn < 4);
-            game.video.DrawFire(id, x, y, expsn);
+            game.drawing.DrawFire(id, x, y, expsn);
             if (expsn > 0)
             {
                 if (expsn == 1)

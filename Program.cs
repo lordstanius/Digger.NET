@@ -1,4 +1,4 @@
-﻿namespace Digger.Net
+﻿namespace Digger.Source
 {
     class Program
     {
@@ -8,7 +8,7 @@
 
             game.LoadSettings();
             game.ParseCmdLine(args);
-            game.Initialize();
+            game.Init();
             game.Start();
             game.SaveSettings();
         }

@@ -1,4 +1,4 @@
-namespace Digger.Net
+namespace Digger.Source
 {
     public static class Icon
     {

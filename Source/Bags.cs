@@ -2,7 +2,7 @@
    Copyright (c) Andrew Jenner 1998-2004 */
 // C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public struct Bag
     {
@@ -40,7 +40,7 @@ namespace Digger.Net
             this.game = game;
         }
 
-        public void Initialize()
+        public void Init()
         {
             short bag, x, y;
             pushcount = 0;
@@ -130,17 +130,17 @@ namespace Digger.Net
                     if (bagdat[bag].gt == 1)
                     {
                         game.sound.SoundBreak();
-                        game.video.DrawGold(bag, 4, bagdat[bag].x, bagdat[bag].y);
+                        game.drawing.DrawGold(bag, 4, bagdat[bag].x, bagdat[bag].y);
                         game.IncreasePenalty();
                     }
                     if (bagdat[bag].gt == 3)
                     {
-                        game.video.DrawGold(bag, 5, bagdat[bag].x, bagdat[bag].y);
+                        game.drawing.DrawGold(bag, 5, bagdat[bag].x, bagdat[bag].y);
                         game.IncreasePenalty();
                     }
                     if (bagdat[bag].gt == 5)
                     {
-                        game.video.DrawGold(bag, 6, bagdat[bag].x, bagdat[bag].y);
+                        game.drawing.DrawGold(bag, 6, bagdat[bag].x, bagdat[bag].y);
                         game.IncreasePenalty();
                     }
                     bagdat[bag].gt++;
@@ -195,7 +195,7 @@ namespace Digger.Net
                             wbl = bagdat[bag].wt % 8;
                             if ((wbl & 1) == 0)
                             {
-                                game.video.DrawGold(bag, wblanim[wbl >> 1], x, y);
+                                game.drawing.DrawGold(bag, wblanim[wbl >> 1], x, y);
                                 game.IncreasePenalty();
                                 game.sound.SoundWobble();
                             }
@@ -260,7 +260,7 @@ namespace Digger.Net
             bagdat[bag].dir = Dir.None;
             bagdat[bag].wt = 15;
             bagdat[bag].wobbling = false;
-            game.video.DrawGold(bag, 0, bagdat[bag].x, bagdat[bag].y);
+            game.drawing.DrawGold(bag, 0, bagdat[bag].x, bagdat[bag].y);
             for (int i = 0; i < TYPES; i++)
                 clfirst[i] = game.sprites.first[i];
 
@@ -296,7 +296,7 @@ namespace Digger.Net
 
             if (bagdat[bag].dir == Dir.Down && (dir == Dir.Right || dir == Dir.Left))
             {
-                game.video.DrawGold(bag, 3, x, y);
+                game.drawing.DrawGold(bag, 3, x, y);
                 for (i = 0; i < TYPES; i++)
                     clfirst[i] = game.sprites.first[i];
 
@@ -336,12 +336,12 @@ namespace Digger.Net
                         if (bagdat[bag].unfallen)
                         {
                             bagdat[bag].unfallen = false;
-                            game.video.DrawSquareBlob(x, y);
-                            game.video.DrawTopBlob(x, y + 21);
+                            game.drawing.DrawSquareBlob(x, y);
+                            game.drawing.DrawTopBlob(x, y + 21);
                         }
                         else
-                            game.video.DrawFurryBlob(x, y);
-                        game.video.EatField(x, y, dir);
+                            game.drawing.DrawFurryBlob(x, y);
+                        game.drawing.EatField(x, y, dir);
                         game.emeralds.KillEmerald(h, v);
                         y += 6;
                         break;
@@ -349,7 +349,7 @@ namespace Digger.Net
                 switch (dir)
                 {
                     case Dir.Down:
-                        game.video.DrawGold(bag, 3, x, y);
+                        game.drawing.DrawGold(bag, 3, x, y);
                         for (i = 0; i < TYPES; i++)
                             clfirst[i] = game.sprites.first[i];
                         for (i = 0; i < SPRITES; i++)
@@ -369,7 +369,7 @@ namespace Digger.Net
                     case Dir.Left:
                         bagdat[bag].wt = 15;
                         bagdat[bag].wobbling = false;
-                        game.video.DrawGold(bag, 0, x, y);
+                        game.drawing.DrawGold(bag, 0, x, y);
                         for (i = 0; i < TYPES; i++)
                             clfirst[i] = game.sprites.first[i];
                         for (i = 0; i < SPRITES; i++)
@@ -381,7 +381,7 @@ namespace Digger.Net
                             {
                                 x = ox;
                                 y = oy;
-                                game.video.DrawGold(bag, 0, ox, oy);
+                                game.drawing.DrawGold(bag, 0, ox, oy);
                                 game.IncreasePenalty();
                                 push = false;
                             }
@@ -397,7 +397,7 @@ namespace Digger.Net
                         {
                             x = ox;
                             y = oy;
-                            game.video.DrawGold(bag, 0, ox, oy);
+                            game.drawing.DrawGold(bag, 0, ox, oy);
                             game.IncreasePenalty();
                             push = false;
                         }
@@ -495,7 +495,7 @@ namespace Digger.Net
 
         private void GetGold(int bag)
         {
-            game.video.DrawGold(bag, 6, bagdat[bag].x, bagdat[bag].y);
+            game.drawing.DrawGold(bag, 6, bagdat[bag].x, bagdat[bag].y);
             game.IncreasePenalty();
             int i = game.sprites.first[4];
             bool f = true;

@@ -17,7 +17,7 @@ using System.Runtime.InteropServices;
 
 using SDL2;
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public class SDL_Input
     {
@@ -109,7 +109,7 @@ namespace Digger.Net
                     sdlEvent.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) &&
                     ((sdlEvent.key.keysym.mod & SDL.SDL_Keymod.KMOD_ALT) != 0))
                 {
-                    game.video.SwitchDisplayMode();
+                    game.gfx.SwitchFullscreenWindow();
                 }
             }
 

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Digger.Net.Properties {
+namespace Digger.Source.Properties {
     using System;
     
     

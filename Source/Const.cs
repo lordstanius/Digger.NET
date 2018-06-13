@@ -1,4 +1,6 @@
-﻿namespace Digger.Net
+﻿using Digger.Source;
+
+namespace Digger.Source
 {
     public static class Dir
     {
@@ -20,6 +22,8 @@
             return dir;
         }
     }
+
+    public enum CGA_Palette { RedGoldGreen, CyanMagentaWhite }
 
     public static class Const
     {
@@ -65,5 +69,7 @@
         /// Third word: compilation date in yyyymmdd format.
         /// </summary>
         public const string DIGGER_VERSION = "MS SDL 20180419";
+
+        internal const CGA_Palette CGA_PALETTE = CGA_Palette.CyanMagentaWhite;
     }
 }

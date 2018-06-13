@@ -30,7 +30,7 @@
 
 using System;
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public class Digger
     {
@@ -63,7 +63,7 @@ namespace Digger.Net
 
         public void Animate()
         {
-            game.video.DrawDigger(id, dir, x, y, canFire);
+            game.drawing.DrawDigger(id, dir, x, y, canFire);
         }
 
         public void Discharge()

@@ -1,4 +1,4 @@
-﻿namespace Digger.Net
+﻿namespace Digger.Source
 {
     public class Emeralds
     {
@@ -11,12 +11,12 @@
         private readonly byte[] emeraldField = new byte[MSIZE];
 
         private Game game;
-        private Video video;
+        private Drawing video;
 
         public Emeralds(Game game)
         {
             this.game = game;
-            this.video = game.video;
+            this.video = game.drawing;
         }
 
         public void DrawEmeralds()

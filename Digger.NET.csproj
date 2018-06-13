@@ -49,23 +49,23 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\Sounds.cs" />
-    <Compile Include="Game\Const.cs" />
-    <Compile Include="Game\Emeralds.cs" />
-    <Compile Include="Game\Level.cs" />
-    <Compile Include="Game\Monsters.cs" />
+    <Compile Include="Source\Const.cs" />
+    <Compile Include="Source\Emeralds.cs" />
+    <Compile Include="Source\Level.cs" />
+    <Compile Include="Source\Monsters.cs" />
     <Compile Include="Data\Alpha.cs" />
-    <Compile Include="Engine\Video.cs" />
+    <Compile Include="Source\Drawing.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Game\Bags.cs" />
-    <Compile Include="Game\Bullet.cs" />
+    <Compile Include="Source\Bags.cs" />
+    <Compile Include="Source\Bullet.cs" />
     <Compile Include="Data\CgaGrafx.cs" />
-    <Compile Include="Game\Diggers.cs" />
-    <Compile Include="Engine\Math.cs" />
-    <Compile Include="Game\Digger.cs" />
-    <Compile Include="Engine\SDL_Video.cs" />
+    <Compile Include="Source\Diggers.cs" />
+    <Compile Include="Source\Math.cs" />
+    <Compile Include="Source\Digger.cs" />
+    <Compile Include="Source\Video.cs" />
     <Compile Include="Data\Icon.cs" />
     <Compile Include="Properties\Resource.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -75,18 +75,18 @@
     <Compile Include="SDL2_bindings\SDL2.cs" />
     <Compile Include="SDL2_bindings\Surface.cs" />
     <Compile Include="Utility\Ini.cs" />
-    <Compile Include="Engine\Input.cs" />
-    <Compile Include="Engine\Keyboard.cs" />
-    <Compile Include="Game\Game.cs" />
+    <Compile Include="Source\Input.cs" />
+    <Compile Include="Source\Keyboard.cs" />
+    <Compile Include="Source\Game.cs" />
     <Content Include="digger.ico" />
-    <Compile Include="Game\Monster.cs" />
-    <Compile Include="Game\Recording.cs" />
-    <Compile Include="Game\Scores.cs" />
-    <Compile Include="Engine\SDL_Input.cs" />
-    <Compile Include="Engine\SDL_Sound.cs" />
-    <Compile Include="Engine\SDL_Timer.cs" />
-    <Compile Include="Engine\Sound.cs" />
-    <Compile Include="Game\Sprites.cs" />
+    <Compile Include="Source\Monster.cs" />
+    <Compile Include="Source\Recording.cs" />
+    <Compile Include="Source\Scores.cs" />
+    <Compile Include="Source\SDL_Input.cs" />
+    <Compile Include="Source\SDL_Sound.cs" />
+    <Compile Include="Source\SDL_Timer.cs" />
+    <Compile Include="Source\Sound.cs" />
+    <Compile Include="Source\Sprites.cs" />
     <Compile Include="Utility\Log.cs" />
     <Compile Include="Utility\StdLib.cs" />
     <Compile Include="Data\VgaGrafx.cs" />

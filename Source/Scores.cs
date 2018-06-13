@@ -5,7 +5,7 @@
 using System.IO;
 using System.Text;
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public class Scores
     {
@@ -26,12 +26,12 @@ namespace Digger.Net
         public const string SFNAME = "DIGGER.SCO";
 
         private readonly Game game;
-        private readonly Video video;
+        private readonly Drawing video;
 
         public Scores(Game game)
         {
             this.game = game;
-            this.video = game.video;
+            this.video = game.drawing;
         }
 
         private void ReadScores()
@@ -185,7 +185,7 @@ namespace Digger.Net
             if (game.isGauntletMode)
             {
                 game.ClearTopLine();
-                game.video.TextOut("TIME UP", 120, 0, 3);
+                game.drawing.TextOut("TIME UP", 120, 0, 3);
                 for (int i = 0; i < 50 && !game.isGameCycleEnded; i++)
                     game.NewFrame();
                 video.EraseText(7, 120, 0, 3);
@@ -195,7 +195,7 @@ namespace Digger.Net
                 scoret = scdat[i].score;
                 if (scoret > scorehigh[11])
                 {
-                    video.Clear();
+                    game.gfx.Clear();
                     DrawScores();
                     game.playerName = $"PLAYER {(i == 0 ? 1 : 2)}";
                     video.TextOut(game.playerName, 108, 0, 2);
@@ -273,7 +273,7 @@ namespace Digger.Net
                 }
                 if (k != 0)
                 {
-                    video.WriteChar(i * 24 + 128, 130, (char)k, 1);
+                    game.gfx.WriteChar(i * 24 + 128, 130, (char)k, 1);
                     initials[i] = (char)k;
                 }
             }
@@ -281,14 +281,14 @@ namespace Digger.Net
             video.FlashyWait(15);
 
             game.sound.SetupSound();
-            video.Clear();
-            video.SetIntensity(0);
+            game.gfx.Clear();
+            game.gfx.SetIntensity(0);
             game.record.PutInitials(scoreinit[0]);
         }
 
         public int GetInitial(int x, int y)
         {
-            video.WriteChar(x, y, '_', 3);
+            game.gfx.WriteChar(x, y, '_', 3);
 
             do
             {
@@ -308,7 +308,7 @@ namespace Digger.Net
                 {
                     if (game.input.IsKeyboardHit)
                     {
-                        video.WriteChar(x, y, '_', 3);
+                        game.gfx.WriteChar(x, y, '_', 3);
                         return game.input.GetKey(false);
                     }
                     video.FlashyWait(15);
@@ -374,7 +374,7 @@ namespace Digger.Net
             {
                 int d = n % 10;
                 if (w > 1 || d > 0)
-                    video.WriteChar(xp, y, (char)(d + '0'), c);
+                    game.gfx.WriteChar(xp, y, (char)(d + '0'), c);
 
                 n /= 10;
                 w--;

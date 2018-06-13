@@ -4,7 +4,7 @@
 
 using SDL2;
 
-namespace Digger.Net
+namespace Digger.Source
 {
     public class Sprites
     {
@@ -63,7 +63,7 @@ namespace Digger.Net
             ClearRedrawFlag();
             SetRedrawFlags(n);
             RedrawBackgroudImages();
-            game.video.GetImage(spriteX[n], spriteY[n], ref spriteBuffer[n], spriteWidth[n], spriteHeigth[n]);
+            game.gfx.GetImage(spriteX[n], spriteY[n], ref spriteBuffer[n], spriteWidth[n], spriteHeigth[n]);
             spriteEnabledFlag[n] = true;
             spriteNeedsRedrawFlag[n] = true;
             DrawActualSprites();
@@ -73,7 +73,7 @@ namespace Digger.Net
         {
             if (!spriteEnabledFlag[n])
                 return;
-            game.video.PutImage(spriteX[n], spriteY[n], spriteBuffer[n], spriteWidth[n], spriteHeigth[n]);
+            game.gfx.PutImage(spriteX[n], spriteY[n], spriteBuffer[n], spriteWidth[n], spriteHeigth[n]);
             spriteEnabledFlag[n] = false;
             ClearRedrawFlag();
             SetRedrawFlags(n);
@@ -109,7 +109,7 @@ namespace Digger.Net
             spriteHeigth[n] = newSpriteHeigth[n];
             spriteBorderWidth[n] = newSpriteBorderWidth[n];
             spriteBorderHeigth[n] = newSpriteBorderHeight[n];
-            game.video.GetImage(spriteX[n], spriteY[n], ref spriteBuffer[n], spriteWidth[n], spriteHeigth[n]);
+            game.gfx.GetImage(spriteX[n], spriteY[n], ref spriteBuffer[n], spriteWidth[n], spriteHeigth[n]);
 
             DrawActualSprites();
             CreateCollisionLinkedList(n);
@@ -139,7 +139,7 @@ namespace Digger.Net
         {
             for (int i = 0; i < SPRITES; i++)
                 if (spriteNeedsRedrawFlag[i])
-                    game.video.GetImage(spriteX[i], spriteY[i], ref spriteBuffer[i], spriteWidth[i], spriteHeigth[i]);
+                    game.gfx.GetImage(spriteX[i], spriteY[i], ref spriteBuffer[i], spriteWidth[i], spriteHeigth[i]);
             DrawActualSprites();
         }
 
@@ -150,7 +150,7 @@ namespace Digger.Net
             spriteChar[SPRITES] = ch;
             spriteWidth[SPRITES] = wid;
             spriteHeigth[SPRITES] = hei;
-            game.video.PutImage(spriteX[SPRITES], spriteY[SPRITES], spriteChar[SPRITES], spriteWidth[SPRITES], spriteHeigth[SPRITES]);
+            game.gfx.PutImage(spriteX[SPRITES], spriteY[SPRITES], spriteChar[SPRITES], spriteWidth[SPRITES], spriteHeigth[SPRITES]);
         }
 
         public void ClearRedrawFlag()
@@ -231,14 +231,14 @@ namespace Digger.Net
         {
             for (int i = 0; i < SPRITES; i++)
                 if (spriteNeedsRedrawFlag[i])
-                    game.video.PutImage(spriteX[i], spriteY[i], spriteChar[i], spriteWidth[i], spriteHeigth[i]);
+                    game.gfx.PutImage(spriteX[i], spriteY[i], spriteChar[i], spriteWidth[i], spriteHeigth[i]);
         }
 
         public void RedrawBackgroudImages()
         {
             for (int i = 0; i < SPRITES; i++)
                 if (spriteNeedsRedrawFlag[i])
-                    game.video.PutImage(spriteX[i], spriteY[i], spriteBuffer[i], spriteWidth[i], spriteHeigth[i]);
+                    game.gfx.PutImage(spriteX[i], spriteY[i], spriteBuffer[i], spriteWidth[i], spriteHeigth[i]);
         }
 
         public void CreateCollisionLinkedList(int spr)
@@ -272,7 +272,7 @@ namespace Digger.Net
         {
             System.Diagnostics.Debug.Assert(x + Const.CHR_W <= Const.MAX_W);
             System.Diagnostics.Debug.Assert(y + Const.CHR_H <= Const.MAX_H);
-            game.video.WriteChar(x, y, ch, c);
+            game.gfx.WriteChar(x, y, ch, c);
         }
     }
 }
