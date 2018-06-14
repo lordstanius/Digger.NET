@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace Digger.Source
 {
-    public class SDL_Sound
+    public class Sound_SDL
     {
         [StructLayout(LayoutKind.Sequential)]
         private struct sudata

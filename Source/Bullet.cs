@@ -54,7 +54,7 @@ namespace Digger.Source
 
         public void Put()
         {
-            game.sprites.MoveDrawSprite(SpriteID, x, y);
+            game.sprite.MoveDrawSprite(SpriteID, x, y);
             game.sound.SoundFire(id);
         }
 
@@ -73,7 +73,7 @@ namespace Digger.Source
 
         public void Remove()
         {
-            game.sprites.EraseSprite(SpriteID);
+            game.sprite.EraseSprite(SpriteID);
             if (expsn > 1)
                 game.sound.SoundFireOff(id);
 

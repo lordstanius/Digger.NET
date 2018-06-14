@@ -61,12 +61,12 @@
                 if (r == emeraldBox[dir])
                 {
                     video.DrawEmerald(x * 20 + 12, y * 18 + 21);
-                    game.IncreasePenalty();
+                    game.IncrementPenalty();
                 }
                 if (r == emeraldBox[dir + 1])
                 {
                     video.EraseEmerald(x * 20 + 12, y * 18 + 21);
-                    game.IncreasePenalty();
+                    game.IncrementPenalty();
                     emeraldField[y * MWIDTH + x] &= (byte)~emmask;
                     return true;
                 }

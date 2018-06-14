@@ -91,19 +91,19 @@ namespace Digger.Source
                     diggerData[n].invin = false;
                 else
                   if (diggerData[n].ivt % 10 < 5)
-                    game.sprites.EraseSprite(FIRSTDIGGER + n - game.currentPlayer);
+                    game.sprite.EraseSprite(FIRSTDIGGER + n - game.currentPlayer);
             }
         }
 
-        public void DoDiggers(Bags bags, Monsters monsters, Scores scores)
+        public void DoDiggers(Bags bags, Monster monsters, Scores scores)
         {
             game.NewFrame();
             if (game.isGauntletMode)
             {
                 DrawLives();
-                if (cgtime < game.timer.FrameTime)
+                if (cgtime < game.timer.FrameTicks)
                     game.isTimeOut = true;
-                cgtime -= game.timer.FrameTime;
+                cgtime -= game.timer.FrameTicks;
             }
             for (int n = game.currentPlayer; n < game.diggerCount + game.currentPlayer; n++)
             {
@@ -120,7 +120,7 @@ namespace Digger.Source
                             diggerData[n].digger.dir = diggerData[n].mdir;
                             DrawDigger(n);
                             diggerData[n].digger.dir = tdir;
-                            game.IncreasePenalty();
+                            game.IncrementPenalty();
                             diggerData[n].bagtime--;
                         }
                         else
@@ -141,19 +141,19 @@ namespace Digger.Source
                         startbonustimeleft--;
                         if ((bonustimeleft & 1) != 0)
                         {
-                            game.gfx.SetIntensity(0);
+                            game.video.SetIntensity(0);
                             game.sound.SoundBonus();
                         }
                         else
                         {
-                            game.gfx.SetIntensity(1);
+                            game.video.SetIntensity(1);
                             game.sound.SoundBonus();
                         }
                         if (startbonustimeleft == 0)
                         {
                             game.sound.Music(0);
                             game.sound.SoundBonusOff();
-                            game.gfx.SetIntensity(1);
+                            game.video.SetIntensity(1);
                         }
                     }
                 }
@@ -172,7 +172,7 @@ namespace Digger.Source
             }
         }
 
-        private void UpdateFire(int n, Monsters monsters, Scores scores)
+        private void UpdateFire(int n, Monster monsters, Scores scores)
         {
             int pix, fx = 0, fy = 0;
             int[] clfirst = new int[TYPES];
@@ -232,35 +232,35 @@ namespace Digger.Source
                 {
                     case Dir.Right:
                         diggerData[n].bullet.x += 8;
-                        pix = game.gfx.GetPixel(diggerData[n].bullet.x, diggerData[n].bullet.y + 4) |
-                            game.gfx.GetPixel(diggerData[n].bullet.x + 4, diggerData[n].bullet.y + 4);
+                        pix = game.video.GetPixel(diggerData[n].bullet.x, diggerData[n].bullet.y + 4) |
+                            game.video.GetPixel(diggerData[n].bullet.x + 4, diggerData[n].bullet.y + 4);
                         break;
                     case Dir.Up:
                         diggerData[n].bullet.y -= 7;
                         pix = 0;
                         for (i = 0; i < 7; i++)
-                            pix |= game.gfx.GetPixel(diggerData[n].bullet.x + 4, diggerData[n].bullet.y + i);
+                            pix |= game.video.GetPixel(diggerData[n].bullet.x + 4, diggerData[n].bullet.y + i);
                         pix &= 0xc0;
                         break;
                     case Dir.Left:
                         diggerData[n].bullet.x -= 8;
-                        pix = game.gfx.GetPixel(diggerData[n].bullet.x, diggerData[n].bullet.y + 4) |
-                            game.gfx.GetPixel(diggerData[n].bullet.x + 4, diggerData[n].bullet.y + 4);
+                        pix = game.video.GetPixel(diggerData[n].bullet.x, diggerData[n].bullet.y + 4) |
+                            game.video.GetPixel(diggerData[n].bullet.x + 4, diggerData[n].bullet.y + 4);
                         break;
                     case Dir.Down:
                         diggerData[n].bullet.y += 7;
                         pix = 0;
                         for (i = 0; i < 7; i++)
-                            pix |= game.gfx.GetPixel(diggerData[n].bullet.x, diggerData[n].bullet.y + i);
+                            pix |= game.video.GetPixel(diggerData[n].bullet.x, diggerData[n].bullet.y + i);
                         pix &= 0x3;
                         break;
                 }
                 diggerData[n].bullet.Animate();
                 for (i = 0; i < TYPES; i++)
-                    clfirst[i] = game.sprites.first[i];
+                    clfirst[i] = game.sprite.first[i];
                 for (i = 0; i < SPRITES; i++)
-                    clcoll[i] = game.sprites.coll[i];
-                game.IncreasePenalty();
+                    clcoll[i] = game.sprite.coll[i];
+                game.IncrementPenalty();
                 i = clfirst[2];
                 while (i != -1)
                 {
@@ -368,7 +368,7 @@ namespace Digger.Source
         {
             int i;
             for (i = 0; i < game.diggerCount; i++)
-                game.sprites.EraseSprite(FIRSTDIGGER + i);
+                game.sprite.EraseSprite(FIRSTDIGGER + i);
 
             isDiggerVisible = false;
         }
@@ -378,7 +378,7 @@ namespace Digger.Source
             if (diggerData[n].bullet.expsn < 4)
             {
                 diggerData[n].bullet.Animate();
-                game.IncreasePenalty();
+                game.IncrementPenalty();
             }
             else
             {
@@ -395,7 +395,7 @@ namespace Digger.Source
             }
         }
 
-        private void UpdateDigger(int n, Bags bags, Monsters monsters, Scores scores)
+        private void UpdateDigger(int n, Bags bags, Monster monsters, Scores scores)
         {
             int dir, ddir, diggerox, diggeroy, nmon;
             bool push = true, bagf;
@@ -464,10 +464,10 @@ namespace Digger.Source
             }
             DrawDigger(n);
             for (int i = 0; i < TYPES; i++)
-                clfirst[i] = game.sprites.first[i];
+                clfirst[i] = game.sprite.first[i];
             for (int i = 0; i < SPRITES; i++)
-                clcoll[i] = game.sprites.coll[i];
-            game.IncreasePenalty();
+                clcoll[i] = game.sprite.coll[i];
+            game.IncrementPenalty();
 
             int j = clfirst[1];
             bagf = false;
@@ -497,7 +497,7 @@ namespace Digger.Source
                     diggerData[n].digger.y = diggeroy;
                     diggerData[n].digger.dir = diggerData[n].mdir;
                     DrawDigger(n);
-                    game.IncreasePenalty();
+                    game.IncrementPenalty();
                     diggerData[n].digger.dir = Dir.Reverse(diggerData[n].mdir);
                 }
             }
@@ -526,7 +526,7 @@ namespace Digger.Source
 
         public int[] deatharc = { 3, 5, 6, 6, 5, 3, 0 };
 
-        private void DiggerDie(int n, Bags bags, Monsters monsters)
+        private void DiggerDie(int n, Bags bags, Monster monsters)
         {
             int[] clfirst = new int[TYPES];
             int[] clcoll = new int[SPRITES];
@@ -538,7 +538,7 @@ namespace Digger.Source
                         diggerData[n].digger.y = bags.GetBagY(diggerData[n].deathBagIndex) + 6;
 
                     game.drawing.DrawDigger(n - game.currentPlayer, 15, diggerData[n].digger.x, diggerData[n].digger.y, false);
-                    game.IncreasePenalty();
+                    game.IncrementPenalty();
                     if (bags.GetBagDirection(diggerData[n].deathBagIndex) + 1 == 0)
                     {
                         game.sound.SoundDiggerDie();
@@ -560,12 +560,12 @@ namespace Digger.Source
                     game.drawing.DrawDigger(n - game.currentPlayer, 14 - diggerData[n].deathani, diggerData[n].digger.x, diggerData[n].digger.y, false);
 
                     for (int i = 0; i < TYPES; i++)
-                        clfirst[i] = game.sprites.first[i];
+                        clfirst[i] = game.sprite.first[i];
 
                     for (int i = 0; i < SPRITES; i++)
-                        clcoll[i] = game.sprites.coll[i];
+                        clcoll[i] = game.sprite.coll[i];
 
-                    game.IncreasePenalty();
+                    game.IncrementPenalty();
                     if (diggerData[n].deathani == 0 && clfirst[2] != -1)
                         monsters.KillMonsters(clfirst, clcoll);
 
@@ -594,7 +594,7 @@ namespace Digger.Source
                         game.drawing.DrawDigger(n - game.currentPlayer, 15, diggerData[n].digger.x, diggerData[n].digger.y - deatharc[diggerData[n].deathani], false);
                         if (diggerData[n].deathani == 6 && !IsAnyAlive())
                             game.sound.MusicOff();
-                        game.IncreasePenalty();
+                        game.IncrementPenalty();
                         diggerData[n].deathani++;
                         if (diggerData[n].deathani == 1)
                             game.sound.SoundDiggerDie();
@@ -643,7 +643,7 @@ namespace Digger.Source
                                 diggerData[n].ivt = 50;
                                 diggerData[n].deathstage = 1;
                                 diggerData[n].digger.y = diggerData[n].v * 18 + 18;
-                                game.sprites.EraseSprite(n + FIRSTDIGGER - game.currentPlayer);
+                                game.sprite.EraseSprite(n + FIRSTDIGGER - game.currentPlayer);
                                 diggerData[n].digger.Put();
                                 diggerData[n].notfiring = true;
                                 diggerData[n].emocttime = 0;
@@ -674,7 +674,7 @@ namespace Digger.Source
         {
             isBonusMode = true;
             EraseBonus();
-            game.gfx.SetIntensity(1);
+            game.video.SetIntensity(1);
             bonustimeleft = 250 - Level.LevelOf10(game.LevelNo) * 20;
             startbonustimeleft = 20;
             for (int i = 0; i < game.diggerCount; i++)
@@ -684,7 +684,7 @@ namespace Digger.Source
         private void EndBonusMode()
         {
             isBonusMode = false;
-            game.gfx.SetIntensity(0);
+            game.video.SetIntensity(0);
         }
 
         public void EraseBonus()
@@ -692,9 +692,9 @@ namespace Digger.Source
             if (isBonusVisible)
             {
                 isBonusVisible = false;
-                game.sprites.EraseSprite(Const.FIRSTBONUS);
+                game.sprite.EraseSprite(Const.FIRSTBONUS);
             }
-            game.gfx.SetIntensity(0);
+            game.video.SetIntensity(0);
         }
 
         public bool CheckIsDiggerUnderBag(int h, int v)

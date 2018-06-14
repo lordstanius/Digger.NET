@@ -11,19 +11,19 @@ namespace Digger.Source
 
         public SDL_Timer()
         {
-            double tfreq = 1000000.0 / FrameTime;
+            double tfreq = 1000000.0 / FrameTicks;
             loop_error = Math.recfilter_init(tfreq, 0.1);
             Math.PFD_init(ref phase_detector, 0.0);
         }
 
-        public uint FrameTime { get; set; }
+        public uint FrameTicks { get; set; }
 
         public void SyncFrame()
         {
-            if (FrameTime <= 1)
+            if (FrameTicks <= 1)
                 return;
 
-            double fps = 1000000.0 / FrameTime;
+            double fps = 1000000.0 / FrameTicks;
             double clk_rl = SDL.SDL_GetTicks() * fps / 1000.0;
             double eval = Math.PFD_get_error(ref phase_detector, clk_rl);
             double filterval = eval != 0 ?

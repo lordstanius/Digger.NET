@@ -2,19 +2,18 @@
    Copyright (c) Andrew Jenner 1998-2004 */
 // C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
-using Digger.Source;
 using System;
 
 namespace Digger.Source
 {
-    public class GameData
-    {
-        public int level;
-        public bool isLevelDone;
-    }
-
     public class Game
     {
+        private struct GameData
+        {
+            public int level;
+            public bool isLevelDone;
+        }
+
         private const int TYPES = Const.TYPES;
         private const int SPRITES = Const.SPRITES;
         private const int MONSTERS = Const.MONSTERS;
@@ -74,7 +73,7 @@ namespace Digger.Source
             new GameMode(true, 1, 2, new Label[]{ new Label("TWO PLAYER", 180), new Label( "GAUNTLET", 192)})
         };
 
-        private GameData[] gameData;
+        private GameData[] gameData = new GameData[2];
 
         public string playerName;
         public int currentPlayer;
@@ -96,17 +95,17 @@ namespace Digger.Source
         public bool shouldExit;
 
         public Drawing drawing;
-        public Sprites sprites;
+        public Sprite sprite;
         public SDL_Timer timer;
         public Scores scores;
         public Recording record;
         public Input input;
         public Sound sound;
-        public Monsters monsters;
+        public Monster monsters;
         public Bags bags;
         public Diggers diggers;
         public Emeralds emeralds;
-        public Video gfx;
+        public Video video;
 
         private bool quiet = false;
         private int penalty = 0;
@@ -119,15 +118,15 @@ namespace Digger.Source
             timer = new SDL_Timer();
             sound = new Sound(this);
             input = new Input(this);
-            sprites = new Sprites(this);
+            sprite = new Sprite(this);
             drawing = new Drawing(this);
             emeralds = new Emeralds(this);
             diggers = new Diggers(this);
             scores = new Scores(this);
             record = new Recording(this);
-            monsters = new Monsters(this);
+            monsters = new Monster(this);
             bags = new Bags(this);
-            gfx = new Video();
+            video = new Video();
         }
 
         public void Init()
@@ -135,12 +134,12 @@ namespace Digger.Source
             if (isInitialized)
                 return;
 
-            gameData = new[] { new GameData(), new GameData() };
-            foreach (var game in gameData)
-                game.level = startingLevel;
+            for (int i = 0; i < 2; ++i)
+                gameData[i].level = startingLevel;
 
-            gfx.Init(initialVideoMode);
-            gfx.SetFullscreenWindow();
+            video.CreateWindow();
+            video.Init(initialVideoMode);
+            video.SetFullscreenWindow();
             sound.Init();
 
             isInitialized = true;
@@ -175,7 +174,7 @@ namespace Digger.Source
                 }
             }
             gameTime = (uint)Ini.GetINIInt(INI_GAME_SETTINGS, "GauntletTime", Const.DEFAULT_GAUNTLET_TIME, INI_FILE_NAME);
-            timer.FrameTime = (uint)Ini.GetINIInt(INI_GAME_SETTINGS, "Speed", Const.DEFAULT_FRAME_TIME, INI_FILE_NAME);
+            timer.FrameTicks = (uint)Ini.GetINIInt(INI_GAME_SETTINGS, "Speed", Const.DEFAULT_FRAME_TIME, INI_FILE_NAME);
             isGauntletMode = Ini.GetINIBool(INI_GAME_SETTINGS, "GauntletMode", false, INI_FILE_NAME);
             vbuf = Ini.GetINIString(INI_GAME_SETTINGS, "Players", "1", INI_FILE_NAME);
             vbuf = vbuf.ToUpperInvariant();
@@ -204,7 +203,7 @@ namespace Digger.Source
             if (videoModeStr != null)
                 initialVideoMode = (VideoMode)Enum.Parse(typeof(VideoMode), videoModeStr);
 
-            gfx.isFullScreen = Ini.GetINIBool(INI_GRAPHICS_SETTINGS, "Fullscreen", false, INI_FILE_NAME);
+            video.isFullScreen = Ini.GetINIBool(INI_GRAPHICS_SETTINGS, "Fullscreen", false, INI_FILE_NAME);
             hasUnlimitedLives = Ini.GetINIBool(INI_GAME_SETTINGS, "UnlimitedLives", false, INI_FILE_NAME);
             startingLevel = Ini.GetINIInt(INI_GAME_SETTINGS, "StartLevel", 1, INI_FILE_NAME);
         }
@@ -216,8 +215,8 @@ namespace Digger.Source
             if (gameTime != Const.DEFAULT_GAUNTLET_TIME)
                 Ini.WriteINIInt(INI_GAME_SETTINGS, "GauntletTime", (int)gameTime, INI_FILE_NAME);
 
-            if (timer.FrameTime != Const.DEFAULT_FRAME_TIME)
-                Ini.WriteINIInt(INI_GAME_SETTINGS, "Speed", (int)timer.FrameTime, INI_FILE_NAME);
+            if (timer.FrameTicks != Const.DEFAULT_FRAME_TIME)
+                Ini.WriteINIInt(INI_GAME_SETTINGS, "Speed", (int)timer.FrameTicks, INI_FILE_NAME);
 
             if (isGauntletMode)
                 Ini.WriteINIBool(INI_GAME_SETTINGS, "GauntletMode", isGauntletMode, INI_FILE_NAME);
@@ -231,11 +230,11 @@ namespace Digger.Source
             if (!sound.isMusicEnabled)
                 Ini.WriteINIBool(INI_SOUND_SETTINGS, "MusicOn", sound.isMusicEnabled, INI_FILE_NAME);
 
-            if (gfx.isFullScreen)
-                Ini.WriteINIBool(INI_GRAPHICS_SETTINGS, "Fullscreen", gfx.isFullScreen, INI_FILE_NAME);
+            if (video.isFullScreen)
+                Ini.WriteINIBool(INI_GRAPHICS_SETTINGS, "Fullscreen", video.isFullScreen, INI_FILE_NAME);
 
-            if (gfx.VideoMode != Const.DEFAULT_VIDEO_MODE)
-                Ini.WriteINIString(INI_GRAPHICS_SETTINGS, "VideoMode", gfx.VideoMode.ToString(), INI_FILE_NAME);
+            if (video.VideoMode != Const.DEFAULT_VIDEO_MODE)
+                Ini.WriteINIString(INI_GRAPHICS_SETTINGS, "VideoMode", video.VideoMode.ToString(), INI_FILE_NAME);
 
             if (hasUnlimitedLives)
                 Ini.GetINIBool(INI_GAME_SETTINGS, "UnlimitedLives", hasUnlimitedLives, INI_FILE_NAME);
@@ -282,7 +281,7 @@ namespace Digger.Source
                     }
 
                     if (argch == 'F')
-                        gfx.isFullScreen = true;
+                        video.isFullScreen = true;
 
                     if (argch == 'R')
                         record.SetRecordName(word.Substring(i));
@@ -321,11 +320,11 @@ namespace Digger.Source
                             speedmul = 10 * speedmul + word[i++] - '0';
                         if (speedmul > 0)
                         {
-                            timer.FrameTime = (uint)(speedmul * 2000);
+                            timer.FrameTicks = (uint)(speedmul * 2000);
                         }
                         else
                         {
-                            timer.FrameTime = 1;
+                            timer.FrameTicks = 1;
                         }
                         gs = true;
                     }
@@ -355,7 +354,7 @@ namespace Digger.Source
                         diggerCount = 2;
 
                     if (argch == 'B' || argch == 'C')
-                        isVideoModeChanged = gfx.SetVideoMode(VideoMode.CGA);
+                        isVideoModeChanged = video.SetVideoMode(VideoMode.CGA);
 
                     if (argch == 'K')
                     {
@@ -408,11 +407,11 @@ namespace Digger.Source
                         gs = true;
                         if (speedmul > 0)
                         {
-                            timer.FrameTime = (uint)(speedmul * 2000);
+                            timer.FrameTicks = (uint)(speedmul * 2000);
                         }
                         else
                         {
-                            timer.FrameTime = 1;
+                            timer.FrameTicks = 1;
                         }
                     }
                     else
@@ -471,12 +470,7 @@ namespace Digger.Source
             if (isGameCycleEnded)
                 return;
 
-            int frame, t;
-            Digger odigger = null;
-            Position newpos;
-            Monster nobbin = null;
-            Monster hobbin = null;
-
+            int frame, t, x = 0;
             scores.LoadScores();
             isGameCycleEnded = false;
 
@@ -484,8 +478,8 @@ namespace Digger.Source
             {
                 sound.StopSound();
                 drawing.CreateMonsterBagSprites();
-                gfx.Clear();
-                gfx.DrawTitleScreen();
+                video.Clear();
+                video.DrawTitleScreen();
                 drawing.TextOut("D I G G E R", 100, 0, 3);
                 ShownPlayers();
                 scores.ShowTable();
@@ -509,72 +503,63 @@ namespace Digger.Source
 
                     if (frame == 50)
                     {
-                        nobbin = new Monster(this, 0, Dir.Left, 292, 63);
-                        nobbin.Put();
+                        sprite.MoveDrawSprite(FIRSTMONSTER, 292, 63);
+                        x = 292;
                     }
 
                     if (frame > 50 && frame <= 77)
                     {
-                        newpos = nobbin.Position;
-                        newpos.x -= 4;
-                        if (frame == 77)
-                            newpos.dir = Dir.Right;
-
-                        nobbin.Position = newpos;
+                        x -= 4;
+                        drawing.DrawMonster(0, true, 4, x, 63);
                     }
 
-                    if (frame > 50)
-                        nobbin.Animate();
+                    if (frame > 77)
+                        drawing.DrawMonster(0, true, 0, 184, 63);
 
                     if (frame == 83)
                         drawing.TextOut("NOBBIN", 216, 64, 2);
 
                     if (frame == 90)
                     {
-                        hobbin = new Monster(this, 1, Dir.Left, 292, 82);
-                        hobbin.Put();
+                        sprite.MoveDrawSprite(FIRSTMONSTER + 1, 292, 82);
+                        drawing.DrawMonster(1, false, Dir.Left, 292, 82);
+                        x = 292;
                     }
 
                     if (frame > 90 && frame <= 117)
                     {
-                        newpos = hobbin.Position;
-                        newpos.x -= 4;
-                        if (frame == 117)
-                            newpos.dir = Dir.Right;
-
-                        hobbin.Position = newpos;
+                        x -= 4;
+                        drawing.DrawMonster(1, false, 4, x, 82);
                     }
 
-                    if (frame == 100)
-                        hobbin.Mutate();
-
-                    if (frame > 90)
-                        hobbin.Animate();
+                    if (frame > 117)
+                        drawing.DrawMonster(1, false, Dir.Right, 184, 82);
 
                     if (frame == 123)
                         drawing.TextOut("HOBBIN", 216, 83, 2);
 
                     if (frame == 130)
                     {
-                        odigger = new Digger(this, 0, Dir.Left, 292, 101);
-                        odigger.Put();
+                        sprite.MoveDrawSprite(FIRSTDIGGER, 292, 101);
+                        drawing.DrawDigger(0, Dir.Left, 292, 101, true);
+                        x = 292;
                     }
 
                     if (frame > 130 && frame <= 157)
-                        odigger.x -= 4;
+                    {
+                        x -= 4;
+                        drawing.DrawDigger(0, 4, x, 101, true);
+                    }
 
                     if (frame > 157)
-                        odigger.dir = Dir.Right;
-
-                    if (frame >= 130)
-                        odigger.Animate();
+                        drawing.DrawDigger(0, 0, 184, 101, true);
 
                     if (frame == 163)
                         drawing.TextOut("DIGGER", 216, 102, 2);
 
                     if (frame == 178)
                     {
-                        sprites.MoveDrawSprite(FIRSTBAG, 184, 120);
+                        sprite.MoveDrawSprite(FIRSTBAG, 184, 120);
                         drawing.DrawGold(0, 0, 184, 120);
                     }
 
@@ -593,30 +578,19 @@ namespace Digger.Source
                     if (frame == 223)
                         drawing.TextOut("BONUS", 216, 159, 2);
 
-                    if (frame == 235)
-                        nobbin.Damage();
-
-                    if (frame == 239)
-                        nobbin.Kill();
-
-                    if (frame == 242)
-                        hobbin.Damage();
-
-                    if (frame == 246)
-                        hobbin.Kill();
-
                     NewFrame();
-                    if (frame++ > 250)
+                    frame++;
+                    if (frame > 250)
                         frame = 0;
                 }
-                if (record.SaveDrf)
+                if (record.saveDrf)
                 {
-                    if (record.GotName)
+                    if (record.gotName)
                     {
                         record.SaveRecordFile();
-                        record.GotGame = false;
+                        record.gotGame = false;
                     }
-                    record.SaveDrf = false;
+                    record.saveDrf = false;
                     continue;
                 }
                 if (isGameCycleEnded)
@@ -626,15 +600,15 @@ namespace Digger.Source
 
                 Run();
 
-                record.GotGame = true;
+                record.gotGame = true;
 
-                if (record.GotName)
+                if (record.gotName)
                 {
                     record.SaveRecordFile();
-                    record.GotGame = false;
+                    record.gotGame = false;
                 }
 
-                record.SaveDrf = false;
+                record.saveDrf = false;
                 isGameCycleEnded = false;
                 isVideoModeChanged = false;
             } while (!isGameCycleEnded && !shouldExit);
@@ -647,7 +621,7 @@ namespace Digger.Source
 
             timer.SyncFrame();
             input.CheckKeyBuffer();
-            gfx.UpdateScreen();
+            video.UpdateScreen();
         }
 
         public void Run()
@@ -661,7 +635,7 @@ namespace Digger.Source
 
             diggers.InitializeLives();
             isEverybodyDead = false;
-            gfx.Clear();
+            video.Clear();
             currentPlayer = 0;
             InitalizeLevel();
             currentPlayer = 1;
@@ -691,7 +665,7 @@ namespace Digger.Source
 
         private void Play()
         {
-            randVal = record.IsPlaying ? record.PlayGetRand() : 0;
+            randVal = record.isPlaying ? record.PlayGetRand() : 0;
             record.RecordPutRandom(randVal);
             if (levelNotDrawn)
             {
@@ -766,7 +740,7 @@ namespace Digger.Source
             drawing.SaveField();
             monsters.EraseMonsters();
             record.PutEndOfLevel();
-            if (record.IsPlaying)
+            if (record.isPlaying)
                 record.PlaySkipEOL();
 
             if (isGameCycleEnded)
@@ -876,7 +850,7 @@ namespace Digger.Source
             gameData[currentPlayer].isLevelDone = isLevelDone;
         }
 
-        public void IncreasePenalty()
+        public void IncrementPenalty()
         {
             ++penalty;
         }
@@ -927,7 +901,7 @@ namespace Digger.Source
                 char cp = allargs[i];
                 if (c == cp)
                 {
-                    hasopt = allargs.Length < i + 1 && allargs[i + 1] == ':';
+                    hasopt = allargs.Length > i + 1 && allargs[i + 1] == ':';
                     return c;
                 }
             }

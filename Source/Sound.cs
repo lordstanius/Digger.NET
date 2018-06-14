@@ -80,7 +80,7 @@ namespace Digger.Source
         private readonly ushort[] pwlut = new ushort[51];
 
         private readonly Game game;
-        private readonly SDL_Sound device = new SDL_Sound();
+        private readonly Sound_SDL device = new Sound_SDL();
         private int randvs;
 
         public Sound(Game game)
@@ -160,7 +160,7 @@ namespace Digger.Source
             nljpointer = 0;
             nljnoteduration = 20;
             soundlevdoneflag = soundpausedflag = true;
-            game.timer.FrameTime /= 5;
+            game.timer.FrameTicks /= 5;
             while (soundlevdoneflag && !game.isGameCycleEnded)
             {
                 if (!device.IsWaveDeviceAvailable)
@@ -175,7 +175,7 @@ namespace Digger.Source
                 input.CheckKeyBuffer();
                 timer = timerclock;
             }
-            game.timer.FrameTime *= 5;
+            game.timer.FrameTicks *= 5;
             SoundLevelDoneOff();
         }
 

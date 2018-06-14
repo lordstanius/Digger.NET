@@ -14,12 +14,12 @@ namespace Digger.Source
         private const string REC_FILE_NAME = "DiggerGameRecord";
         private const string REC_FILE_EXT = ".drf";
 
-        public bool IsPlaying;
-        public bool SaveDrf;
-        public bool GotName;
-        public bool GotGame;
-        public bool IsDrfValid;
-        public bool Kludge;
+        public bool isPlaying;
+        public bool saveDrf;
+        public bool gotName;
+        public bool gotGame;
+        public bool isDrfValid;
+        public bool kludge;
 
         private int recordCharCount;
         private int recordRunLenght;
@@ -83,7 +83,7 @@ namespace Digger.Source
                     throw new InvalidOperationException("No content.");
 
                 if (int.Parse(buf.Substring(7)) <= 19981125)
-                    Kludge = true;
+                    kludge = true;
 
                 /* Get mode */
                 if ((buf = playf.ReadLine()) == null)
@@ -144,16 +144,16 @@ namespace Digger.Source
                 playBuffer = new string(playf.ReadToEnd().Where(c => c >= ' ').ToArray());
             }
 
-            IsPlaying = true;
+            isPlaying = true;
             StartRecording();
             game.Run();
-            GotGame = true;
-            IsPlaying = false;
+            gotGame = true;
+            isPlaying = false;
 
             // restore current values
             game.isGauntletMode = origg;
             game.gameTime = origgtime;
-            Kludge = false;
+            kludge = false;
             game.startingLevel = origstartlev;
             game.diggerCount = origdiggers;
             game.playerCount = orignplayers;
@@ -273,10 +273,10 @@ namespace Digger.Source
         public void StartRecording()
         {
             recordingBuffer.Clear();
-            IsDrfValid = true;
+            isDrfValid = true;
 
             recordingBuffer.AppendLine("DRF"); /* Required at start of DRF */
-            if (Kludge)
+            if (kludge)
                 recordingBuffer.AppendLine("AJ DOS 19981125");
             else
                 recordingBuffer.AppendLine(Const.DIGGER_VERSION);
@@ -324,13 +324,13 @@ namespace Digger.Source
 
         public void SaveRecordFile()
         {
-            if (!IsDrfValid)
+            if (!isDrfValid)
                 return;
 
             FileStream recf = null;
             try
             {
-                if (GotName)
+                if (gotName)
                 {
                     try
                     {
@@ -339,11 +339,11 @@ namespace Digger.Source
                     catch (Exception ex)
                     {
                         Log.Write(ex);
-                        GotName = false;
+                        gotName = false;
                     }
                 }
 
-                if (!GotName)
+                if (!gotName)
                 {
                     if (game.playerCount == 2)
                         recf = File.OpenWrite(REC_FILE_NAME); /* Should get a name, really */
@@ -432,7 +432,7 @@ namespace Digger.Source
 
         public void SetRecordName(string name)
         {
-            GotName = true;
+            gotName = true;
             if (!Path.HasExtension(name))
                 name += REC_FILE_EXT;
 

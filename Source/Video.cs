@@ -29,23 +29,21 @@ namespace Digger.Source
         private CharSurfacePlain alphas;
         private SDL.SDL_Color[][] palettes;
         private int screenRatio;
+        private CGA_Palette cgaPalette = CGA_Palette.RedGoldGreen;
 
         private Func<byte, int, byte> GetPixelColorFromMask;
 
         public VideoMode VideoMode { get; private set; }
-        public CGA_Palette CgaPalette { get; private set; }
-        public IntPtr Window => window;
 
         public void Init(VideoMode mode)
         {
             VideoMode = mode;
             if (mode == VideoMode.CGA)
-                InitializeCGA(CGA_Palette.RedGoldGreen);
+                InitializeCGA();
             else
                 InitializeVGA();
 
             CreateCaches();
-            CreateWindow();
             CreateGraphics();
         }
 
@@ -67,7 +65,7 @@ namespace Digger.Source
             SDL.SDL_ShowCursor(1);
         }
 
-        public void CreateGraphics()
+        private void CreateGraphics()
         {
             renderer = SDL.SDL_CreateRenderer(window, -1, 0);
             if (renderer == null)
@@ -138,15 +136,7 @@ namespace Digger.Source
             ReleaseCaches();
             FreeGraphics();
 
-            if (mode == VideoMode.VGA)
-                InitializeVGA();
-            else
-                InitializeCGA(CgaPalette);
-
-            CreateGraphics();
-            CreateCaches();
-            SetIntensity(0);
-            VideoMode = mode;
+            Init(mode);
 
             return true;
         }
@@ -399,13 +389,12 @@ namespace Digger.Source
             sprites.sprites = VgaGrafx.SpriteTable;
 
             GetPixelColorFromMask = GetPixelColorFromMaskVga;
-            VideoMode = VideoMode.VGA;
             screenRatio = 2;
         }
 
-        private void InitializeCGA(CGA_Palette palette)
+        private void InitializeCGA()
         {
-            switch (palette)
+            switch (cgaPalette)
             {
                 case CGA_Palette.RedGoldGreen:
                     npalette = CreatePaletteRGB(CgaGrafx.Palette1);
@@ -423,7 +412,6 @@ namespace Digger.Source
             sprites.sprites = DecompressSprites(CgaGrafx.SpriteTable);
 
             GetPixelColorFromMask = GetPixelColorFromMaskCga;
-            VideoMode = VideoMode.CGA;
             screenRatio = 1;
         }
 

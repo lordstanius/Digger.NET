@@ -19,7 +19,7 @@ using SDL2;
 
 namespace Digger.Source
 {
-    public class SDL_Input
+    public class Input_SDL
     {
         public const int KBLEN = 30;
 
@@ -55,7 +55,7 @@ namespace Digger.Source
 
         private Game game;
 
-        public SDL_Input(Game game)
+        public Input_SDL(Game game)
         {
             this.game = game;
 
@@ -109,7 +109,7 @@ namespace Digger.Source
                     sdlEvent.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) &&
                     ((sdlEvent.key.keysym.mod & SDL.SDL_Keymod.KMOD_ALT) != 0))
                 {
-                    game.gfx.SwitchFullscreenWindow();
+                    game.video.SwitchFullscreenWindow();
                 }
             }
 

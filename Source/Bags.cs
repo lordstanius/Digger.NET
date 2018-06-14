@@ -93,7 +93,7 @@ namespace Digger.Source
                     bagdat[bag] = bagdat2[bag];
 
                 if (bagdat[bag].Exists)
-                    game.sprites.MoveDrawSprite(bag + FIRSTBAG, bagdat[bag].x, bagdat[bag].y);
+                    game.sprite.MoveDrawSprite(bag + FIRSTBAG, bagdat[bag].x, bagdat[bag].y);
             }
         }
 
@@ -108,7 +108,7 @@ namespace Digger.Source
                     bagdat[bag].fallh != 0 || bagdat[bag].wobbling))
                 {
                     bagdat[bag].Exists = false;
-                    game.sprites.EraseSprite(bag + FIRSTBAG);
+                    game.sprite.EraseSprite(bag + FIRSTBAG);
                 }
                 if (game.currentPlayer == 0)
                     bagdat1[bag] = bagdat[bag];
@@ -131,17 +131,17 @@ namespace Digger.Source
                     {
                         game.sound.SoundBreak();
                         game.drawing.DrawGold(bag, 4, bagdat[bag].x, bagdat[bag].y);
-                        game.IncreasePenalty();
+                        game.IncrementPenalty();
                     }
                     if (bagdat[bag].gt == 3)
                     {
                         game.drawing.DrawGold(bag, 5, bagdat[bag].x, bagdat[bag].y);
-                        game.IncreasePenalty();
+                        game.IncrementPenalty();
                     }
                     if (bagdat[bag].gt == 5)
                     {
                         game.drawing.DrawGold(bag, 6, bagdat[bag].x, bagdat[bag].y);
-                        game.IncreasePenalty();
+                        game.IncrementPenalty();
                     }
                     bagdat[bag].gt++;
                     if (bagdat[bag].gt == goldtime)
@@ -196,7 +196,7 @@ namespace Digger.Source
                             if ((wbl & 1) == 0)
                             {
                                 game.drawing.DrawGold(bag, wblanim[wbl >> 1], x, y);
-                                game.IncreasePenalty();
+                                game.IncrementPenalty();
                                 game.sound.SoundWobble();
                             }
                         }
@@ -236,7 +236,7 @@ namespace Digger.Source
                         if (yr == 0)
                             OnBagHitsTheGround(bag);
 
-                    game.monsters.CheckIsMonsterScared(bagdat[bag].h);
+                    game.monsters.CheckIsMonsterOnScreen(bagdat[bag].h);
                     break;
             }
             if (bagdat[bag].dir != Dir.None)
@@ -262,12 +262,12 @@ namespace Digger.Source
             bagdat[bag].wobbling = false;
             game.drawing.DrawGold(bag, 0, bagdat[bag].x, bagdat[bag].y);
             for (int i = 0; i < TYPES; i++)
-                clfirst[i] = game.sprites.first[i];
+                clfirst[i] = game.sprite.first[i];
 
             for (int i = 0; i < SPRITES; i++)
-                clcoll[i] = game.sprites.coll[i];
+                clcoll[i] = game.sprite.coll[i];
 
-            game.IncreasePenalty();
+            game.IncrementPenalty();
             int j = clfirst[1];
             while (j != -1)
             {
@@ -298,12 +298,12 @@ namespace Digger.Source
             {
                 game.drawing.DrawGold(bag, 3, x, y);
                 for (i = 0; i < TYPES; i++)
-                    clfirst[i] = game.sprites.first[i];
+                    clfirst[i] = game.sprite.first[i];
 
                 for (i = 0; i < SPRITES; i++)
-                    clcoll[i] = game.sprites.coll[i];
+                    clcoll[i] = game.sprite.coll[i];
 
-                game.IncreasePenalty();
+                game.IncrementPenalty();
                 i = clfirst[4];
                 while (i != -1)
                 {
@@ -351,10 +351,10 @@ namespace Digger.Source
                     case Dir.Down:
                         game.drawing.DrawGold(bag, 3, x, y);
                         for (i = 0; i < TYPES; i++)
-                            clfirst[i] = game.sprites.first[i];
+                            clfirst[i] = game.sprite.first[i];
                         for (i = 0; i < SPRITES; i++)
-                            clcoll[i] = game.sprites.coll[i];
-                        game.IncreasePenalty();
+                            clcoll[i] = game.sprite.coll[i];
+                        game.IncrementPenalty();
                         i = clfirst[4];
                         while (i != -1)
                         {
@@ -371,10 +371,10 @@ namespace Digger.Source
                         bagdat[bag].wobbling = false;
                         game.drawing.DrawGold(bag, 0, x, y);
                         for (i = 0; i < TYPES; i++)
-                            clfirst[i] = game.sprites.first[i];
+                            clfirst[i] = game.sprite.first[i];
                         for (i = 0; i < SPRITES; i++)
-                            clcoll[i] = game.sprites.coll[i];
-                        game.IncreasePenalty();
+                            clcoll[i] = game.sprite.coll[i];
+                        game.IncrementPenalty();
                         pushcount = 1;
                         if (clfirst[1] != -1)
                             if (!PushBags(dir, clfirst, clcoll))
@@ -382,7 +382,7 @@ namespace Digger.Source
                                 x = ox;
                                 y = oy;
                                 game.drawing.DrawGold(bag, 0, ox, oy);
-                                game.IncreasePenalty();
+                                game.IncrementPenalty();
                                 push = false;
                             }
                         i = clfirst[4];
@@ -398,7 +398,7 @@ namespace Digger.Source
                             x = ox;
                             y = oy;
                             game.drawing.DrawGold(bag, 0, ox, oy);
-                            game.IncreasePenalty();
+                            game.IncrementPenalty();
                             push = false;
                         }
                         break;
@@ -450,7 +450,7 @@ namespace Digger.Source
             if (bagdat[bag].Exists)
             {
                 bagdat[bag].Exists = false;
-                game.sprites.EraseSprite(bag + FIRSTBAG);
+                game.sprite.EraseSprite(bag + FIRSTBAG);
             }
         }
 
@@ -496,8 +496,8 @@ namespace Digger.Source
         private void GetGold(int bag)
         {
             game.drawing.DrawGold(bag, 6, bagdat[bag].x, bagdat[bag].y);
-            game.IncreasePenalty();
-            int i = game.sprites.first[4];
+            game.IncrementPenalty();
+            int i = game.sprite.first[4];
             bool f = true;
             while (i != -1)
             {
@@ -508,7 +508,7 @@ namespace Digger.Source
                     game.diggers.ResetDiggerTime(i - FIRSTDIGGER + game.currentPlayer);
                     f = false;
                 }
-                i = game.sprites.coll[i];
+                i = game.sprite.coll[i];
             }
 
             if (f)

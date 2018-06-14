@@ -58,7 +58,7 @@ namespace Digger.Source
 
         public void Put()
         {
-            game.sprites.MoveDrawSprite(Const.FIRSTDIGGER + id, x, y);
+            game.sprite.MoveDrawSprite(Const.FIRSTDIGGER + id, x, y);
         }
 
         public void Animate()

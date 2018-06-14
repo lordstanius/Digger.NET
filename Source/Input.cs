@@ -42,12 +42,12 @@ namespace Digger.Source
         private int keydir, keydir2;
 
         private readonly Game game;
-        private readonly SDL_Input keyboard;
+        private readonly Input_SDL keyboard;
 
         public Input(Game game)
         {
             this.game = game;
-            this.keyboard = new SDL_Input(game);
+            this.keyboard = new Input_SDL(game);
         }
 
         public int[][] KeyCodes => keyboard.keycodes;
@@ -123,17 +123,17 @@ namespace Digger.Source
                     case KEY_CHEAT: /* Cheat! */
                         if (!game.isGauntletMode)
                         {
-                            game.record.IsPlaying = false;
-                            game.record.IsDrfValid = false;
+                            game.record.isPlaying = false;
+                            game.record.isDrfValid = false;
                             game.hasUnlimitedLives = true;
                         }
                         break;
                     case KEY_SPEED_UP: /* Increase speed */
-                        if (game.timer.FrameTime > 10000)
-                            game.timer.FrameTime -= 10000;
+                        if (game.timer.FrameTicks > 10000)
+                            game.timer.FrameTicks -= 10000;
                         break;
                     case KEY_SPEED_DOWN: /* Decrease speed */
-                        game.timer.FrameTime += 10000;
+                        game.timer.FrameTicks += 10000;
                         break;
                     case KEY_MUSIC_TOGGLE: /* Toggle music */
                         game.sound.isMusicEnabled = !game.sound.isMusicEnabled;
@@ -151,14 +151,14 @@ namespace Digger.Source
                         mode_change = true;
                         break;
                     case KEY_SAVE_DRF: /* Save DRF */
-                        game.record.SaveDrf = true;
+                        game.record.saveDrf = true;
                         break;
                     case KEY_SWITCH_TO_VGA:
-                        if (!game.record.IsPlaying && !game.isStarted && game.gfx.SetVideoMode(VideoMode.VGA))
+                        if (!game.record.isPlaying && !game.isStarted && game.video.SetVideoMode(VideoMode.VGA))
                             game.isVideoModeChanged = true;
                         break;
                     case KEY_SWITCH_TO_CGA:
-                        if (!game.record.IsPlaying && !game.isStarted && game.gfx.SetVideoMode(VideoMode.CGA))
+                        if (!game.record.isPlaying && !game.isStarted && game.video.SetVideoMode(VideoMode.CGA))
                             game.isVideoModeChanged = true;
                         break;
                 }
@@ -317,14 +317,14 @@ namespace Digger.Source
             int dir = ((n == 0) ? keydir : keydir2);
             if (n == 0)
             {
-                if (game.record.IsPlaying)
+                if (game.record.isPlaying)
                     game.record.PlayGetDirection(ref dir, ref firepflag);
 
                 game.record.PutDirection(dir, firepflag);
             }
             else
             {
-                if (game.record.IsPlaying)
+                if (game.record.isPlaying)
                     game.record.PlayGetDirection(ref dir, ref fire2pflag);
 
                 game.record.PutDirection(dir, fire2pflag);
