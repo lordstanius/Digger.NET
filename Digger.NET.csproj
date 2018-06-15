@@ -63,7 +63,7 @@
     <Compile Include="Source\Bullet.cs" />
     <Compile Include="Data\CgaGrafx.cs" />
     <Compile Include="Source\Diggers.cs" />
-    <Compile Include="Source\Math.cs" />
+    <Compile Include="Source\Calc.cs" />
     <Compile Include="Source\Digger.cs" />
     <Compile Include="Source\Video.cs" />
     <Compile Include="Data\Icon.cs" />

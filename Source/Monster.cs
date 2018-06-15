@@ -2,6 +2,8 @@
    Copyright (c) Andrew Jenner 1998-2004 */
 // C# port 2018 Mladen Stanisic <lordstanius@gmail.com>
 
+using System;
+
 namespace Digger.Source
 {
     public class Monster
@@ -41,9 +43,9 @@ namespace Digger.Source
         {
             mondat = new MonsterData[MONSTERS];
             nextMonster = 0;
-            monsterGapTime = 45 - (Level.LevelOf10(game.LevelNo) << 1);
-            totalMonsters = Level.LevelOf10(game.LevelNo) + 5;
-            switch (Level.LevelOf10(game.LevelNo))
+            monsterGapTime = 45 - (Level.LevelOf10(game.Level) << 1);
+            totalMonsters = Level.LevelOf10(game.Level) + 5;
+            switch (Level.LevelOf10(game.Level))
             {
                 case 1:
                     maxMonstersOnScreen = 3;
@@ -96,7 +98,7 @@ namespace Digger.Source
                 if (!mondat[i].exists)
                     continue;
 
-                if (mondat[i].hnt > 10 - Level.LevelOf10(game.LevelNo))
+                if (mondat[i].hnt > 10 - Level.LevelOf10(game.Level))
                 {
                     if (mondat[i].isNobbin)
                     {
@@ -110,7 +112,7 @@ namespace Digger.Source
                     if (mondat[i].t == 0)
                     {
                         MonsterAI(i);
-                        if (game.RandNo(15 - Level.LevelOf10(game.LevelNo)) == 0) /* Need to split for determinism */
+                        if (game.RandNo(15 - Level.LevelOf10(game.Level)) == 0) /* Need to split for determinism */
                             if (mondat[i].isNobbin && mondat[i].isAlive)
                                 MonsterAI(i);
                     }
@@ -169,17 +171,18 @@ namespace Digger.Source
             monoy = mondat[mon].y;
             if (mondat[mon].xr == 0 && mondat[mon].yr == 0)
             {
-
                 /* If we are here the monster needs to know which way to turn next. */
 
                 /* Turn hobbin back into nobbin if it's had its time */
 
-                if (mondat[mon].hnt > 30 + (Level.LevelOf10(game.LevelNo) << 1))
+                if (mondat[mon].hnt > 30 + (Level.LevelOf10(game.Level) << 1))
+                {
                     if (!mondat[mon].isNobbin)
                     {
                         mondat[mon].hnt = 0;
                         mondat[mon].isNobbin = true;
                     }
+                }
 
                 /* Set up monster direction properties to chase Digger */
 
@@ -187,7 +190,7 @@ namespace Digger.Source
                 if (!game.diggers.IsDiggerAlive(dig) && game.diggerCount > 1)
                     dig = dig == 0 ? 1 : 0;
 
-                if (System.Math.Abs(game.diggers.DiggerY(dig) - mondat[mon].y) > System.Math.Abs(game.diggers.DiggerX(dig) - mondat[mon].x))
+                if (Math.Abs(game.diggers.DiggerY(dig) - mondat[mon].y) > Math.Abs(game.diggers.DiggerX(dig) - mondat[mon].x))
                 {
                     if (game.diggers.DiggerY(dig) < mondat[mon].y) { mdirp1 = Dir.Up; mdirp4 = Dir.Down; }
                     else { mdirp1 = Dir.Down; mdirp4 = Dir.Up; }
@@ -235,8 +238,8 @@ namespace Digger.Source
 
                 /* Introduce a random element on levels <6 : occasionally swap p1 and p3 */
 
-                if (game.RandNo(Level.LevelOf10(game.LevelNo) + 5) == 1) /* Need to split for determinism */
-                    if (Level.LevelOf10(game.LevelNo) < 6)
+                if (game.RandNo(Level.LevelOf10(game.Level) + 5) == 1) /* Need to split for determinism */
+                    if (Level.LevelOf10(game.Level) < 6)
                     {
                         t = mdirp1;
                         mdirp1 = mdirp3;

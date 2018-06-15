@@ -6,17 +6,17 @@ using System;
 
 namespace Digger.Source
 {
-    public struct DiggerStruct
-    {
-        public int h, v, rx, ry, mdir, bagtime, rechargetime,
-              deathstage, deathBagIndex, deathani, deathtime, emocttime, emn, msc, lives, ivt;
-        public bool notfiring, firepressed, dead, levdone, invin;
-        public Digger digger;
-        public Bullet bullet;
-    }
-
     public class Diggers
     {
+        private struct DiggerStruct
+        {
+            public int h, v, rx, ry, mdir, bagtime, rechargetime,
+                  deathstage, deathBagIndex, deathani, deathtime, emocttime, emn, msc, lives, ivt;
+            public bool notfiring, firepressed, dead, invin;
+            public Digger digger;
+            public Bullet bullet;
+        }
+
         private const int MONSTERS = Const.MONSTERS;
         private const int TYPES = Const.TYPES;
         private const int SPRITES = Const.SPRITES;
@@ -28,7 +28,7 @@ namespace Digger.Source
         private const int FIRSTMONSTER = Const.FIRSTMONSTER;
         private const int FIRSTFIREBALL = Const.FIRSTFIREBALL;
 
-        public DiggerStruct[] diggerData = new DiggerStruct[DIGGERS];
+        private DiggerStruct[] diggerData = new DiggerStruct[DIGGERS];
 
         public int startbonustimeleft = 0;
         public int bonustimeleft;
@@ -196,7 +196,7 @@ namespace Digger.Source
                         if (diggerData[n].digger.isAlive)
                         {
                             diggerData[n].digger.Discharge();
-                            diggerData[n].rechargetime = Level.LevelOf10(game.LevelNo) * 3 + 60;
+                            diggerData[n].rechargetime = Level.LevelOf10(game.Level) * 3 + 60;
                             diggerData[n].notfiring = false;
                             switch (diggerData[n].digger.dir)
                             {
@@ -675,7 +675,7 @@ namespace Digger.Source
             isBonusMode = true;
             EraseBonus();
             game.video.SetIntensity(1);
-            bonustimeleft = 250 - Level.LevelOf10(game.LevelNo) * 20;
+            bonustimeleft = 250 - Level.LevelOf10(game.Level) * 20;
             startbonustimeleft = 20;
             for (int i = 0; i < game.diggerCount; i++)
                 diggerData[i].msc = 1;

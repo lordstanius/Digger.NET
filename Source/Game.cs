@@ -151,7 +151,7 @@ namespace Digger.Source
             return (short)((randVal & 0x7fffffff) % n);
         }
 
-        public int LevelNo => gameData[currentPlayer].level;
+        public int Level => gameData[currentPlayer].level;
 
         public void LoadSettings()
         {
@@ -276,8 +276,8 @@ namespace Digger.Source
 
                     if (argch == 'L')
                     {
-                        Level.LevelFileName = word.Substring(3);
-                        Level.IsUsingLevelFile = true;
+                        Source.Level.LevelFileName = word.Substring(3);
+                        Source.Level.IsUsingLevelFile = true;
                     }
 
                     if (argch == 'F')
@@ -416,22 +416,22 @@ namespace Digger.Source
                     }
                     else
                     {
-                        Level.LevelFileName = word;
-                        Level.IsUsingLevelFile = true;
+                        Source.Level.LevelFileName = word;
+                        Source.Level.IsUsingLevelFile = true;
                     }
                 }
             }
 
-            if (Level.IsUsingLevelFile)
+            if (Source.Level.IsUsingLevelFile)
             {
                 try
                 {
-                    Level.ReadLevelFile(ref scores.bonusscore);
+                    Source.Level.ReadLevelFile(ref scores.bonusscore);
                 }
                 catch (Exception ex)
                 {
                     Log.Write(ex);
-                    Level.IsUsingLevelFile = false;
+                    Source.Level.IsUsingLevelFile = false;
                 }
             }
         }

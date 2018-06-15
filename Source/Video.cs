@@ -29,7 +29,7 @@ namespace Digger.Source
         private CharSurfacePlain alphas;
         private SDL.SDL_Color[][] palettes;
         private int screenRatio;
-        private CGA_Palette cgaPalette = CGA_Palette.RedGoldGreen;
+        private CGA_Palette cgaPalette = CGA_Palette.CyanMagentaWhite;
 
         private Func<byte, int, byte> GetPixelColorFromMask;
 

@@ -11,12 +11,10 @@
         private readonly byte[] emeraldField = new byte[MSIZE];
 
         private Game game;
-        private Drawing video;
 
         public Emeralds(Game game)
         {
             this.game = game;
-            this.video = game.drawing;
         }
 
         public void DrawEmeralds()
@@ -25,7 +23,7 @@
             for (int x = 0; x < MWIDTH; x++)
                 for (int y = 0; y < MHEIGHT; y++)
                     if ((emeraldField[y * MWIDTH + x] & emmask) != 0)
-                        video.DrawEmerald(x * 20 + 12, y * 18 + 21);
+                        game.drawing.DrawEmerald(x * 20 + 12, y * 18 + 21);
         }
 
         public void MakeEmeraldField()
@@ -33,7 +31,7 @@
             emmask = (short)(1 << game.currentPlayer);
             for (int x = 0; x < MWIDTH; x++)
                 for (int y = 0; y < MHEIGHT; y++)
-                    if (Level.GetLevelChar(x, y, game.LevelNo, game.diggerCount) == 'C')
+                    if (Level.GetLevelChar(x, y, game.Level, game.diggerCount) == 'C')
                         emeraldField[y * MWIDTH + x] |= (byte)emmask;
                     else
                         emeraldField[y * MWIDTH + x] &= (byte)~emmask;
@@ -60,12 +58,12 @@
             {
                 if (r == emeraldBox[dir])
                 {
-                    video.DrawEmerald(x * 20 + 12, y * 18 + 21);
+                    game.drawing.DrawEmerald(x * 20 + 12, y * 18 + 21);
                     game.IncrementPenalty();
                 }
                 if (r == emeraldBox[dir + 1])
                 {
-                    video.EraseEmerald(x * 20 + 12, y * 18 + 21);
+                    game.drawing.EraseEmerald(x * 20 + 12, y * 18 + 21);
                     game.IncrementPenalty();
                     emeraldField[y * MWIDTH + x] &= (byte)~emmask;
                     return true;
@@ -90,7 +88,7 @@
             if ((emeraldField[(y + 1) * MWIDTH + x] & emmask) != 0)
             {
                 emeraldField[(y + 1) * MWIDTH + x] &= (byte)~emmask;
-                video.EraseEmerald(x * 20 + 12, (y + 1) * 18 + 21);
+                game.drawing.EraseEmerald(x * 20 + 12, (y + 1) * 18 + 21);
             }
         }
     }

@@ -4,20 +4,13 @@
 
 namespace Digger.Source
 {
-    public struct Bag
-    {
-        public int x, y, h, v, xr, yr, dir, wt, gt, fallh;
-        public bool wobbling, unfallen, Exists;
-    }
-
     public class Bags
     {
-        public Bag[] bagdat = new Bag[BAGS];
-        public Bag[] bagdat1 = new Bag[BAGS];
-        public Bag[] bagdat2 = new Bag[BAGS];
-
-        public int pushcount;
-        public int goldtime;
+        private struct Bag
+        {
+            public int x, y, h, v, xr, yr, dir, wt, gt, fallh;
+            public bool wobbling, unfallen, Exists;
+        }
 
         private const int BAGS = Const.BAGS;
         private const int MWIDTH = Const.MWIDTH;
@@ -31,7 +24,13 @@ namespace Digger.Source
         private const int SPRITES = Const.SPRITES;
         private const int FIRSTDIGGER = Const.FIRSTDIGGER;
 
-        private int[] wblanim = { 2, 0, 1, 0 };
+        public int pushcount;
+        public int goldtime;
+
+        private Bag[] bagdat = new Bag[BAGS];
+        private Bag[] bagdat1 = new Bag[BAGS];
+        private Bag[] bagdat2 = new Bag[BAGS];
+        private readonly int[] wblanim = { 2, 0, 1, 0 };
 
         private readonly Game game;
 
@@ -42,9 +41,9 @@ namespace Digger.Source
 
         public void Init()
         {
-            short bag, x, y;
+            int bag, x, y;
             pushcount = 0;
-            goldtime = 150 - Level.LevelOf10(game.LevelNo) * 10;
+            goldtime = 150 - Level.LevelOf10(game.Level) * 10;
             bagdat = new Bag[BAGS];
             for (bag = 0; bag < BAGS; bag++)
                 bagdat[bag].Exists = false;
@@ -54,7 +53,7 @@ namespace Digger.Source
             {
                 for (y = 0; y < MHEIGHT; y++)
                 {
-                    if (Level.GetLevelChar(x, y, game.LevelNo, game.diggerCount) == 'B')
+                    if (Level.GetLevelChar(x, y, game.Level, game.diggerCount) == 'B')
                     {
                         if (bag < BAGS)
                         {
@@ -171,13 +170,12 @@ namespace Digger.Source
 
         public void UpdateBag(int bag)
         {
-            int x, h, xr, y, v, yr, wbl;
-            x = bagdat[bag].x;
-            h = bagdat[bag].h;
-            xr = bagdat[bag].xr;
-            y = bagdat[bag].y;
-            v = bagdat[bag].v;
-            yr = bagdat[bag].yr;
+            int x = bagdat[bag].x;
+            int h = bagdat[bag].h;
+            int xr = bagdat[bag].xr;
+            int y = bagdat[bag].y;
+            int v = bagdat[bag].v;
+            int yr = bagdat[bag].yr;
             switch (bagdat[bag].dir)
             {
                 case Dir.None:
@@ -192,7 +190,7 @@ namespace Digger.Source
                                 break;
                             }
                             bagdat[bag].wt--;
-                            wbl = bagdat[bag].wt % 8;
+                            int wbl = bagdat[bag].wt % 8;
                             if ((wbl & 1) == 0)
                             {
                                 game.drawing.DrawGold(bag, wblanim[wbl >> 1], x, y);
