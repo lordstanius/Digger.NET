@@ -37,7 +37,7 @@
                         emeraldField[y * MWIDTH + x] &= (byte)~emmask;
         }
 
-        public bool HitEmerald(int x, int y, int rx, int ry, int dir)
+        public bool IsEmeraldHit(int x, int y, int rx, int ry, int dir)
         {
             if (dir != Dir.Right && dir != Dir.Up && dir != Dir.Left && dir != Dir.Down)
                 return false;

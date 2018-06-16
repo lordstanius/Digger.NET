@@ -98,10 +98,10 @@ namespace Digger.Source
         public Sprite sprite;
         public SDL_Timer timer;
         public Scores scores;
-        public Recording record;
+        public Recorder recorder;
         public Input input;
         public Sound sound;
-        public Monster monsters;
+        public Monsters monsters;
         public Bags bags;
         public Diggers diggers;
         public Emeralds emeralds;
@@ -123,8 +123,8 @@ namespace Digger.Source
             emeralds = new Emeralds(this);
             diggers = new Diggers(this);
             scores = new Scores(this);
-            record = new Recording(this);
-            monsters = new Monster(this);
+            recorder = new Recorder(this);
+            monsters = new Monsters(this);
             bags = new Bags(this);
             video = new Video();
         }
@@ -284,21 +284,21 @@ namespace Digger.Source
                         video.isFullScreen = true;
 
                     if (argch == 'R')
-                        record.SetRecordName(word.Substring(i));
+                        recorder.SetRecordName(word.Substring(i));
 
                     if (argch == 'P' || argch == 'E')
                     {
                         Init();
                         try
                         {
-                            record.OpenPlay(word.Substring(i));
+                            recorder.OpenPlay(word.Substring(i));
                             if (isGameCycleEnded)
                                 norepf = true;
                         }
                         catch (Exception ex)
                         {
                             isGameCycleEnded = true;
-                            Log.Write("Error reading record file: " + ex);
+                            Log.Write(ex);
                         }
                     }
 
@@ -445,7 +445,7 @@ namespace Digger.Source
             Console.WriteLine("Command line syntax:");
             Console.WriteLine("  DIGGER [[/S:]speed] [[/L:]level file] [/C] [/Q] [/M] ");
             Console.WriteLine("         [/P:playback file]");
-            Console.WriteLine("         [/E:playback file] [/R:record file] [/O] [/K[A]] ");
+            Console.WriteLine("         [/E:playback file] [/R:recorder file] [/O] [/K[A]] ");
             Console.WriteLine("         [/G[:time]] [/2]");
             Console.WriteLine("         [/U] [/I:level] ");
             Console.WriteLine("         [/F]");
@@ -583,32 +583,32 @@ namespace Digger.Source
                     if (frame > 250)
                         frame = 0;
                 }
-                if (record.saveDrf)
+                if (recorder.saveDrf)
                 {
-                    if (record.gotName)
+                    if (recorder.gotName)
                     {
-                        record.SaveRecordFile();
-                        record.gotGame = false;
+                        recorder.SaveRecordFile();
+                        recorder.gotGame = false;
                     }
-                    record.saveDrf = false;
+                    recorder.saveDrf = false;
                     continue;
                 }
                 if (isGameCycleEnded)
                     break;
 
-                record.StartRecording();
+                recorder.StartRecording();
 
                 Run();
 
-                record.gotGame = true;
+                recorder.gotGame = true;
 
-                if (record.gotName)
+                if (recorder.gotName)
                 {
-                    record.SaveRecordFile();
-                    record.gotGame = false;
+                    recorder.SaveRecordFile();
+                    recorder.gotGame = false;
                 }
 
-                record.saveDrf = false;
+                recorder.saveDrf = false;
                 isGameCycleEnded = false;
                 isVideoModeChanged = false;
             } while (!isGameCycleEnded && !shouldExit);
@@ -665,8 +665,8 @@ namespace Digger.Source
 
         private void Play()
         {
-            randVal = record.isPlaying ? record.PlayGetRand() : 0;
-            record.RecordPutRandom(randVal);
+            randVal = recorder.isPlaying ? recorder.PlayGetRand() : 0;
+            recorder.RecordPutRandom(randVal);
             if (levelNotDrawn)
             {
                 levelNotDrawn = false;
@@ -708,7 +708,7 @@ namespace Digger.Source
             {
                 NewFrame();
                 penalty = 0;
-                diggers.DoDiggers(bags, monsters, scores);
+                diggers.DoDiggers();
                 monsters.DoMonsters();
                 bags.DoBags();
                 if (penalty > 8)
@@ -717,6 +717,7 @@ namespace Digger.Source
                 TestPause();
                 CheckIsLevelDone();
             }
+
             diggers.EraseDiggers();
             sound.MusicOff();
             int t = 20;
@@ -726,7 +727,7 @@ namespace Digger.Source
                     t--;
                 penalty = 0;
                 bags.DoBags();
-                diggers.DoDiggers(bags, monsters, scores);
+                diggers.DoDiggers();
                 monsters.DoMonsters();
                 if (penalty < 8)
                     t = 0;
@@ -739,12 +740,12 @@ namespace Digger.Source
             bags.Cleanup();
             drawing.SaveField();
             monsters.EraseMonsters();
-            record.PutEndOfLevel();
-            if (record.isPlaying)
-                record.PlaySkipEOL();
+            recorder.PutEndOfLevel();
+            if (recorder.isPlaying)
+                recorder.PlaySkipEOL();
 
             if (isGameCycleEnded)
-                record.PutEndOfGame();
+                recorder.PutEndOfGame();
 
             if (gameData[currentPlayer].isLevelDone)
                 sound.SoundLevelDone(input);

@@ -30,7 +30,7 @@ namespace Digger.Source
             int errorrow1 = 11 * CHR_H;
             int errorrow2 = 13 * CHR_H;
             int color = 3;
-
+            
             for (int i = 0; i < game.input.KeyCount; i++)
             {
                 game.drawing.EraseLine(playerrow);

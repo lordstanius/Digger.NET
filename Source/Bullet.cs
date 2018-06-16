@@ -39,7 +39,7 @@ namespace Digger.Source
         public int y;
 
         private readonly Game game;
-
+        
         public Bullet(Game game, int id, int dir, int x, int y)
         {
             this.dir = dir;

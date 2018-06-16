@@ -179,7 +179,7 @@ namespace Digger.Source
             bool initflag = false;
             for (int i = 0; i < game.diggerCount; i++)
                 AddScore(i, 0);
-            if (game.record.isPlaying || !game.record.isDrfValid)
+            if (game.recorder.isPlaying || !game.recorder.isDrfValid)
                 return;
 
             if (game.isGauntletMode)
@@ -283,7 +283,7 @@ namespace Digger.Source
             game.sound.SetupSound();
             game.video.Clear();
             game.video.SetIntensity(0);
-            game.record.PutInitials(scoreinit[0]);
+            game.recorder.PutInitials(scoreinit[0]);
         }
 
         public int GetInitial(int x, int y)

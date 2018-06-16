@@ -47,7 +47,7 @@ namespace Digger.Source
             SDL.SDL_Scancode.SDL_SCANCODE_V,            /* Change video to VGA */
             SDL.SDL_Scancode.SDL_SCANCODE_C,            /* Change video to CGA */
         };
-
+        
         public readonly int[][] keycodes;
         public static short klen = 0;
         private static SDL.SDL_EventFilter pHandler;

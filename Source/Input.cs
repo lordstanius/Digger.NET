@@ -123,8 +123,8 @@ namespace Digger.Source
                     case KEY_CHEAT: /* Cheat! */
                         if (!game.isGauntletMode)
                         {
-                            game.record.isPlaying = false;
-                            game.record.isDrfValid = false;
+                            game.recorder.isPlaying = false;
+                            game.recorder.isDrfValid = false;
                             game.hasUnlimitedLives = true;
                         }
                         break;
@@ -151,14 +151,14 @@ namespace Digger.Source
                         mode_change = true;
                         break;
                     case KEY_SAVE_DRF: /* Save DRF */
-                        game.record.saveDrf = true;
+                        game.recorder.saveDrf = true;
                         break;
                     case KEY_SWITCH_TO_VGA:
-                        if (!game.record.isPlaying && !game.isStarted && game.video.SetVideoMode(VideoMode.VGA))
+                        if (!game.recorder.isPlaying && !game.isStarted && game.video.SetVideoMode(VideoMode.VGA))
                             game.isVideoModeChanged = true;
                         break;
                     case KEY_SWITCH_TO_CGA:
-                        if (!game.record.isPlaying && !game.isStarted && game.video.SetVideoMode(VideoMode.CGA))
+                        if (!game.recorder.isPlaying && !game.isStarted && game.video.SetVideoMode(VideoMode.CGA))
                             game.isVideoModeChanged = true;
                         break;
                 }
@@ -317,17 +317,17 @@ namespace Digger.Source
             int dir = ((n == 0) ? keydir : keydir2);
             if (n == 0)
             {
-                if (game.record.isPlaying)
-                    game.record.PlayGetDirection(ref dir, ref firepflag);
+                if (game.recorder.isPlaying)
+                    game.recorder.PlayGetDirection(ref dir, ref firepflag);
 
-                game.record.PutDirection(dir, firepflag);
+                game.recorder.PutDirection(dir, firepflag);
             }
             else
             {
-                if (game.record.isPlaying)
-                    game.record.PlayGetDirection(ref dir, ref fire2pflag);
+                if (game.recorder.isPlaying)
+                    game.recorder.PlayGetDirection(ref dir, ref fire2pflag);
 
-                game.record.PutDirection(dir, fire2pflag);
+                game.recorder.PutDirection(dir, fire2pflag);
             }
 
             return dir;

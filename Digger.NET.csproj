@@ -52,7 +52,7 @@
     <Compile Include="Source\Const.cs" />
     <Compile Include="Source\Emeralds.cs" />
     <Compile Include="Source\Level.cs" />
-    <Compile Include="Source\Monster.cs" />
+    <Compile Include="Source\Monsters.cs" />
     <Compile Include="Data\Alpha.cs" />
     <Compile Include="Source\Drawing.cs" />
     <Compile Include="Program.cs" />
@@ -64,7 +64,7 @@
     <Compile Include="Data\CgaGrafx.cs" />
     <Compile Include="Source\Diggers.cs" />
     <Compile Include="Source\Calc.cs" />
-    <Compile Include="Source\Digger.cs" />
+    <Compile Include="Source\Recorder.cs" />
     <Compile Include="Source\Video.cs" />
     <Compile Include="Data\Icon.cs" />
     <Compile Include="Properties\Resource.Designer.cs">
@@ -79,7 +79,6 @@
     <Compile Include="Source\Keyboard.cs" />
     <Compile Include="Source\Game.cs" />
     <Content Include="digger.ico" />
-    <Compile Include="Source\Recording.cs" />
     <Compile Include="Source\Scores.cs" />
     <Compile Include="Source\Input_SDL.cs" />
     <Compile Include="Source\Sound_SDL.cs" />
