@@ -251,6 +251,7 @@ namespace Digger.Source
             for (int i = 0; i < MONSTERS; i++)
             {
                 game.sprite.CreateSprite(FIRSTMONSTER + i, 71, monbufs[i], 4, 15, 0, 0);
+                monspr[i] = 0;
                 monspd[i] = 1;
             }
 

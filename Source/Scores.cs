@@ -9,38 +9,35 @@ namespace Digger.Source
 {
     public class Scores
     {
+        private const string SCORE_FILE_NAME = "DIGGER.SCO";
+
+        private readonly Game game;
+
         private struct ScoreData
         {
             public int score, nextbs;
         }
 
-        private readonly ScoreData[] scdat = new ScoreData[Const.DIGGERS];
-        public string highbuf;
-        public int[] scorehigh = new int[12];
+        public int bonusscore = 20000;
         public string[] scoreinit = new string[11];
         public int scoret = 0;
-        public string hsbuf;
-        public byte[] scorebuf = new byte[512];
-        public int bonusscore = 20000;
-        public bool gotinitflag = false;
-        public const string SFNAME = "DIGGER.SCO";
 
-        private readonly Game game;
-        private readonly Drawing video;
+        private readonly ScoreData[] scdat = new ScoreData[Const.DIGGERS];
+        private readonly int[] scorehigh = new int[12];
+        private readonly byte[] scorebuf = new byte[512];
 
         public Scores(Game game)
         {
             this.game = game;
-            this.video = game.drawing;
         }
 
         private void ReadScores()
         {
             if (!Level.IsUsingLevelFile)
             {
-                if (File.Exists(SFNAME))
+                if (File.Exists(SCORE_FILE_NAME))
                 {
-                    using (var inFile = File.OpenRead(SFNAME))
+                    using (var inFile = File.OpenRead(SCORE_FILE_NAME))
                     {
                         if (inFile.Read(scorebuf, 0, 512) == 0)
                             scorebuf[0] = 0;
@@ -62,7 +59,7 @@ namespace Digger.Source
         {
             if (!Level.IsUsingLevelFile)
             {
-                using (var inFile = File.OpenWrite(SFNAME))
+                using (var inFile = File.OpenWrite(SCORE_FILE_NAME))
                 {
                     inFile.Write(scorebuf, 0, 512);
                 }
@@ -106,8 +103,8 @@ namespace Digger.Source
                 {
                     scoreinit[i] = Encoding.ASCII.GetString(scorebuf, p, 3);
                     p += 5;
-                    highbuf = Encoding.ASCII.GetString(scorebuf, p, 6);
-                    if (int.TryParse(highbuf.TrimEnd(), out int highScore))
+                    string highbuf = Encoding.ASCII.GetString(scorebuf, p, 6).TrimEnd();
+                    if (int.TryParse(highbuf, out int highScore))
                         scorehigh[i + 1] = highScore;
                     p += 6;
                 }
@@ -188,7 +185,7 @@ namespace Digger.Source
                 game.drawing.TextOut("TIME UP", 120, 0, 3);
                 for (int i = 0; i < 50 && !game.isGameCycleEnded; i++)
                     game.NewFrame();
-                video.EraseText(7, 120, 0, 3);
+                game.drawing.EraseText(7, 120, 0, 3);
             }
             for (int i = game.currentPlayer; i < game.currentPlayer + game.diggerCount; i++)
             {
@@ -198,8 +195,8 @@ namespace Digger.Source
                     game.video.Clear();
                     DrawScores();
                     game.playerName = $"PLAYER {(i == 0 ? 1 : 2)}";
-                    video.TextOut(game.playerName, 108, 0, 2);
-                    video.TextOut(" NEW HIGH SCORE ", 64, 40, 2);
+                    game.drawing.TextOut(game.playerName, 108, 0, 2);
+                    game.drawing.TextOut(" NEW HIGH SCORE ", 64, 40, 2);
                     GetInitials();
                     ShuffleHigh();
                     SaveScores();
@@ -209,40 +206,38 @@ namespace Digger.Source
             if (!initflag && !game.isGauntletMode)
             {
                 game.ClearTopLine();
-                video.TextOut("GAME OVER", 104, 0, 3);
+                game.drawing.TextOut("GAME OVER", 104, 0, 3);
                 for (int i = 0; i < 50 && !game.isGameCycleEnded; i++)
                     game.NewFrame();
-                video.EraseText(9, 104, 0, 3);
+                game.drawing.EraseText(9, 104, 0, 3);
             }
         }
 
         public void ShowTable()
         {
             int i, col;
-            video.TextOut("HIGH SCORES", 16, 25, 3);
+            game.drawing.TextOut("HIGH SCORES", 16, 25, 3);
             col = 2;
             for (i = 1; i < 11; i++)
             {
-                highbuf = IntToString(scorehigh[i + 1]);
-                hsbuf = $"{scoreinit[i]}  {highbuf}";
-                video.TextOut(hsbuf, 16, 31 + 13 * i, col);
+                string highbuf = IntToString(scorehigh[i + 1]);
+                game.drawing.TextOut($"{scoreinit[i]}  {highbuf}", 16, 31 + 13 * i, col);
                 col = 1;
             }
         }
 
         private void SaveScores()
         {
-            int i, p = 0, j;
+            int p = 0;
             if (game.isGauntletMode)
                 p = 111;
             if (game.diggerCount == 2)
                 p += 222;
             scorebuf[p] = (byte)'s';
-            for (i = 1; i < 11; i++)
+            for (int i = 1; i < 11; i++)
             {
-                highbuf = IntToString(scorehigh[i + 1]);
-                hsbuf = $"{scoreinit[i]}  {highbuf}";
-                for (j = 0; j < 11; j++)
+                string hsbuf = string.Format("{0}  {1}", scoreinit[i], IntToString(scorehigh[i + 1]));
+                for (int j = 0; j < 11; j++)
                     scorebuf[p + j + i * 11 - 10] = (byte)hsbuf[j];
             }
             WriteScores();
@@ -252,9 +247,9 @@ namespace Digger.Source
         {
             int k, i;
             game.NewFrame();
-            video.TextOutCentered("ENTER YOUR", 70, 3);
-            video.TextOutCentered("INITIALS", 90, 3);
-            video.TextOut("_ _ _", 128, 130, 3);
+            game.drawing.TextOutCentered("ENTER YOUR", 70, 3);
+            game.drawing.TextOutCentered("INITIALS", 90, 3);
+            game.drawing.TextOut("_ _ _", 128, 130, 3);
             scoreinit[0] = "...";
             game.sound.KillSound();
             var initials = new char[3];
@@ -278,7 +273,7 @@ namespace Digger.Source
                 }
             }
             scoreinit[0] = new string(initials);
-            video.FlashyWait(15);
+            game.drawing.FlashyWait(15);
 
             game.sound.SetupSound();
             game.video.Clear();
@@ -301,7 +296,7 @@ namespace Digger.Source
                             continue;
                         return key;
                     }
-                    video.FlashyWait(15);
+                    game.drawing.FlashyWait(15);
                 }
 
                 for (int i = 0; i < 40; i++)
@@ -311,7 +306,7 @@ namespace Digger.Source
                         game.video.WriteChar(x, y, '_', 3);
                         return game.input.GetKey(false);
                     }
-                    video.FlashyWait(15);
+                    game.drawing.FlashyWait(15);
                 }
             } while (true);
         }
