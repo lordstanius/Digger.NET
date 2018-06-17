@@ -583,16 +583,6 @@ namespace Digger.Source
                     if (frame > 250)
                         frame = 0;
                 }
-                if (recorder.saveDrf)
-                {
-                    if (recorder.gotName)
-                    {
-                        recorder.SaveRecordFile();
-                        recorder.gotGame = false;
-                    }
-                    recorder.saveDrf = false;
-                    continue;
-                }
                 if (isGameCycleEnded)
                     break;
 
@@ -600,13 +590,10 @@ namespace Digger.Source
 
                 Run();
 
-                recorder.gotGame = true;
-
                 if (recorder.gotName)
-                {
                     recorder.SaveRecordFile();
-                    recorder.gotGame = false;
-                }
+                else if (recorder.saveDrf)
+                    recorder.SaveRecordFile();
 
                 recorder.saveDrf = false;
                 isGameCycleEnded = false;
@@ -665,7 +652,7 @@ namespace Digger.Source
 
         private void Play()
         {
-            randVal = recorder.isPlaying ? recorder.PlayGetRand() : 0;
+            randVal = recorder.isPlaying ? recorder.PlayGetRand() : (short)Environment.TickCount;
             recorder.RecordPutRandom(randVal);
             if (levelNotDrawn)
             {

@@ -17,7 +17,6 @@ namespace Digger.Source
         public bool isPlaying;
         public bool saveDrf;
         public bool gotName;
-        public bool gotGame;
         public bool isDrfValid;
         public bool kludge;
 
@@ -145,9 +144,9 @@ namespace Digger.Source
             }
 
             isPlaying = true;
-            StartRecording();
+
             game.Run();
-            gotGame = true;
+            
             isPlaying = false;
 
             // restore current values
@@ -349,25 +348,23 @@ namespace Digger.Source
                         recf = File.OpenWrite(REC_FILE_NAME); /* Should get a name, really */
                     else
                     {
-                        char[] initials = new char[4];
-                        for (int j = 0; j < 3; j++)
+                        char[] initials = "___".ToCharArray();
+                        if (game.scores.scoreinit[0] == null)
                         {
-                            initials[j] = game.scores.scoreinit[0][j];
-                            if (!((initials[j] >= 'A' && initials[j] <= 'Z') ||
-                                  (initials[j] >= 'a' && initials[j] <= 'z')))
-                                initials[j] = '_';
+                            initials = "rec".ToCharArray();
+                        }
+                        else
+                        {
+                            for (int j = 0; j < initials.Length; j++)
+                            {
+                                initials[j] = game.scores.scoreinit[0][j];
+                                if (!((initials[j] >= 'A' && initials[j] <= 'Z') ||
+                                      (initials[j] >= 'a' && initials[j] <= 'z')))
+                                    initials[j] = '_';
+                            }
                         }
 
-                        string fileName;
-                        if (game.scores.scoret < 100000)
-                            fileName = string.Format("{0}{1}{2}", initials[0], game.scores.scoret, REC_FILE_EXT);
-                        else if (initials[2] == '_')
-                            fileName = string.Format("{0}{1}{2}{3}", initials[0], initials[1], game.scores.scoret, REC_FILE_EXT);
-                        else if (initials[0] == '_')
-                            fileName = string.Format("{0}{1}{2}{3}", initials[1], initials[2], game.scores.scoret, REC_FILE_EXT);
-                        else
-                            fileName = string.Format("{0}{1}{2}{3}", initials[0], initials[2], game.scores.scoret, REC_FILE_EXT);
-
+                        string fileName = string.Format("{0}{1}{2}", new String(initials), game.scores.scoret, REC_FILE_EXT);
                         recf = File.OpenWrite(fileName);
                     }
                 }
