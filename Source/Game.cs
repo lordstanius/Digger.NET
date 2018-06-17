@@ -652,7 +652,7 @@ namespace Digger.Source
 
         private void Play()
         {
-            randVal = recorder.isPlaying ? recorder.PlayGetRand() : (short)(Environment.TickCount % 65536);
+            randVal = recorder.isPlaying ? recorder.PlayGetRand() : Environment.TickCount;
             recorder.RecordPutRandom(randVal);
             if (levelNotDrawn)
             {
