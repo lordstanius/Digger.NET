@@ -150,9 +150,9 @@ namespace Digger.Source
             isPlaying = false;
 
             // restore current values
+            kludge = false;
             game.isGauntletMode = origg;
             game.gameTime = origgtime;
-            kludge = false;
             game.startingLevel = origstartlev;
             game.diggerCount = origdiggers;
             game.playerCount = orignplayers;

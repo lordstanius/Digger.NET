@@ -17,7 +17,6 @@ namespace Digger.Source
         public bool isPlaying;
         public bool saveDrf;
         public bool gotName;
-        public bool gotGame;
         public bool isDrfValid;
         public bool kludge;
 
@@ -147,7 +146,6 @@ namespace Digger.Source
             isPlaying = true;
             StartRecording();
             game.Run();
-            gotGame = true;
             isPlaying = false;
 
             // restore current values

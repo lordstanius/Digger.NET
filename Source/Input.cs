@@ -151,7 +151,8 @@ namespace Digger.Source
                         mode_change = true;
                         break;
                     case KEY_SAVE_DRF: /* Save DRF */
-                        game.recorder.saveDrf = true;
+                        if (!game.recorder.isPlaying)
+                            game.recorder.saveDrf = true;
                         break;
                     case KEY_SWITCH_TO_VGA:
                         if (!game.recorder.isPlaying && !game.isStarted && game.video.SetVideoMode(VideoMode.VGA))
@@ -162,7 +163,7 @@ namespace Digger.Source
                             game.isVideoModeChanged = true;
                         break;
                 }
-                
+
                 /* Change number of players */
                 if (!mode_change)
                     shouldStart = true;

@@ -590,9 +590,7 @@ namespace Digger.Source
 
                 Run();
 
-                if (recorder.gotName)
-                    recorder.SaveRecordFile();
-                else if (recorder.saveDrf)
+                if (recorder.gotName || recorder.saveDrf)
                     recorder.SaveRecordFile();
 
                 recorder.saveDrf = false;
