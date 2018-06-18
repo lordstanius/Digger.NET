@@ -123,7 +123,7 @@ namespace Digger.Source
             return l;
         }
 
-        public void ReadLevelFile(ref int bonusScore)
+        public void ReadLevelFile()
         {
             if (!File.Exists(levelFileName))
             {
@@ -136,7 +136,7 @@ namespace Digger.Source
             {
                 using (var br = new BinaryReader(levf, Encoding.ASCII, true))
                 {
-                    bonusScore = br.ReadInt32();
+                    game.scores.bonusscore = br.ReadInt32();
                 }
 
                 byte[] buff = new byte[15];

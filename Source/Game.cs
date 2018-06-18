@@ -428,7 +428,7 @@ namespace Digger.Source
             {
                 try
                 {
-                    level.ReadLevelFile(ref scores.bonusscore);
+                    level.ReadLevelFile();
                 }
                 catch (Exception ex)
                 {
