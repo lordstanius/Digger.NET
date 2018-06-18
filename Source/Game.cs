@@ -106,6 +106,7 @@ namespace Digger.Source
         public Diggers diggers;
         public Emeralds emeralds;
         public Video video;
+        public Level level;
 
         private bool quiet = false;
         private int penalty = 0;
@@ -126,6 +127,7 @@ namespace Digger.Source
             recorder = new Recorder(this);
             monsters = new Monsters(this);
             bags = new Bags(this);
+            level = new Level(this);
             video = new Video();
         }
 
@@ -276,8 +278,8 @@ namespace Digger.Source
 
                     if (argch == 'L')
                     {
-                        Source.Level.LevelFileName = word.Substring(3);
-                        Source.Level.IsUsingLevelFile = true;
+                        level.levelFileName = word.Substring(3);
+                        level.isUsingLevelFile = true;
                     }
 
                     if (argch == 'F')
@@ -416,22 +418,22 @@ namespace Digger.Source
                     }
                     else
                     {
-                        Source.Level.LevelFileName = word;
-                        Source.Level.IsUsingLevelFile = true;
+                        level.levelFileName = word;
+                        level.isUsingLevelFile = true;
                     }
                 }
             }
 
-            if (Source.Level.IsUsingLevelFile)
+            if (level.isUsingLevelFile)
             {
                 try
                 {
-                    Source.Level.ReadLevelFile(ref scores.bonusscore);
+                    level.ReadLevelFile(ref scores.bonusscore);
                 }
                 catch (Exception ex)
                 {
                     Log.Write(ex);
-                    Source.Level.IsUsingLevelFile = false;
+                    level.isUsingLevelFile = false;
                 }
             }
         }

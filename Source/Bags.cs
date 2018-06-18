@@ -53,7 +53,7 @@ namespace Digger.Source
             {
                 for (y = 0; y < MHEIGHT; y++)
                 {
-                    if (Level.GetLevelChar(x, y, game.Level, game.diggerCount) == 'B')
+                    if (game.level.GetLevelChar(x, y) == 'B')
                     {
                         if (bag < BAGS)
                         {

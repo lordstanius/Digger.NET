@@ -105,7 +105,7 @@ namespace Digger.Source
                 for (int y = 0; y < MHEIGHT; y++)
                 {
                     field[y * MWIDTH + x] = -1;
-                    char c = Level.GetLevelChar(x, y, game.Level, game.diggerCount);
+                    char c = game.level.GetLevelChar(x, y);
                     if (c == 'S' || c == 'V')
                         field[y * MWIDTH + x] &= 0xd03f;
                     if (c == 'S' || c == 'H')
@@ -127,7 +127,7 @@ namespace Digger.Source
                     else
                         field[y * MWIDTH + x] = field2[y * MWIDTH + x];
             game.video.SetIntensity(0);
-            DrawBackground(Level.LevelPlan(game.Level));
+            DrawBackground(game.level.LevelPlan());
             DrawField();
         }
 

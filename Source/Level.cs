@@ -7,12 +7,12 @@ using System.Text;
 
 namespace Digger.Source
 {
-    public static class Level
+    public class Level
     {
-        public static string LevelFileName;
-        public static bool IsUsingLevelFile;
-
-        public static readonly string[,] Data = {
+        private readonly Game game;
+        public string levelFileName;
+        public bool isUsingLevelFile;
+        public readonly string[,] Data = {
             { "S   B     HHHHS",
               "V  CC  C  V B  ",
               "VB CC  C  V    ",
@@ -95,38 +95,44 @@ namespace Digger.Source
               "HHHHHHHHHHHHHHH" }
         };
 
+        public Level(Game game)
+        {
+            this.game = game;
+        }
+
         public static int LevelOf10(int level)
         {
             return level > 10 ? 10 : level;
         }
 
-        public static char GetLevelChar(int x, int y, int level, int diggerCount)
+        public char GetLevelChar(int x, int y)
         {
-            level = LevelPlan(level);
-            if ((level == 3 || level == 4) && !IsUsingLevelFile && diggerCount == 2 && y == 9 && (x == 6 || x == 8))
+            int l = LevelPlan();
+            if ((l == 3 || l == 4) && !isUsingLevelFile && game.diggerCount == 2 && y == 9 && (x == 6 || x == 8))
                 return 'H';
 
-            return Data[level - 1, y][x];
+            return Data[l - 1, y][x];
         }
 
-        public static int LevelPlan(int level)
+        public int LevelPlan()
         {
-            if (level > 8)
-                return (level & 3) + 5; /* Level plan: 12345678, 678, (5678) 247 times, 5 forever */
+            int l = game.Level;
+            if (l > 8)
+                return (l & 3) + 5; /* Level plan: 12345678, 678, (5678) 247 times, 5 forever */
 
-            return level;
+            return l;
         }
 
-        public static void ReadLevelFile(ref int bonusScore)
+        public void ReadLevelFile(ref int bonusScore)
         {
-            if (!File.Exists(LevelFileName))
+            if (!File.Exists(levelFileName))
             {
-                LevelFileName += ".DLF";
-                if (!File.Exists(LevelFileName))
-                    throw new FileNotFoundException($"File '{LevelFileName}' cannot be found.");
+                levelFileName += ".DLF";
+                if (!File.Exists(levelFileName))
+                    throw new FileNotFoundException($"File '{levelFileName}' cannot be found.");
             }
 
-            using (var levf = File.OpenRead(LevelFileName))
+            using (var levf = File.OpenRead(levelFileName))
             {
                 using (var br = new BinaryReader(levf, Encoding.ASCII, true))
                 {

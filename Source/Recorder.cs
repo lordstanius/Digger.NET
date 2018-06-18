@@ -135,7 +135,7 @@ namespace Digger.Source
                         if ((buf = playf.ReadLine()) == null)
                             throw new InvalidOperationException("Cannot read a line of the map.");
 
-                        Level.Data[n, y] = buf;
+                        game.level.Data[n, y] = buf;
                     }
 
                 /* This is the second. The line breaks here really are only so that the file
@@ -306,7 +306,7 @@ namespace Digger.Source
                 for (int y = 0; y < Const.MHEIGHT; y++)
                 {
                     for (int x = 0; x < Const.MWIDTH; x++)
-                        recordingBuffer.AppendFormat("{0}", Level.Data[lvl, y][x]);
+                        recordingBuffer.AppendFormat("{0}", game.level.Data[lvl, y][x]);
 
                     recordingBuffer.AppendLine();
                 }
