@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
-/* These are re-implementations of the Windows version of INI filing. */
+/* These are re-implementations of the Windows API version of INI file handlers. */
 public sealed class Ini
 {
     public class Section
@@ -14,9 +14,17 @@ public sealed class Ini
         {
             Name = name;
         }
+
+        public string this[string key]
+        {
+            get => Values.TryGetValue(key, out string value) ? value : String.Empty;
+            set => Values[key] = value;
+        }
     }
 
     public List<Section> Sections { get; } = new List<Section>();
+
+    public Section this[string sectionName] => GetSection(sectionName);
 
     public void ReadFromFile(string fileName)
     {
@@ -60,7 +68,14 @@ public sealed class Ini
 
     public Section GetSection(string sectionName)
     {
-        return Sections.Find(s => s.Name == sectionName);
+        Section section = Sections.Find(s => s.Name == sectionName);
+        if (section == null)
+        {
+            section = new Section(sectionName);
+            Sections.Add(section);
+        }
+
+        return section;
     }
 
     private static string GetSectionName(string rawLine)
