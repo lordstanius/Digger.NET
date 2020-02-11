@@ -163,16 +163,13 @@ namespace Digger.Source
             {
                 string kbuf = GetKeyboardBufferKey(i);
                 vbuf = GetKeyboardBufferValue(i);
-                vbuf = Ini.GetINIString(INI_KEY_SETTINGS, kbuf, null, INI_FILE_NAME);
-                if (vbuf != null)
+                vbuf = Ini.GetINIString(INI_KEY_SETTINGS, kbuf, vbuf, INI_FILE_NAME);
+                int j = 0;
+                foreach (string keyCode in vbuf.Split(','))
                 {
-                    int j = 0;
-                    foreach (string keyCode in vbuf.Split(','))
-                    {
-                        int scanCode = int.Parse(keyCode);
-                        if (scanCode != 0)
-                            input.KeyCodes[i][j++] = scanCode;
-                    }
+                    int scanCode = int.Parse(keyCode);
+                    if (scanCode != 0)
+                        input.KeyCodes[i][j++] = scanCode;
                 }
             }
             gameTime = (uint)Ini.GetINIInt(INI_GAME_SETTINGS, "GauntletTime", Const.DEFAULT_GAUNTLET_TIME, INI_FILE_NAME);
